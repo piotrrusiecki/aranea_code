@@ -1,0 +1,19 @@
+[Unit]
+Description=Aranea Hexapod Server (Headless TCP Mode)
+After=network.target
+
+[Service]
+Type=simple
+#User=piotr
+WorkingDirectory=/home/piotr/Aranea_code/Code/Server
+ExecStartPre=/bin/sleep 5
+ExecStart=/usr/bin/python3 /home/piotr/Aranea_code/Code/Server/main.py -t -n
+Environment="PYTHONUNBUFFERED=1"
+Environment="DISPLAY=:0"
+Environment="XDG_RUNTIME_DIR=/run/user/1000"
+Restart=always
+RestartSec=5
+
+
+[Install]
+WantedBy=multi-user.target
