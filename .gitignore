@@ -1,0 +1,64 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Compiled binaries and Cython artifacts
+*.c
+*.cpp
+*.o
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+.Python
+
+# === VSCode / IDEs ===
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === OS / Editor Noise ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Logs / Outputs ===
+*.log
+*.out
+*.bak
+*.tmp
+*.orig
+
+# === Secrets / Credentials (customize if used) ===
+*.pem
+*.key
+*.crt
+*.cfg
+*.env
+
+# === Robot Project Specific (optional) ===
+# Comment out if you want to track test videos or frames
+*.h264
+*.mp4
+*.jpg
+*.png
+*.avi
+*.npy
+
+# Ignore MQTT logs or telemetry dumps if any
+logs/
+recordings/
+
+# === Git ===
+!.gitignore
