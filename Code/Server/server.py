@@ -48,6 +48,7 @@ class Server:
             cmd.CMD_CAMERA: self.handle_camera,
             cmd.CMD_RELAX: self.handle_relax,
             cmd.CMD_SERVOPOWER: self.handle_servo_power,
+            cmd.CMD_MOVE: self.handle_move
         }
 
     def handle_buzzer(self, parts):
@@ -99,6 +100,9 @@ class Server:
             else:
                 self.control_system.servo_power_disable.off()
 
+    def handle_move(self, parts):
+        self.control_system.command_queue = parts
+        self.control_system.timeout = time.time()
 
     def get_interface_ip(self):
         # Get the IP address of the wlan0 interface
@@ -129,12 +133,12 @@ class Server:
             if hasattr(self, 'command_connection'):
                 self.command_connection.close()
                 self.command_connection = None
-            if hasattr(self, 'video_socket'):
-                self.video_socket.close()
-                self.video_socket = None
-            if hasattr(self, 'command_socket'):
-                self.command_socket.close()
-                self.command_socket = None
+            if hasattr(self, 'video_raw_socket'):
+                self.video_raw_socket.close()
+                self.video_raw_socket = None
+            if hasattr(self, 'command_raw_socket'):
+                self.command_raw_socket.close()
+                self.command_raw_socket = None
         except Exception as e:
             print("Error during stop_server:", e)
 
@@ -142,30 +146,33 @@ class Server:
         if not parts or parts[0].strip() == "":
             return
 
-        command = parts[0]
+        command = parts[0].strip()
         handler = self.command_handlers.get(command)
 
         if handler:
             handler(parts)
         else:
+            print(f"Unknown command received: {command} | full: {parts}")
             self.control_system.command_queue = parts
             self.control_system.timeout = time.time()
 
+
     def send_data(self, connection, data):
-        # Send data over the specified connection
         try:
-            connection.send(data.encode('utf-8'))
-            # print("send",data)
+            if data.strip():  # skip empty or whitespace-only strings
+                connection.send(data.encode('utf-8'))
         except Exception as e:
             print(e)
+
 
     def transmit_video(self, shutdown_event):
         while not shutdown_event.is_set():
             try:
                 print("Waiting for video connection...")
-                self.video_connection, self.video_client_address = self.video_socket.accept()
-                self.video_connection = self.video_connection.makefile('wb')
-                print("Video socket connected ... ")
+                self.video_raw_socket, addr = self.video_socket.accept()
+                self.video_raw_socket.settimeout(1.0)
+                self.video_connection = self.video_raw_socket.makefile('wb')
+                print("Video socket connected ...")
 
                 self.camera_device.start_stream()
                 while not shutdown_event.is_set():
@@ -182,14 +189,16 @@ class Server:
 
             except Exception as e:
                 print("Video accept failed:", e)
-                time.sleep(1)  # avoid tight reconnect loop
+                time.sleep(1)
+
 
     def receive_commands(self, shutdown_event):
         while not shutdown_event.is_set():
             try:
                 print("Waiting for command connection...")
-                self.command_connection, self.command_client_address = self.command_socket.accept()
-                self.command_connection.settimeout(1.0)
+                self.command_raw_socket, self.command_client_address = self.command_socket.accept()
+                self.command_raw_socket.settimeout(1.0)
+                self.command_connection = self.command_raw_socket  
                 print("Client connection successful!")
             except Exception as e:
                 print("Client connect failed:", e)

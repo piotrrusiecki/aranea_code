@@ -493,17 +493,11 @@ class MyWindow(QMainWindow,Ui_client):
             if alldata=='':
                 break
             else:
-                cmdArray=alldata.split('\n')
-                #print(cmdArray)
-                if cmdArray[-1] !="":
-                    cmdArray==cmdArray[:-1]
+                cmdArray = [line for line in alldata.split('\n') if line.strip() != '']
             for oneCmd in cmdArray:
                 data=oneCmd.split("#")
                 print(data)
-                if data=="":
-                    self.client.tcp_flag=False
-                    break
-                elif data[0]==cmd.CMD_SONIC:
+                if data[0]==cmd.CMD_SONIC:
                     self.label_sonic.setText('Obstacle:'+data[1]+'cm')
                     #print('Obstacle:',data[1])
                 elif data[0]==cmd.CMD_POWER:
