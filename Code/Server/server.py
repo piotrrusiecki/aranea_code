@@ -36,7 +36,6 @@ class Server:
         self.control_system = Control()
         self.ultrasonic_sensor = Ultrasonic()
         self.camera_device = Camera()  
-        self.control_system.condition_thread.start()
 
         self.command_handlers = {
             cmd.CMD_BUZZER: self.handle_buzzer,
@@ -139,6 +138,8 @@ class Server:
             if hasattr(self, 'command_raw_socket'):
                 self.command_raw_socket.close()
                 self.command_raw_socket = None
+            self.control_system.stop()
+            self.camera_device.stop()    
         except Exception as e:
             print("Error during stop_server:", e)
 

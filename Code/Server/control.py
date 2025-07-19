@@ -34,6 +34,14 @@ class Control:
         self.set_leg_angles()
         self.condition_thread = threading.Thread(target=self.condition_monitor)
         self.Thread_conditiona = threading.Condition()
+        self.stop_event = threading.Event()
+        self.condition_thread.start()
+        
+    def stop(self):
+        self.stop_event.set()
+        if self.condition_thread.is_alive():
+            self.condition_thread.join()
+
 
     def read_from_txt(self, filename):
         with open(filename + ".txt", "r") as file:
@@ -131,7 +139,7 @@ class Control:
         return is_valid
 
     def condition_monitor(self):
-        while True:
+        while not self.stop_event.is_set():
             if (time.time() - self.timeout) > 10 and self.timeout != 0 and self.command_queue[0] == '':
                 self.timeout = time.time()
                 self.relax(True)
