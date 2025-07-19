@@ -24,7 +24,6 @@ class StreamingOutput(io.BufferedIOBase):
         with self.condition:
             self.frame = buf
             self.condition.notify_all()
-
 class Server:
     def __init__(self):
         # Initialize server state and components
@@ -38,6 +37,68 @@ class Server:
         self.ultrasonic_sensor = Ultrasonic()
         self.camera_device = Camera()  
         self.control_system.condition_thread.start()
+
+        self.command_handlers = {
+            cmd.CMD_BUZZER: self.handle_buzzer,
+            cmd.CMD_POWER: self.handle_power,
+            cmd.CMD_LED: self.handle_led,
+            cmd.CMD_LED_MOD: self.handle_led,
+            cmd.CMD_SONIC: self.handle_sonic,
+            cmd.CMD_HEAD: self.handle_head,
+            cmd.CMD_CAMERA: self.handle_camera,
+            cmd.CMD_RELAX: self.handle_relax,
+            cmd.CMD_SERVOPOWER: self.handle_servo_power,
+        }
+
+    def handle_buzzer(self, parts):
+        if len(parts) >= 2:
+            self.buzzer_controller.set_state(parts[1] == "1")
+
+    def handle_power(self, parts):
+        try:
+            battery_voltage = self.adc_sensor.read_battery_voltage()
+            response = f"{cmd.CMD_POWER}#{battery_voltage[0]}#{battery_voltage[1]}\n"
+            self.send_data(self.command_connection, response)
+            if battery_voltage[0] < 5.5 or battery_voltage[1] < 6:
+                for _ in range(3):
+                    self.buzzer_controller.set_state(True)
+                    time.sleep(0.15)
+                    self.buzzer_controller.set_state(False)
+                    time.sleep(0.1)
+        except:
+            pass
+
+    def handle_led(self, parts):
+        self.led_controller.process_light_command(parts)
+
+    def handle_sonic(self, parts):
+        distance = self.ultrasonic_sensor.get_distance()
+        response = f"{cmd.CMD_SONIC}#{distance}\n"
+        self.send_data(self.command_connection, response)
+
+    def handle_head(self, parts):
+        if len(parts) == 3:
+            self.servo_controller.set_servo_angle(int(parts[1]), int(parts[2]))
+
+    def handle_camera(self, parts):
+        if len(parts) == 3:
+            x = self.control_system.restrict_value(int(parts[1]), 50, 180)
+            y = self.control_system.restrict_value(int(parts[2]), 0, 180)
+            self.servo_controller.set_servo_angle(0, x)
+            self.servo_controller.set_servo_angle(1, y)
+
+    def handle_relax(self, parts):
+        self.is_servo_relaxed = not self.is_servo_relaxed
+        self.control_system.relax(self.is_servo_relaxed)
+        print("relax" if self.is_servo_relaxed else "unrelax")
+
+    def handle_servo_power(self, parts):
+        if len(parts) >= 2:
+            if parts[1] == "0":
+                self.control_system.servo_power_disable.on()
+            else:
+                self.control_system.servo_power_disable.off()
+
 
     def get_interface_ip(self):
         # Get the IP address of the wlan0 interface
@@ -64,10 +125,31 @@ class Server:
         try:
             if hasattr(self, 'video_connection'):
                 self.video_connection.close()
+                self.video_connection = None
             if hasattr(self, 'command_connection'):
                 self.command_connection.close()
+                self.command_connection = None
+            if hasattr(self, 'video_socket'):
+                self.video_socket.close()
+                self.video_socket = None
+            if hasattr(self, 'command_socket'):
+                self.command_socket.close()
+                self.command_socket = None
         except Exception as e:
             print("Error during stop_server:", e)
+
+    def process_command(self, parts):
+        if not parts or parts[0].strip() == "":
+            return
+
+        command = parts[0]
+        handler = self.command_handlers.get(command)
+
+        if handler:
+            handler(parts)
+        else:
+            self.control_system.command_queue = parts
+            self.control_system.timeout = time.time()
 
     def send_data(self, connection, data):
         # Send data over the specified connection
@@ -78,111 +160,62 @@ class Server:
             print(e)
 
     def transmit_video(self, shutdown_event):
-        # Transmit video frames to the connected client
-        try:
-            self.video_connection, self.video_client_address = self.video_socket.accept()
-            self.video_connection = self.video_connection.makefile('wb')
-        except Exception as e:
-            print("Video socket accept failed:", e)
-            return
-        self.video_socket.close()
-        print("Video socket connected ... ")
-
-        self.camera_device.start_stream()
         while not shutdown_event.is_set():
             try:
-                frame = self.camera_device.get_frame() 
-                frame_length = len(frame)
-                # print("output .length:",lenFrame)
-                length_binary = struct.pack('<I', frame_length)
-                self.video_connection.write(length_binary)
-                self.video_connection.write(frame)
+                print("Waiting for video connection...")
+                self.video_connection, self.video_client_address = self.video_socket.accept()
+                self.video_connection = self.video_connection.makefile('wb')
+                print("Video socket connected ... ")
+
+                self.camera_device.start_stream()
+                while not shutdown_event.is_set():
+                    try:
+                        frame = self.camera_device.get_frame()
+                        frame_length = len(frame)
+                        length_binary = struct.pack('<I', frame_length)
+                        self.video_connection.write(length_binary)
+                        self.video_connection.write(frame)
+                    except Exception as e:
+                        print("Video transmission error:", e)
+                        break
+                self.camera_device.stop_stream()
+
             except Exception as e:
-                print("End transmit ... ", e)
-                break
-        self.camera_device.stop_stream()
+                print("Video accept failed:", e)
+                time.sleep(1)  # avoid tight reconnect loop
 
     def receive_commands(self, shutdown_event):
-        # Receive and process commands from the connected client
-        try:
-            self.command_connection, self.command_client_address = self.command_socket.accept()
-            self.command_connection.settimeout(1.0)
-            print("Client connection successful !")
-        except Exception as e:
-            print("Client connect failed:", e)
-            return  # Exit early so the loop doesn't crash later
-
-        self.command_socket.close()
-
         while not shutdown_event.is_set():
             try:
-                received_data = self.command_connection.recv(1024).decode('utf-8')
-            except socket.timeout:
-                continue  # No data, just recheck shutdown_event
+                print("Waiting for command connection...")
+                self.command_connection, self.command_client_address = self.command_socket.accept()
+                self.command_connection.settimeout(1.0)
+                print("Client connection successful!")
             except Exception as e:
-                print("Receive error:", e)
-                break
+                print("Client connect failed:", e)
+                time.sleep(1)
+                continue  # Retry accept()
 
-            if received_data == "" and self.is_tcp_active:
-                print("Client disconnected.")
-                break
-            else:
-                command_array = received_data.split('\n')
-                command_array = [cmd for cmd in command_array if cmd.strip() != ""]  # clean empty lines
-                print("Received command array:", command_array)
-            for single_command in command_array:
-                command_parts = single_command.split("#")
-                if not command_parts or command_parts[0].strip() == "":
+            while not shutdown_event.is_set():
+                try:
+                    received_data = self.command_connection.recv(1024).decode('utf-8')
+                except socket.timeout:
                     continue
-                elif cmd.CMD_BUZZER in command_parts:
-                    self.buzzer_controller.set_state(command_parts[1] == "1")
-                elif cmd.CMD_POWER in command_parts:
-                    try:
-                        battery_voltage = self.adc_sensor.read_battery_voltage()
-                        response_command = cmd.CMD_POWER + "#" + str(battery_voltage[0]) + "#" + str(battery_voltage[1]) + "\n"
-                        # print(command)
-                        self.send_data(self.command_connection, response_command)
-                        if battery_voltage[0] < 5.5 or battery_voltage[1] < 6:
-                            for _ in range(3):
-                                self.buzzer_controller.set_state(True)
-                                time.sleep(0.15)
-                                self.buzzer_controller.set_state(False)
-                                time.sleep(0.1)
-                    except:
-                        pass
-                elif cmd.CMD_LED in command_parts or cmd.CMD_LED_MOD in command_parts:
-                    self.led_controller.process_light_command(command_parts)
-                elif cmd.CMD_SONIC in command_parts:
-                    response_command = cmd.CMD_SONIC + "#" + str(self.ultrasonic_sensor.get_distance()) + "\n"
-                    self.send_data(self.command_connection, response_command)
-                elif cmd.CMD_HEAD in command_parts:
-                    if len(command_parts) == 3:
-                        self.servo_controller.set_servo_angle(int(command_parts[1]), int(command_parts[2]))
-                elif cmd.CMD_CAMERA in command_parts:
-                    if len(command_parts) == 3:
-                        x = self.control_system.restrict_value(int(command_parts[1]), 50, 180)
-                        y = self.control_system.restrict_value(int(command_parts[2]), 0, 180)
-                        self.servo_controller.set_servo_angle(0, x)
-                        self.servo_controller.set_servo_angle(1, y)
-                elif cmd.CMD_RELAX in command_parts:
-                    if not self.is_servo_relaxed:
-                        self.control_system.relax(True)
-                        self.is_servo_relaxed = True
-                        print("relax")
-                    else:
-                        self.control_system.relax(False)
-                        self.is_servo_relaxed = False
-                        print("unrelax")
-                elif cmd.CMD_SERVOPOWER in command_parts:
-                    if command_parts[1] == "0":
-                        self.control_system.servo_power_disable.on()
-                    else:
-                        self.control_system.servo_power_disable.off()
+                except Exception as e:
+                    print("Receive error:", e)
+                    break
 
-                else:
-                    self.control_system.command_queue = command_parts
-                    self.control_system.timeout = time.time()
+                if received_data == "" and self.is_tcp_active:
+                    print("Client disconnected.")
+                    break
+
+                command_array = [cmd for cmd in received_data.split('\n') if cmd.strip()]
+                print("Received command array:", command_array)
+
+                for single_command in command_array:
+                    parts = single_command.split("#")
+                    self.process_command(parts)
+
+            print("Command session ended. Awaiting new connection...")
+
         print("close_recv")
-
-if __name__ == '__main__':
-    pass
