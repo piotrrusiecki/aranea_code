@@ -61,21 +61,13 @@ class Server:
         print('Server address: ' + host_ip)
 
     def stop_server(self):
-        # Stop the video and command servers
         try:
-            self.video_connection.close()
-            self.command_connection.close()
-        except:
-            print('\n' + "No client connection")
-
-    def reset_server(self):
-        # Reset the server by stopping and then starting it again
-        self.stop_server()
-        self.start_server()
-        self.video_thread = threading.Thread(target=self.transmit_video)
-        self.command_thread = threading.Thread(target=self.receive_commands)
-        self.video_thread.start()
-        self.command_thread.start()
+            if hasattr(self, 'video_connection'):
+                self.video_connection.close()
+            if hasattr(self, 'command_connection'):
+                self.command_connection.close()
+        except Exception as e:
+            print("Error during stop_server:", e)
 
     def send_data(self, connection, data):
         # Send data over the specified connection
@@ -85,18 +77,19 @@ class Server:
         except Exception as e:
             print(e)
 
-    def transmit_video(self):
+    def transmit_video(self, shutdown_event):
         # Transmit video frames to the connected client
         try:
             self.video_connection, self.video_client_address = self.video_socket.accept()
             self.video_connection = self.video_connection.makefile('wb')
-        except:
-            pass
+        except Exception as e:
+            print("Video socket accept failed:", e)
+            return
         self.video_socket.close()
         print("Video socket connected ... ")
 
         self.camera_device.start_stream()
-        while True:
+        while not shutdown_event.is_set():
             try:
                 frame = self.camera_device.get_frame() 
                 frame_length = len(frame)
@@ -105,39 +98,41 @@ class Server:
                 self.video_connection.write(length_binary)
                 self.video_connection.write(frame)
             except Exception as e:
-                self.camera_device.stop_stream()
-                print("End transmit ... ")
+                print("End transmit ... ", e)
                 break
+        self.camera_device.stop_stream()
 
-    def receive_commands(self):
+    def receive_commands(self, shutdown_event):
         # Receive and process commands from the connected client
         try:
             self.command_connection, self.command_client_address = self.command_socket.accept()
+            self.command_connection.settimeout(1.0)
             print("Client connection successful !")
-        except:
-            print("Client connect failed")
+        except Exception as e:
+            print("Client connect failed:", e)
+            return  # Exit early so the loop doesn't crash later
+
         self.command_socket.close()
 
-        while True:
+        while not shutdown_event.is_set():
             try:
                 received_data = self.command_connection.recv(1024).decode('utf-8')
-            except:
-                if self.is_tcp_active:
-                    self.reset_server()
-                    break
-                else:
-                    break
+            except socket.timeout:
+                continue  # No data, just recheck shutdown_event
+            except Exception as e:
+                print("Receive error:", e)
+                break
+
             if received_data == "" and self.is_tcp_active:
-                self.reset_server()
+                print("Client disconnected.")
                 break
             else:
                 command_array = received_data.split('\n')
-                print(command_array)
-                if command_array[-1] != "":
-                    command_array = command_array[:-1]  
+                command_array = [cmd for cmd in command_array if cmd.strip() != ""]  # clean empty lines
+                print("Received command array:", command_array)
             for single_command in command_array:
                 command_parts = single_command.split("#")
-                if command_parts == None or command_parts[0] == '':
+                if not command_parts or command_parts[0].strip() == "":
                     continue
                 elif cmd.CMD_BUZZER in command_parts:
                     self.buzzer_controller.set_state(command_parts[1] == "1")
@@ -170,7 +165,7 @@ class Server:
                         self.servo_controller.set_servo_angle(0, x)
                         self.servo_controller.set_servo_angle(1, y)
                 elif cmd.CMD_RELAX in command_parts:
-                    if self.is_servo_relaxed == False:
+                    if not self.is_servo_relaxed:
                         self.control_system.relax(True)
                         self.is_servo_relaxed = True
                         print("relax")
