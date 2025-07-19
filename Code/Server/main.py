@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import threading
-import Thread
 import time
 from server import Server
 shutdown_event = threading.Event()
