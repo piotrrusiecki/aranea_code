@@ -1,9 +1,12 @@
 from gpiozero import DistanceSensor, PWMSoftwareFallback, DistanceSensorNoEcho
 import warnings
 import time
+import threading
 
 class Ultrasonic:
     def __init__(self, trigger_pin: int = 27, echo_pin: int = 22, max_distance: float = 3.0):
+        self.thread = None
+        self.stop_event = threading.Event()
         # Initialize the Ultrasonic class and set up the distance sensor.
         warnings.filterwarnings("ignore", category = DistanceSensorNoEcho)
         warnings.filterwarnings("ignore", category = PWMSoftwareFallback)  # Ignore PWM software fallback warnings
@@ -12,10 +15,38 @@ class Ultrasonic:
         self.max_distance = max_distance  # Set the maximum distance
         self.sensor = DistanceSensor(echo=self.echo_pin, trigger=self.trigger_pin, max_distance=self.max_distance)  # Initialize the distance sensor
 
+    def stop(self):
+        self.stop_event.set()
+        if self.thread and self.thread.is_alive():
+            self.thread.join()
+        self.thread = None
+        self.stop_event.clear()
+    
+    @property
+    def is_running(self):
+        return self.thread is not None and self.thread.is_alive()
+
+
+    def start_distance_loop(self, interval=0.5):
+        print("[Ultrasonic] Starting distance loop...")
+        self.stop()
+
+        def loop():
+            while not self.stop_event.is_set():
+                distance = self.get_distance()
+                if distance is not None:
+                    print(f"[Ultrasonic] Distance: {distance}cm")
+                time.sleep(interval)
+
+        self.thread = threading.Thread(target=loop, daemon=True)
+        self.thread.start()
+
+
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        self.stop()
         self.close()
 
     def get_distance(self) -> float:

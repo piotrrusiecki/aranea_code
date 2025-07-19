@@ -8,7 +8,6 @@ from threading import Condition
 import threading
 from led import Led
 from servo import Servo
-from Thread import stop_thread
 from buzzer import Buzzer
 from control import Control
 from adc import ADC
@@ -38,8 +37,6 @@ class Server:
         self.control_system = Control()
         self.ultrasonic_sensor = Ultrasonic()
         self.camera_device = Camera()  
-        self.led_thread = None 
-        self.ultrasonic_thread = None  
         self.control_system.condition_thread.start()
 
     def get_interface_ip(self):
@@ -158,23 +155,8 @@ class Server:
                                 time.sleep(0.1)
                     except:
                         pass
-                elif cmd.CMD_LED in command_parts:
-                    try:
-                        if self.led_thread is not None:
-                            stop_thread(self.led_thread)
-                    except:
-                        pass
-                    self.led_thread = threading.Thread(target=self.led_controller.process_light_command, args=(command_parts,))
-                    self.led_thread.start()
-
-                elif cmd.CMD_LED_MOD in command_parts:
-                    try:
-                        if self.led_thread is not None:
-                            stop_thread(self.led_thread)
-                    except:
-                        pass
-                    self.led_thread = threading.Thread(target=self.led_controller.process_light_command, args=(command_parts,))
-                    self.led_thread.start()
+                elif cmd.CMD_LED in command_parts or cmd.CMD_LED_MOD in command_parts:
+                    self.led_controller.process_light_command(command_parts)
                 elif cmd.CMD_SONIC in command_parts:
                     response_command = cmd.CMD_SONIC + "#" + str(self.ultrasonic_sensor.get_distance()) + "\n"
                     self.send_data(self.command_connection, response_command)
@@ -205,16 +187,6 @@ class Server:
                 else:
                     self.control_system.command_queue = command_parts
                     self.control_system.timeout = time.time()
-        try:
-            if self.led_thread is not None:
-                stop_thread(self.led_thread)
-        except:
-            pass
-        try:
-            if self.ultrasonic_thread is not None:
-                stop_thread(self.ultrasonic_thread)
-        except:
-            pass
         print("close_recv")
 
 if __name__ == '__main__':

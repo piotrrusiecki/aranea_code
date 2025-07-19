@@ -1,11 +1,14 @@
 # -*-coding: utf-8 -*-
 import time
+import threading
 from parameter import ParameterManager
 from rpi_ledpixel import Freenove_RPI_WS281X
 from spi_ledpixel import Freenove_SPI_LedPixel
 
 class Led:
     def __init__(self):
+        self.thread = None
+        self.stop_event = threading.Event()
         """Initialize the Led class and set up LED strip based on PCB and Raspberry Pi versions."""
         # Initialize the ParameterManager instance
         self.param = ParameterManager()
@@ -31,8 +34,16 @@ class Led:
         self.led_mode = '1'
         self.received_color = [20, 0, 0]
 
+    def stop(self):
+        self.stop_event.set()
+        if self.thread and self.thread.is_alive():
+            self.thread.join()
+        self.thread = None
+        self.stop_event.clear()
+
     def color_wipe(self, color, wait_ms=50):
-        """Wipe color across display a pixel at a time."""
+        if not self.is_support_led_function:
+            return
         for i in range(self.strip.get_led_count()):
             self.strip.set_led_rgb_data(i, color)
             self.strip.show()
@@ -60,6 +71,8 @@ class Led:
 
     def rainbow(self, wait_ms=20, iterations=1):
         """Draw rainbow that fades across all pixels at once."""
+        if not self.is_support_led_function:
+            return
         for j in range(256 * iterations):
             for i in range(self.strip.get_led_count()):
                 self.strip.set_led_rgb_data(i, self.wheel((i + j) & 255))
@@ -68,14 +81,22 @@ class Led:
 
     def rainbow_cycle(self, wait_ms=20, iterations=1):
         """Draw rainbow that uniformly distributes itself across all pixels."""
+        if not self.is_support_led_function:
+            return
         for j in range(256 * iterations):
+            if self.stop_event.is_set():
+                return
             for i in range(self.strip.get_led_count()):
+                if self.stop_event.is_set():
+                    break
                 self.strip.set_led_rgb_data(i, self.wheel((int(i * 256 / self.strip.get_led_count()) + j) & 255))
             self.strip.show()
             time.sleep(wait_ms / 1000.0)
 
     def theater_chase(self, color, wait_ms=50):
         """Movie theater light style chaser animation."""
+        if not self.is_support_led_function:
+            return 
         led_count = self.strip.get_led_count()
         for i in range(led_count):
             for q in range(3):
@@ -86,6 +107,8 @@ class Led:
                 self.strip.set_led_rgb_data((i + q * 4) % led_count, [0, 0, 0])
 
     def led_index(self, index, r, g, b):
+        if not self.is_support_led_function:
+            return
         change_color = [r, g, b]
         for i in range(8):
             if index & 0x01 == 1:
@@ -102,24 +125,41 @@ class Led:
             for i in range(3):
                 self.received_color[i] = int(data[i + 1])
         if self.led_mode == '0':
+            self.stop()
             self.color_wipe([0, 0, 0])
-            self.led_mode = old_mode
+            return
         elif self.led_mode == '1':
             self.led_index(0x7f, self.received_color[0], self.received_color[1], self.received_color[2])
         elif self.led_mode == '2':
-            while True:
-                self.color_wipe([255, 0, 0])   # Red wipe
-                self.color_wipe([0, 255, 0])   # Green wipe
-                self.color_wipe([0, 0, 255])   # Blue wipe
+            self.stop()
+            def loop():
+                while not self.stop_event.is_set():
+                    self.color_wipe([255, 0, 0])   # Red wipe
+                    self.color_wipe([0, 255, 0])   # Green wipe
+                    self.color_wipe([0, 0, 255])   # Blue wipe
+            self.thread = threading.Thread(target=loop)
+            self.thread.start()
         elif self.led_mode == '3':
-            while True:
-                self.theater_chase(self.received_color)
+            self.stop()
+            def loop():
+                while not self.stop_event.is_set():
+                    self.theater_chase(self.received_color)
+            self.thread = threading.Thread(target=loop)
+            self.thread.start()
         elif self.led_mode == '4':
-            while True:
-                self.rainbow()
+            self.stop()
+            def loop():
+                while not self.stop_event.is_set():
+                    self.rainbow()
+            self.thread = threading.Thread(target=loop)
+            self.thread.start()
         elif self.led_mode == '5':
-            while True:
-                self.rainbow_cycle()
+            self.stop()
+            def loop():
+                while not self.stop_event.is_set():
+                    self.rainbow_cycle()
+            self.thread = threading.Thread(target=loop)
+            self.thread.start()
 
 # Main program logic follows:
 if __name__ == '__main__':
