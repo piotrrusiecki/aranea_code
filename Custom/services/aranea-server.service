@@ -4,16 +4,14 @@ After=network.target
 
 [Service]
 Type=simple
-#User=piotr
 WorkingDirectory=/home/piotr/Aranea_code/Code/Server
 ExecStartPre=/bin/sleep 5
-ExecStart=/usr/bin/python3 /home/piotr/Aranea_code/Code/Server/main.py -t -n
-Environment="PYTHONUNBUFFERED=1"
-Environment="DISPLAY=:0"
-Environment="XDG_RUNTIME_DIR=/run/user/1000"
+ExecStart=/usr/bin/python3 /home/piotr/Aranea_code/Code/Server/main.py
+Environment=PYTHONUNBUFFERED=1
 Restart=always
 RestartSec=5
-
+StandardOutput=append:/var/log/aranea_server.log
+StandardError=append:/var/log/aranea_server_error.log
 
 [Install]
 WantedBy=multi-user.target

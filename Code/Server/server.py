@@ -34,6 +34,8 @@ class Server:
         self.servo_controller = Servo()
         self.buzzer_controller = Buzzer()
         self.control_system = Control()
+        self.servo_controller.set_servo_angle(0, 90)  # Pan
+        self.servo_controller.set_servo_angle(1, 90)  # Til
         self.ultrasonic_sensor = Ultrasonic()
         self.camera_device = Camera()  
 
@@ -139,7 +141,8 @@ class Server:
                 self.command_raw_socket.close()
                 self.command_raw_socket = None
             self.control_system.stop()
-            self.camera_device.stop()    
+            if hasattr(self.camera_device, "stop_stream"):
+                self.camera_device.stop_stream()
         except Exception as e:
             print("Error during stop_server:", e)
 
