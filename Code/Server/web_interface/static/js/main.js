@@ -53,7 +53,8 @@ function updateSpeed(val) {
 }
 
 function sendMove(x, y) {
-  const cmd = `CMD_MOVE#${gaitMode}#${x}#${y}#${moveSpeed}#${actionMode}`;
+  const angle = computeAngle(x, y);
+  const cmd = `CMD_MOVE#${gaitMode}#${x}#${y}#${moveSpeed}#${angle}`;
   sendCommand(cmd);
 }
 
@@ -70,6 +71,20 @@ function toggleVoice(action) {
     }
   })
   .catch(err => console.error("Voice control toggle failed:", err));
+}
+
+function computeAngle(x, y) {
+  if (actionMode === 0 || (x === 0 && y === 0)) return 0;
+
+  const radians = Math.atan2(x, y);  // x then y: forward is y+
+  let angleDeg = radians * (180 / Math.PI);
+
+  if (angleDeg >= -90 && angleDeg <= 90) {
+    return Math.round(((angleDeg + 90) / 180) * 20 - 10);  // [-90, 90] → [-10, 10]
+  } else {
+    if (angleDeg < 0) angleDeg += 360;
+    return Math.round(((angleDeg - 270) / 180) * -20 + 10); // [270–360]+[0–90] → [10, -10]
+  }
 }
 
 updateHeadDisplay();
