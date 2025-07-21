@@ -1,26 +1,76 @@
 # -*- coding: utf-8 -*-
 import threading
 import time
+import sys
 import os
+import logging
+from flask import Flask
 from server import Server
-from voice_control import VoiceControl
+from voice_manager import start_voice, stop_voice
+from web_server import create_app
+from werkzeug.serving import make_server
+
+# --- Logging setup ---
+logging.getLogger('werkzeug').setLevel(logging.WARNING)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("main")
+vosk_logger = logging.getLogger("vosk")
+
+
+class VoskLogRedirector:
+    def write(self, message):
+        message = message.strip()
+        if message:
+            vosk_logger.info(message)
+
+    def flush(self):
+        pass
+
+sys.stderr = VoskLogRedirector()
+
+
+# --- Flask threaded server ---
+class FlaskServerThread(threading.Thread):
+    def __init__(self, app):
+        super().__init__(daemon=True)
+        self.server = make_server('0.0.0.0', 80, app)
+        self.ctx = app.app_context()
+        self.ctx.push()
+
+    def run(self):
+        print("Web server started on port 80 (HTTP)")
+        self.server.serve_forever()
+
+    def shutdown(self):
+        self.server.shutdown()
+        print("Web server stopped")
+
+
+# --- Main entrypoint ---
 shutdown_event = threading.Event()
-       
+server = None
+web_thread = None
+
 if __name__ == '__main__':
     try:
+        # Initialize server
         server = Server()
         server.start_server()
         server.is_tcp_active = True
 
+        # Start server threads
         video_thread = threading.Thread(target=server.transmit_video, args=(shutdown_event,), daemon=True)
         command_thread = threading.Thread(target=server.receive_commands, args=(shutdown_event,), daemon=True)
-
         video_thread.start()
         command_thread.start()
 
-        voice = VoiceControl(server.process_command, server.ultrasonic_sensor)
-        voice_thread = threading.Thread(target=voice.start, daemon=True)
-        voice_thread.start()
+        # Start voice control
+        start_voice(server.process_command, server.ultrasonic_sensor)
+
+        # Start web interface
+        flask_app = create_app(server)
+        web_thread = FlaskServerThread(flask_app)
+        web_thread.start()
 
         print("Server started. Press Ctrl+C to stop.")
         shutdown_event.wait()
@@ -28,14 +78,19 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print("\nStopping server...")
 
-        shutdown_event.set()
+    except Exception as e:
+        logger.exception("Unexpected error occurred")
 
-        if voice:
-            voice.stop()  # <-- New graceful shutdown
+    finally:
+        shutdown_event.set()
+        stop_voice()
 
         if server:
             server.is_tcp_active = False
             server.stop_server()
+
+        if web_thread:
+            web_thread.shutdown()
 
         print("Server stopped.")
         os._exit(0)
