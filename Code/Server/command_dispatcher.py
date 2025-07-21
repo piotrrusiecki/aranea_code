@@ -49,5 +49,17 @@ def dispatch_command(source, command):
     elif command == "CMD_RELAX":
         send(["CMD_RELAX"])
         return
+    
+    elif command.startswith("CMD_ATTITUDE"):
+        send_str(command)
+        return
 
+    elif command.startswith("CMD_POSITION"):
+        send_str(command)
+        return
+    
+    elif command.startswith("CMD_IMU_STATUS"):
+        send_str(command)
+        return
+    
     print(f"[{source}] Unknown or unhandled command: {command}")

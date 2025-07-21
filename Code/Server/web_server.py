@@ -42,4 +42,14 @@ def create_app(server_instance):
             "servo_relaxed": server_instance.is_servo_relaxed,
         })
 
+    @app.route("/imu")
+    def imu_status():
+        # Direct internal call; no sockets, no network
+        pitch, roll, yaw = server_instance.control_system.imu.update_imu_state()
+        return jsonify({
+            "pitch": round(pitch, 2),
+            "roll": round(roll, 2),
+            "yaw": round(yaw, 2)
+        })
+
     return app

@@ -4,6 +4,23 @@ let moveSpeed = 8;
 let tilt = 90;
 let pan = 90;
 
+// Step constants
+const stepAttX = 3;
+const stepAttY = 3;
+const stepAttZ = 3;
+
+const stepPosX = 5;
+const stepPosY = 5;
+const stepPosZ = 4;
+
+// State holders
+let attitudeX = 0, attitudeY = 0, attitudeZ = 0;
+let positionX = 0, positionY = 0, positionZ = 0;
+
+// IMU
+let imuPolling = false;
+let imuPollInterval = null;
+
 function sendCommand(cmd) {
   fetch('/command', {
     method: 'POST',
@@ -85,6 +102,68 @@ function computeAngle(x, y) {
     if (angleDeg < 0) angleDeg += 360;
     return Math.round(((angleDeg - 270) / 180) * -20 + 10); // [270–360]+[0–90] → [10, -10]
   }
+}
+function adjustAttitude(deltaX, deltaY, reset = false) {
+  if (reset) {
+    attitudeX = 0;
+    attitudeY = 0;
+    attitudeZ = 0;
+  } else {
+    attitudeX = clamp(attitudeX + deltaX, -15, 15);
+    attitudeY = clamp(attitudeY + deltaY, -15, 15);
+  }
+  sendCommand(`CMD_ATTITUDE#${attitudeX}#${attitudeY}#${attitudeZ}`);
+}
+
+function adjustAttitudeZ(deltaZ) {
+  attitudeZ = clamp(attitudeZ + deltaZ, -15, 15);
+  sendCommand(`CMD_ATTITUDE#${attitudeX}#${attitudeY}#${attitudeZ}`);
+}
+
+function adjustPosition(deltaX, deltaY, reset = false) {
+  if (reset) {
+    positionX = 0;
+    positionY = 0;
+    positionZ = 0;
+  } else {
+    positionX = clamp(positionX + deltaX, -40, 40);
+    positionY = clamp(positionY + deltaY, -40, 40);
+  }
+  sendCommand(`CMD_POSITION#${positionX}#${positionY}#${positionZ}`);
+}
+
+function adjustPositionZ(deltaZ) {
+  positionZ = clamp(positionZ + deltaZ, -20, 20);
+  sendCommand(`CMD_POSITION#${positionX}#${positionY}#${positionZ}`);
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function fetchIMU() {
+    fetch("/imu")
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('imuPitch').textContent = data.pitch.toFixed(2);
+            document.getElementById('imuRoll').textContent = data.roll.toFixed(2);
+            document.getElementById('imuYaw').textContent = data.yaw.toFixed(2);
+        })
+        .catch(() => {
+            document.getElementById('imuPitch').textContent = '--';
+            document.getElementById('imuRoll').textContent = '--';
+            document.getElementById('imuYaw').textContent = '--';
+        });
+}
+function toggleIMUPolling() {
+    imuPolling = !imuPolling;
+    document.getElementById('imuPollingStatus').textContent = imuPolling ? "ON" : "OFF";
+    if (imuPolling) {
+        fetchIMU();
+        imuPollInterval = setInterval(fetchIMU, 1000);
+    } else {
+        clearInterval(imuPollInterval);
+    }
 }
 
 updateHeadDisplay();

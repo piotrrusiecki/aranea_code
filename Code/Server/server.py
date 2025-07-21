@@ -49,12 +49,18 @@ class Server:
             cmd.CMD_CAMERA: self.handle_camera,
             cmd.CMD_RELAX: self.handle_relax,
             cmd.CMD_SERVOPOWER: self.handle_servo_power,
-            cmd.CMD_MOVE: self.handle_move
+            cmd.CMD_MOVE: self.handle_move,
+            cmd.CMD_IMU_STATUS: self.handle_imu_status
         }
 
     def handle_buzzer(self, parts):
         if len(parts) >= 2:
             self.buzzer_controller.set_state(parts[1] == "1")
+
+    def handle_imu_status(self, parts):
+        pitch, roll, yaw = self.control_system.imu.update_imu_state()
+        response = f"{cmd.CMD_IMU_STATUS}#{pitch:.2f}#{roll:.2f}#{yaw:.2f}\n"
+        self.send_data(self.command_connection, response)
 
     def handle_power(self, parts):
         try:
