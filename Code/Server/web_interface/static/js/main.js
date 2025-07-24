@@ -103,6 +103,7 @@ function computeAngle(x, y) {
     return Math.round(((angleDeg - 270) / 180) * -20 + 10); // [270–360]+[0–90] → [10, -10]
   }
 }
+
 function adjustAttitude(deltaX, deltaY, reset = false) {
   if (reset) {
     attitudeX = 0;
@@ -147,12 +148,16 @@ function fetchIMU() {
         .then(data => {
             document.getElementById('imuPitch').textContent = data.pitch.toFixed(2);
             document.getElementById('imuRoll').textContent = data.roll.toFixed(2);
-            document.getElementById('imuYaw').textContent = data.yaw.toFixed(2);
+            if (document.getElementById('imuYaw')) {
+              document.getElementById('imuYaw').textContent = data.yaw.toFixed(2);
+}
         })
         .catch(() => {
             document.getElementById('imuPitch').textContent = '--';
             document.getElementById('imuRoll').textContent = '--';
-            document.getElementById('imuYaw').textContent = '--';
+            if (document.getElementById('imuYaw')) {
+              document.getElementById('imuYaw').textContent = data.yaw.toFixed(2);
+}
         });
 }
 function toggleIMUPolling() {
@@ -166,4 +171,28 @@ function toggleIMUPolling() {
     }
 }
 
+function stopMotion() {
+  runRoutine('stop_motion');
+}
+
+function toggleSonic(isOn) {
+  if (isOn) {
+    runRoutine('start_sonic');
+  } else {
+    runRoutine('stop_sonic');
+  }
+}
+
 updateHeadDisplay();
+
+// --- Routine Trigger ---
+function runRoutine(routine) {
+  fetch('/routine', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ routine })
+  })
+  .then(r => r.json())
+  .then(data => console.log("Routine triggered:", data))
+  .catch(err => console.error("Routine failed:", err));
+}

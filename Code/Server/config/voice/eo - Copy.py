@@ -41,8 +41,8 @@ command_map = {
     "lumigu blue": "CMD_LED#0#0#255",
     "malŝaltu lumo": "CMD_LED#0#0#0",
 
-    "evitu obstaklon": "START_SONIC_MODE",
-    "haltu eviton": "STOP_SONIC_MODE",
+    "evitu": "START_SONIC_MODE",
+    "blinda": "STOP_SONIC_MODE",
 
     "marŝu": "START_MARCH",
     "marŝu maldekstren": "START_MARCH_LEFT",

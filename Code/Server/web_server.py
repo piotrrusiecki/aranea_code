@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify, render_template
+import threading
 from voice_manager import start_voice, stop_voice
 from command_dispatcher import dispatch_command, init_command_dispatcher
+from robot_routines import shutdown_sequence  # other routines are handled by dispatcher
 
-def create_app(server_instance):
+def create_app(server_instance, robot_state):
     app = Flask(
         __name__,
         static_folder="web_interface/static",
@@ -28,7 +30,11 @@ def create_app(server_instance):
     def toggle_voice():
         action = request.json.get("action")
         if action == "start":
-            start_voice(server_instance.process_command, server_instance.ultrasonic_sensor)
+            start_voice(
+                server_instance.process_command,
+                server_instance.ultrasonic_sensor,
+                robot_state
+            )
             return jsonify({"status": "started"})
         elif action == "stop":
             stop_voice()
@@ -44,12 +50,21 @@ def create_app(server_instance):
 
     @app.route("/imu")
     def imu_status():
-        # Direct internal call; no sockets, no network
         pitch, roll, yaw = server_instance.control_system.imu.update_imu_state()
         return jsonify({
             "pitch": round(pitch, 2),
             "roll": round(roll, 2),
             "yaw": round(yaw, 2)
         })
+
+    @app.route("/routine", methods=["POST"])
+    def trigger_routine():
+        data = request.get_json()
+        routine_name = data.get("routine")
+        if routine_name:
+            dispatch_command("web", routine_name)
+            return jsonify({"status": "ok", "started": routine_name})
+        else:
+            return jsonify({"status": "error", "reason": "No routine specified"}), 400
 
     return app

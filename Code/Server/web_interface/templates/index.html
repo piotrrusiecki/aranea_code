@@ -26,6 +26,7 @@
     <ul class="nav nav-tabs nav-fill mb-4" id="controlTabs">
       <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#move">Move</a></li>
       <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#position">Position</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#routines">Routines</a></li>
       <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#servos">Servos</a></li>
       <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#sensors">Sensors</a></li>
       <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#voice">Voice</a></li>
@@ -187,6 +188,37 @@
         </div>
       </div>
     </div>
+    <!-- ROUTINES TAB -->
+    <div class="tab-pane fade" id="routines">
+      <div class="text-center py-4">
+        <h5 class="mb-4">Routines</h5>
+
+        <!-- Sonic mode toggle -->
+        <div class="form-check form-switch mb-4 d-flex justify-content-center align-items-center" style="gap: 1rem; max-width: 300px; margin: 0 auto;">
+          <input class="form-check-input" type="checkbox" id="sonicToggle" onchange="toggleSonic(this.checked)">
+          <label class="form-check-label fs-4" for="sonicToggle">Obstacle Avoidance</label>
+        </div>
+
+        <!-- March controls -->
+        <div class="btn-group btn-group-lg mb-3" role="group" aria-label="March controls" style="width: 100%; max-width: 600px; margin: 0 auto;">
+          <button class="btn btn-warning flex-fill" onclick="runRoutine('march_forward')">March Forward</button>
+          <button class="btn btn-warning flex-fill" onclick="runRoutine('march_left')">March Left</button>
+          <button class="btn btn-danger flex-fill" onclick="stopMotion()">Stop</button>
+          <button class="btn btn-warning flex-fill" onclick="runRoutine('march_right')">March Right</button>
+          <button class="btn btn-warning flex-fill" onclick="runRoutine('march_back')">March Back</button>
+        </div>
+
+        <!-- Run controls -->
+        <div class="btn-group btn-group-lg" role="group" aria-label="Run controls" style="width: 100%; max-width: 600px; margin: 0 auto;">
+          <button class="btn btn-success flex-fill" onclick="runRoutine('run_forward')">Run Forward</button>
+          <button class="btn btn-success flex-fill" onclick="runRoutine('run_left')">Run Left</button>
+          <button class="btn btn-danger flex-fill" onclick="stopMotion()">Stop</button>
+          <button class="btn btn-success flex-fill" onclick="runRoutine('run_right')">Run Right</button>
+          <button class="btn btn-success flex-fill" onclick="runRoutine('run_back')">Run Back</button>
+        </div>
+      </div>
+    </div>
+
       <!-- Servos Tab -->
       <div class="tab-pane fade" id="servos">
         <p class="text-center py-5">Servo controls will be placed here.</p>

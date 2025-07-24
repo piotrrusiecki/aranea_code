@@ -7,8 +7,10 @@ import logging
 from flask import Flask
 from server import Server
 from voice_manager import start_voice, stop_voice
+from command_dispatcher import init_command_dispatcher, dispatch_command
 from web_server import create_app
 from werkzeug.serving import make_server
+from robot_state import RobotState  # <--- NEW
 
 # --- Logging setup ---
 logging.getLogger('werkzeug').setLevel(logging.WARNING)
@@ -55,8 +57,13 @@ if __name__ == '__main__':
     try:
         # Initialize server
         server = Server()
+        robot_state = RobotState()
+        server.robot_state = robot_state
         server.start_server()
         server.is_tcp_active = True
+
+        # Create shared robot state (NEW)
+        robot_state = RobotState()
 
         # Start server threads
         video_thread = threading.Thread(target=server.transmit_video, args=(shutdown_event,), daemon=True)
@@ -64,11 +71,16 @@ if __name__ == '__main__':
         video_thread.start()
         command_thread.start()
 
-        # Start voice control
-        start_voice(server.process_command, server.ultrasonic_sensor)
+        # Start voice control (pass robot_state)
+        init_command_dispatcher(server)
+        start_voice(
+            lambda cmd: dispatch_command("voice", cmd),
+            server.ultrasonic_sensor,
+            robot_state  # <--- pass shared state to voice
+        )
 
         # Start web interface
-        flask_app = create_app(server)
+        flask_app = create_app(server, robot_state)
         web_thread = FlaskServerThread(flask_app)
         web_thread.start()
 

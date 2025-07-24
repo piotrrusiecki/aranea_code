@@ -1,9 +1,10 @@
-# command_dispatcher.py
-
 import threading
 import time
-from voice_runtime import (
-    set_runtime_interfaces, motion_mode, march_mode, sonic_mode
+from command import COMMAND as cmd
+from robot_routines import (
+    march_forward, march_left, march_right, march_back,
+    run_forward, run_left, run_right, run_back,
+    sonic_monitor_loop, shutdown_sequence
 )
 
 server_instance = None
@@ -11,10 +12,10 @@ server_instance = None
 def init_command_dispatcher(server):
     global server_instance
     server_instance = server
-    set_runtime_interfaces(server.process_command, server.ultrasonic_sensor)
 
 def dispatch_command(source, command):
     print(f"[{source}] dispatch_command received: {command}")
+
     def send(parts):
         server_instance.process_command(parts)
 
@@ -22,44 +23,117 @@ def dispatch_command(source, command):
         send(cmd_string.strip().split("#"))
 
     if isinstance(command, list):
-        for cmd in command:
-            dispatch_command(source, cmd)
+        if command and isinstance(command[0], str) and command[0].startswith("CMD_"):
+            send(command)
+            return
+        for cmd_item in command:
+            dispatch_command(source, cmd_item)
             time.sleep(0.6)
-        send_str("CMD_MOVE#1#0#0#8#0")
         return
 
     if not isinstance(command, str):
         print(f"[{source}] Invalid command type: {command}")
         return
 
-    if command.startswith("CMD_MOVE"):
+    # Routine commands map
+    routine_commands = {
+        "march_forward": march_forward,
+        "march_left": march_left,
+        "march_right": march_right,
+        "march_back": march_back,
+        "run_forward": run_forward,
+        "run_left": run_left,
+        "run_right": run_right,
+        "run_back": run_back,
+        "start_sonic": sonic_monitor_loop,
+        "stop_sonic": None,   # handled separately
+        "shutdown": shutdown_sequence,
+        "stop_motion": None,  # handled separately
+    }
+
+    if command in routine_commands:
+        # Start sonic mode
+        if command == "start_sonic":
+            if not server_instance.robot_state.get_flag("sonic_state"):
+                print("Starting sonic mode...")
+                server_instance.robot_state.set_flag("sonic_state", True)
+                threading.Thread(
+                    target=sonic_monitor_loop,
+                    args=(send, server_instance.ultrasonic_sensor, lambda: server_instance.robot_state.get_flag("sonic_state")),
+                    daemon=True
+                ).start()
+            return
+
+        # Stop sonic mode
+        if command == "stop_sonic":
+            if server_instance.robot_state.get_flag("sonic_state"):
+                print("Stopping sonic mode...")
+                server_instance.robot_state.set_flag("sonic_state", False)
+            return
+
+        # Stop motion loops
+        if command == "stop_motion":
+            if server_instance.robot_state.get_flag("motion_state"):
+                print("Stopping motion loop...")
+                server_instance.robot_state.set_flag("motion_state", False)
+                send_str(f"{cmd.CMD_MOVE}#1#0#0#8#0")
+                send_str(f"{cmd.CMD_LED}#0#0#0")
+                send_str(f"{cmd.CMD_HEAD}#1#90")
+            return
+
+        # Shutdown routine
+        if command == "shutdown":
+            print("Running shutdown sequence...")
+            shutdown_sequence(send)
+            return
+
+        # Start march or run routines
+        if command in {
+            "march_forward", "march_left", "march_right", "march_back",
+            "run_forward", "run_left", "run_right", "run_back"
+        }:
+            if not server_instance.robot_state.get_flag("motion_state"):
+                print(f"Starting routine: {command}")
+                server_instance.robot_state.set_flag("motion_state", True)
+                routine_fn = routine_commands[command]
+                threading.Thread(
+                    target=routine_fn,
+                    args=(send, server_instance.ultrasonic_sensor, lambda: server_instance.robot_state.get_flag("motion_state")),
+                    daemon=True
+                ).start()
+            else:
+                print(f"Motion already active; ignoring routine {command}")
+            return
+
+    # Handle low-level commands
+    if command.startswith(cmd.CMD_MOVE):
         send_str(command)
         time.sleep(0.6)
-        send_str("CMD_MOVE#1#0#0#8#0")
+        send_str(f"{cmd.CMD_MOVE}#1#0#0#8#0")
         return
 
-    elif command.startswith("CMD_HEAD"):
-        send_str(command)
-        return
-
-    elif command.startswith("CMD_SERVOPOWER"):
+    elif command.startswith(cmd.CMD_HEAD):
         send_str(command)
         return
 
-    elif command == "CMD_RELAX":
-        send(["CMD_RELAX"])
-        return
-    
-    elif command.startswith("CMD_ATTITUDE"):
+    elif command.startswith(cmd.CMD_SERVOPOWER):
         send_str(command)
         return
 
-    elif command.startswith("CMD_POSITION"):
+    elif command == cmd.CMD_RELAX:
+        send([cmd.CMD_RELAX])
+        return
+
+    elif command.startswith(cmd.CMD_ATTITUDE):
         send_str(command)
         return
-    
-    elif command.startswith("CMD_IMU_STATUS"):
+
+    elif command.startswith(cmd.CMD_POSITION):
         send_str(command)
         return
-    
+
+    elif command.startswith(cmd.CMD_IMU_STATUS):
+        send_str(command)
+        return
+
     print(f"[{source}] Unknown or unhandled command: {command}")

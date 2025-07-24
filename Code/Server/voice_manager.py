@@ -5,10 +5,10 @@ voice = None
 voice_thread = None
 voice_active = False
 
-def start_voice(process_command, ultrasonic_sensor):
+def start_voice(process_command, ultrasonic_sensor, robot_state):
     global voice, voice_thread, voice_active
     if not voice_active:
-        voice = VoiceControl(process_command, ultrasonic_sensor)
+        voice = VoiceControl(process_command, ultrasonic_sensor, robot_state)
         voice_thread = threading.Thread(target=voice.start, daemon=True)
         voice_thread.start()
         voice_active = True
