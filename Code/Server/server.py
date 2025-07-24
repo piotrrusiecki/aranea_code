@@ -101,9 +101,10 @@ class Server:
             self.servo_controller.set_servo_angle(1, y)
 
     def handle_relax(self, parts):
-        self.is_servo_relaxed = not self.is_servo_relaxed
-        self.control_system.relax(self.is_servo_relaxed)
-        print("relax" if self.is_servo_relaxed else "unrelax")
+        new_state = not self.robot_state.get_flag("servo_relaxed")
+        self.robot_state.set_flag("servo_relaxed", new_state)
+        self.control_system.relax(new_state)
+        print("Relax" if new_state else "Unrelax")
 
     def handle_servo_power(self, parts):
         if len(parts) >= 2:

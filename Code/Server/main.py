@@ -51,6 +51,7 @@ if __name__ == '__main__':
     try:
         # Initialize server and robot state (ONE instance only!)
         robot_state = RobotState()
+        robot_state.set_flag("servo_relaxed", False) 
         server = Server(robot_state=robot_state)
         server.robot_state = robot_state
 

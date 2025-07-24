@@ -112,10 +112,6 @@ class Control:
 
     def condition_monitor(self):
         while not self.stop_event.is_set():
-            if (time.time() - self.timeout) > 10 and self.timeout != 0 and self.command_queue[0] == '':
-                self.timeout = time.time()
-                self.relax(True)
-                self.status_flag = 0x00
             if cmd.CMD_POSITION in self.command_queue and len(self.command_queue) == 4:
                 if self.status_flag != 0x01:
                     self.relax(False)
