@@ -15,7 +15,8 @@ from robot_gait import run_gait
 from robot_calibration import read_from_txt, save_to_txt, calibrate
 
 class Control:
-    def __init__(self):
+    def __init__(self, robot_state):  # Add any other params you need
+        self.robot_state = robot_state
         self.imu = IMU()
         self.servo = Servo()
         self.movement_flag = 0x01
@@ -48,17 +49,29 @@ class Control:
             self.condition_thread.join()
 
     def set_leg_angles(self):
+        print("DEBUG: set_leg_angles called.")
+        print("DEBUG: leg_positions before calculation:", self.leg_positions)
+        print("DEBUG: calibration_angles:", self.calibration_angles)
+
         if self.check_point_validity():
+            # Calculate angles based on leg_positions
             for i in range(6):
                 self.current_angles[i][0], self.current_angles[i][1], self.current_angles[i][2] = coordinate_to_angle(
                     -self.leg_positions[i][2], self.leg_positions[i][0], self.leg_positions[i][1])
+
+            # Apply calibration offsets and clamp for legs 0 to 2
             for i in range(3):
                 self.current_angles[i][0] = restrict_value(self.current_angles[i][0] + self.calibration_angles[i][0], 0, 180)
                 self.current_angles[i][1] = restrict_value(90 - (self.current_angles[i][1] + self.calibration_angles[i][1]), 0, 180)
                 self.current_angles[i][2] = restrict_value(self.current_angles[i][2] + self.calibration_angles[i][2], 0, 180)
+                # Legs 3 to 5 with adjustments
                 self.current_angles[i + 3][0] = restrict_value(self.current_angles[i + 3][0] + self.calibration_angles[i + 3][0], 0, 180)
                 self.current_angles[i + 3][1] = restrict_value(90 + self.current_angles[i + 3][1] + self.calibration_angles[i + 3][1], 0, 180)
                 self.current_angles[i + 3][2] = restrict_value(180 - (self.current_angles[i + 3][2] + self.calibration_angles[i + 3][2]), 0, 180)
+
+            print("DEBUG: current_angles after applying calibration:", self.current_angles)
+
+            # Send angles to servos in the correct order
             # Leg 1
             self.servo.set_servo_angle(15, self.current_angles[0][0])
             self.servo.set_servo_angle(14, self.current_angles[0][1])
@@ -85,6 +98,7 @@ class Control:
             self.servo.set_servo_angle(27, self.current_angles[3][2])
         else:
             print("This coordinate point is out of the active range")
+
 
     def check_point_validity(self):
         is_valid = True
@@ -139,49 +153,73 @@ class Control:
                     self.status_flag = 0x04
                     self.imu6050()
             elif cmd.CMD_CALIBRATION in self.command_queue:
+                # --- Calibration mode safety check ---
+                if not self.robot_state.get_flag("calibration_mode"):
+                    print("Ignoring calibration command: not in calibration mode.")
+                    self.command_queue = ['', '', '', '', '', '']
+                    return
+
+
+                print("DEBUG: Calibration block hit. Queue:", self.command_queue)
                 self.timeout = 0
                 calibrate(self.leg_positions, self.calibration_leg_positions, self.calibration_angles, self.current_angles)
+                print("DEBUG: After calibrate, angles:", self.calibration_angles)
                 self.set_leg_angles()
                 if len(self.command_queue) >= 2:
+                    print("DEBUG: Command details:", self.command_queue[1:])
                     if self.command_queue[1] == "one":
-                        self.calibration_leg_positions[0][0] = int(self.command_queue[2])
-                        self.calibration_leg_positions[0][1] = int(self.command_queue[3])
-                        self.calibration_leg_positions[0][2] = int(self.command_queue[4])
+                        idx = 0
+                        self.calibration_leg_positions[idx][0] = int(self.command_queue[2])
+                        self.calibration_leg_positions[idx][1] = int(self.command_queue[3])
+                        self.calibration_leg_positions[idx][2] = int(self.command_queue[4])
+                        self.leg_positions[idx] = self.calibration_leg_positions[idx][:]
                         calibrate(self.leg_positions, self.calibration_leg_positions, self.calibration_angles, self.current_angles)
                         self.set_leg_angles()
                     elif self.command_queue[1] == "two":
-                        self.calibration_leg_positions[1][0] = int(self.command_queue[2])
-                        self.calibration_leg_positions[1][1] = int(self.command_queue[3])
-                        self.calibration_leg_positions[1][2] = int(self.command_queue[4])
+                        idx = 1
+                        self.calibration_leg_positions[idx][0] = int(self.command_queue[2])
+                        self.calibration_leg_positions[idx][1] = int(self.command_queue[3])
+                        self.calibration_leg_positions[idx][2] = int(self.command_queue[4])
+                        self.leg_positions[idx] = self.calibration_leg_positions[idx][:]
                         calibrate(self.leg_positions, self.calibration_leg_positions, self.calibration_angles, self.current_angles)
                         self.set_leg_angles()
                     elif self.command_queue[1] == "three":
-                        self.calibration_leg_positions[2][0] = int(self.command_queue[2])
-                        self.calibration_leg_positions[2][1] = int(self.command_queue[3])
-                        self.calibration_leg_positions[2][2] = int(self.command_queue[4])
+                        idx = 2
+                        self.calibration_leg_positions[idx][0] = int(self.command_queue[2])
+                        self.calibration_leg_positions[idx][1] = int(self.command_queue[3])
+                        self.calibration_leg_positions[idx][2] = int(self.command_queue[4])
+                        self.leg_positions[idx] = self.calibration_leg_positions[idx][:]
                         calibrate(self.leg_positions, self.calibration_leg_positions, self.calibration_angles, self.current_angles)
                         self.set_leg_angles()
                     elif self.command_queue[1] == "four":
-                        self.calibration_leg_positions[3][0] = int(self.command_queue[2])
-                        self.calibration_leg_positions[3][1] = int(self.command_queue[3])
-                        self.calibration_leg_positions[3][2] = int(self.command_queue[4])
+                        idx = 3
+                        self.calibration_leg_positions[idx][0] = int(self.command_queue[2])
+                        self.calibration_leg_positions[idx][1] = int(self.command_queue[3])
+                        self.calibration_leg_positions[idx][2] = int(self.command_queue[4])
+                        self.leg_positions[idx] = self.calibration_leg_positions[idx][:]
                         calibrate(self.leg_positions, self.calibration_leg_positions, self.calibration_angles, self.current_angles)
                         self.set_leg_angles()
                     elif self.command_queue[1] == "five":
-                        self.calibration_leg_positions[4][0] = int(self.command_queue[2])
-                        self.calibration_leg_positions[4][1] = int(self.command_queue[3])
-                        self.calibration_leg_positions[4][2] = int(self.command_queue[4])
+                        idx = 4
+                        self.calibration_leg_positions[idx][0] = int(self.command_queue[2])
+                        self.calibration_leg_positions[idx][1] = int(self.command_queue[3])
+                        self.calibration_leg_positions[idx][2] = int(self.command_queue[4])
+                        self.leg_positions[idx] = self.calibration_leg_positions[idx][:]
                         calibrate(self.leg_positions, self.calibration_leg_positions, self.calibration_angles, self.current_angles)
                         self.set_leg_angles()
                     elif self.command_queue[1] == "six":
-                        self.calibration_leg_positions[5][0] = int(self.command_queue[2])
-                        self.calibration_leg_positions[5][1] = int(self.command_queue[3])
-                        self.calibration_leg_positions[5][2] = int(self.command_queue[4])
+                        idx = 5
+                        self.calibration_leg_positions[idx][0] = int(self.command_queue[2])
+                        self.calibration_leg_positions[idx][1] = int(self.command_queue[3])
+                        self.calibration_leg_positions[idx][2] = int(self.command_queue[4])
+                        self.leg_positions[idx] = self.calibration_leg_positions[idx][:]
                         calibrate(self.leg_positions, self.calibration_leg_positions, self.calibration_angles, self.current_angles)
                         self.set_leg_angles()
                     elif self.command_queue[1] == "save":
                         save_to_txt(self.calibration_leg_positions, 'point')
                 self.command_queue = ['', '', '', '', '', '']
+
+
 
     def relax(self, flag):
         if flag:

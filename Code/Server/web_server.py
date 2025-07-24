@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify, render_template
 import threading
 from voice_manager import start_voice, stop_voice
@@ -46,7 +47,22 @@ def create_app(server_instance, robot_state):
         return jsonify({
             "tcp_active": server_instance.is_tcp_active,
             "servo_relaxed": server_instance.is_servo_relaxed,
+            "calibration_mode": robot_state.get_flag("calibration_mode"),
+            "motion_state": robot_state.get_flag("motion_state"),
+            "sonic_state": robot_state.get_flag("sonic_state"),
         })
+
+    @app.route("/calibration_mode", methods=["GET", "POST"])
+    def calibration_mode():
+        if request.method == "GET":
+            return jsonify({"calibration_mode": robot_state.get_flag("calibration_mode")})
+        # POST: set calibration mode
+        data = request.get_json()
+        mode = data.get("calibration_mode")
+        if isinstance(mode, bool):
+            robot_state.set_flag("calibration_mode", mode)
+            return jsonify({"status": "ok", "calibration_mode": robot_state.get_flag("calibration_mode")})
+        return jsonify({"status": "error", "reason": "Invalid calibration_mode value"}), 400
 
     @app.route("/imu")
     def imu_status():
@@ -66,5 +82,22 @@ def create_app(server_instance, robot_state):
             return jsonify({"status": "ok", "started": routine_name})
         else:
             return jsonify({"status": "error", "reason": "No routine specified"}), 400
+
+    @app.route("/calibration", methods=["GET"])
+    def get_calibration():
+        # Try to read from current in-memory state (preferred), fallback to file if needed
+        try:
+            # Use the control system's in-memory data if available
+            data = server_instance.control_system.calibration_leg_positions
+        except Exception:
+            # Fallback to reading the file directly
+            if os.path.exists("point.txt"):
+                with open("point.txt") as f:
+                    lines = f.readlines()
+                data = [list(map(int, line.strip().split("\t"))) for line in lines]
+            else:
+                data = [[0, 72, 0] for _ in range(6)]  # reasonable default
+
+        return jsonify(data)
 
     return app

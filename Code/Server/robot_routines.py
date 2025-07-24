@@ -119,6 +119,40 @@ def shutdown_sequence(command_sender):
     command_sender([cmd.CMD_HEAD, "1", "90"])
     command_sender([cmd.CMD_HEAD, "0", "90"])
 
+def prepare_for_calibration(send, control_system, robot_state):
+    print("Preparing robot for calibration...")
+
+    saved_positions = []
+    try:
+        with open('point.txt', 'r') as f:
+            for line in f:
+                parts = line.strip().split('\t')
+                if len(parts) == 3:
+                    saved_positions.append([int(parts[0]), int(parts[1]), int(parts[2])])
+        if len(saved_positions) != 6:
+            print(f"Warning: point.txt has {len(saved_positions)} lines, expected 6. Using default positions.")
+            saved_positions = [[140, 0, 0] for _ in range(6)]
+    except FileNotFoundError:
+        print("point.txt not found; using default calibration positions.")
+        saved_positions = [[140, 0, 0] for _ in range(6)]
+
+    robot_state.set_flag("calibration_mode", True)
+
+    for i in range(6):
+        control_system.leg_positions[i] = saved_positions[i][:]
+        control_system.calibration_leg_positions[i] = saved_positions[i][:]
+
+    control_system.set_leg_angles()
+
+    print("Robot set to saved calibration pose. Calibration mode ON.")
+
+
+def exit_calibration(send, control_system, robot_state):
+    print("Exiting calibration mode...")
+    robot_state.set_flag("calibration_mode", False)
+    # Optionally: relax servos or move to safe pose
+    print("Calibration mode OFF.")
+
 # === High-level wrappers for routines ===
 
 def march_forward(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=True):

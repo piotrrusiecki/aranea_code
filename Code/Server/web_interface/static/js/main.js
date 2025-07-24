@@ -21,6 +21,18 @@ let positionX = 0, positionY = 0, positionZ = 0;
 let imuPolling = false;
 let imuPollInterval = null;
 
+// Calibration state
+const calibLegNames = ["one", "two", "three", "four", "five", "six"];
+let calibLegs = [
+  { x: 0, y: 72, z: 0 }, // Default values, adjust if needed or load from backend
+  { x: 0, y: 72, z: 0 },
+  { x: 0, y: 72, z: 0 },
+  { x: 0, y: 72, z: 0 },
+  { x: 0, y: 72, z: 0 },
+  { x: 0, y: 72, z: 0 }
+];
+let calibSelectedLeg = 0; // 0 = one, 1 = two, ...
+
 function sendCommand(cmd) {
   fetch('/command', {
     method: 'POST',
@@ -32,20 +44,159 @@ function sendCommand(cmd) {
   .catch(err => console.error("Command failed:", err));
 }
 
+function runRoutine(routine) {
+  fetch('/routine', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ routine })
+  })
+  .then(r => r.json())
+  .then(data => console.log("Routine triggered:", data))
+  .catch(err => console.error("Routine failed:", err));
+}
+
+// -- Calibration Mode Integration --
+
+// Check if robot is in calibration mode (returns a Promise)
+function checkCalibrationMode() {
+  return fetch("/calibration_mode")
+    .then(r => r.json())
+    .then(data => data.calibration_mode === true)
+    .catch(() => false);
+}
+
+// Request robot to enter calibration mode (neutral pose)
+function prepareForCalibration() {
+  runRoutine('prep_calibration');
+  // Poll every 200ms until calibration_mode is ON (max 2s)
+  let tries = 0;
+  function poll() {
+    fetch('/calibration_mode')
+      .then(r => r.json())
+      .then(data => {
+        if (data.calibration_mode) {
+          updateCalibrationModeStatus();
+        } else if (tries++ < 10) {
+          setTimeout(poll, 200);
+        } else {
+          updateCalibrationModeStatus(); // Give up after 2s, update UI anyway
+        }
+      });
+  }
+  setTimeout(poll, 200);
+}
+
+
+// Request robot to exit calibration mode (optional)
+function exitCalibration() {
+  runRoutine('exit_calibration');
+  let tries = 0;
+  function poll() {
+    fetch('/calibration_mode')
+      .then(r => r.json())
+      .then(data => {
+        if (!data.calibration_mode) {
+          updateCalibrationModeStatus();
+        } else if (tries++ < 10) {
+          setTimeout(poll, 200);
+        } else {
+          updateCalibrationModeStatus();
+        }
+      });
+  }
+  setTimeout(poll, 200);
+}
+
+
+// Select a leg to calibrate
+function selectCalibrationLeg(idx) {
+  calibSelectedLeg = idx;
+  // Update button styles
+  for (let i = 0; i < 6; i++) {
+    document.getElementById('legBtn' + (i + 1)).classList.toggle('active', i === idx);
+  }
+  updateCalibrationFields();
+}
+
+// Update XYZ value fields for the selected leg
+function updateCalibrationFields() {
+  const leg = calibLegs[calibSelectedLeg];
+  document.getElementById('calibX').value = leg.x;
+  document.getElementById('calibY').value = leg.y;
+  document.getElementById('calibZ').value = leg.z;
+}
+
+// Nudge the current axis and send command (only if in calibration mode)
+function nudgeCalibration(axis, delta) {
+  checkCalibrationMode().then(isCalib => {
+    if (!isCalib) {
+      alert("Robot is not in calibration mode. Click 'Prepare for Calibration' first.");
+      return;
+    }
+    const leg = calibLegs[calibSelectedLeg];
+    leg[axis] += delta;
+    updateCalibrationFields();
+    sendCommand(`CMD_CALIBRATION#${calibLegNames[calibSelectedLeg]}#${leg.x}#${leg.y}#${leg.z}`);
+  });
+}
+
+// Save all current calibration values to robot (only if in calibration mode)
+function saveCalibration() {
+  checkCalibrationMode().then(isCalib => {
+    if (!isCalib) {
+      alert("Robot is not in calibration mode. Click 'Prepare for Calibration' first.");
+      return;
+    }
+    sendCommand("CMD_CALIBRATION#save");
+    const status = document.getElementById('calibStatus');
+    status.textContent = "Saved!";
+    setTimeout(() => { status.textContent = ""; }, 2000);
+  });
+}
+
+// Fetch calibration points and update UI
+function loadCalibrationFromRobot() {
+  fetch("/calibration")
+    .then(r => r.json())
+    .then(data => {
+      for (let i = 0; i < 6; i++) {
+        calibLegs[i].x = data[i][0];
+        calibLegs[i].y = data[i][1];
+        calibLegs[i].z = data[i][2];
+      }
+      updateCalibrationFields();
+    })
+    .catch(() => {
+      // Could show error or ignore
+    });
+}
+
+// Detect Calibration tab selection using Bootstrap event
+document.addEventListener("DOMContentLoaded", () => {
+  // Setup tab show event (Bootstrap 5+)
+  const tabEl = document.querySelector('a[href="#calibration"]');
+  if (tabEl) {
+    tabEl.addEventListener('shown.bs.tab', function (event) {
+      loadCalibrationFromRobot();
+    });
+  }
+  // Default select first leg
+  selectCalibrationLeg(0);
+});
+
+// ---- Movement, Voice, IMU, and Other Robot Controls ----
+
 function sendHead(newTilt, newPan) {
   newTilt = Math.max(50, Math.min(180, newTilt));
   newPan = Math.max(0, Math.min(180, newPan));
-
   if (Math.abs(newTilt - tilt) >= 1) {
     tilt = newTilt;
     sendCommand(`CMD_HEAD#0#${tilt}`);
   }
-
   if (Math.abs(newPan - pan) >= 1) {
     pan = newPan;
     sendCommand(`CMD_HEAD#1#${pan}`);
   }
-
   updateHeadDisplay();
 }
 
@@ -92,10 +243,8 @@ function toggleVoice(action) {
 
 function computeAngle(x, y) {
   if (actionMode === 0 || (x === 0 && y === 0)) return 0;
-
   const radians = Math.atan2(x, y);  // x then y: forward is y+
   let angleDeg = radians * (180 / Math.PI);
-
   if (angleDeg >= -90 && angleDeg <= 90) {
     return Math.round(((angleDeg + 90) / 180) * 20 - 10);  // [-90, 90] → [-10, 10]
   } else {
@@ -150,14 +299,14 @@ function fetchIMU() {
             document.getElementById('imuRoll').textContent = data.roll.toFixed(2);
             if (document.getElementById('imuYaw')) {
               document.getElementById('imuYaw').textContent = data.yaw.toFixed(2);
-}
+            }
         })
         .catch(() => {
             document.getElementById('imuPitch').textContent = '--';
             document.getElementById('imuRoll').textContent = '--';
             if (document.getElementById('imuYaw')) {
-              document.getElementById('imuYaw').textContent = data.yaw.toFixed(2);
-}
+              document.getElementById('imuYaw').textContent = '--';
+            }
         });
 }
 function toggleIMUPolling() {
@@ -183,16 +332,40 @@ function toggleSonic(isOn) {
   }
 }
 
-updateHeadDisplay();
-
-// --- Routine Trigger ---
-function runRoutine(routine) {
-  fetch('/routine', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ routine })
-  })
-  .then(r => r.json())
-  .then(data => console.log("Routine triggered:", data))
-  .catch(err => console.error("Routine failed:", err));
+document.addEventListener("DOMContentLoaded", () => {
+  const tabEl = document.querySelector('a[href="#calibration"]');
+  if (tabEl) {
+    tabEl.addEventListener('shown.bs.tab', function () {
+      loadCalibrationFromRobot();
+      updateCalibrationModeStatus();
+    });
+  }
+  // Default select first leg
+  selectCalibrationLeg(0);
+});
+function setCalibrationControlsEnabled(enabled) {
+  document.querySelectorAll('#calibration .btn-secondary, #calibration .btn-success').forEach(btn => {
+    btn.disabled = !enabled;
+  });
 }
+
+function updateCalibrationModeStatus() {
+  fetch('/calibration_mode')
+    .then(r => r.json())
+    .then(data => {
+      const statusSpan = document.getElementById('calibModeStatus');
+      if (data.calibration_mode) {
+        statusSpan.textContent = "CALIBRATION MODE ACTIVE";
+        statusSpan.classList.remove('text-secondary');
+        statusSpan.classList.add('text-success');
+        setCalibrationControlsEnabled(true);
+      } else {
+        statusSpan.textContent = "Calibration mode OFF";
+        statusSpan.classList.remove('text-success');
+        statusSpan.classList.add('text-secondary');
+        setCalibrationControlsEnabled(false);
+      }
+    });
+}
+
+updateHeadDisplay();

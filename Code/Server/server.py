@@ -25,15 +25,15 @@ class StreamingOutput(io.BufferedIOBase):
             self.frame = buf
             self.condition.notify_all()
 class Server:
-    def __init__(self):
-        # Initialize server state and components
+    def __init__(self, robot_state):
+        self.robot_state = robot_state
+        self.control_system = Control(robot_state=robot_state)
         self.is_tcp_active = False
         self.is_servo_relaxed = False
         self.led_controller = Led()
         self.adc_sensor = ADC()
         self.servo_controller = Servo()
         self.buzzer_controller = Buzzer()
-        self.control_system = Control()
         self.servo_controller.set_servo_angle(0, 90)  # Pan
         self.servo_controller.set_servo_angle(1, 90)  # Til
         self.ultrasonic_sensor = Ultrasonic()
@@ -50,8 +50,13 @@ class Server:
             cmd.CMD_RELAX: self.handle_relax,
             cmd.CMD_SERVOPOWER: self.handle_servo_power,
             cmd.CMD_MOVE: self.handle_move,
-            cmd.CMD_IMU_STATUS: self.handle_imu_status
+            cmd.CMD_IMU_STATUS: self.handle_imu_status,
+            cmd.CMD_CALIBRATION: self.handle_calibration,
         }
+
+    def handle_calibration(self, parts):
+        self.control_system.command_queue = parts
+        self.control_system.timeout = time.time()
 
     def handle_buzzer(self, parts):
         if len(parts) >= 2:

@@ -4,7 +4,7 @@ from command import COMMAND as cmd
 from robot_routines import (
     march_forward, march_left, march_right, march_back,
     run_forward, run_left, run_right, run_back,
-    sonic_monitor_loop, shutdown_sequence
+    sonic_monitor_loop, shutdown_sequence, prepare_for_calibration, exit_calibration
 )
 
 server_instance = None
@@ -36,6 +36,8 @@ def dispatch_command(source, command):
         "stop_sonic": None,   # handled inline
         "shutdown": shutdown_sequence,
         "stop_motion": None,  # handled inline
+        "prep_calibration": prepare_for_calibration,
+        "exit_calibration": exit_calibration
     }
 
     # Support for both single and batch commands (as string or list)
@@ -96,6 +98,12 @@ def dispatch_command(source, command):
             shutdown_sequence(send)
             return
 
+        if command in {"prep_calibration", "exit_calibration"}:
+            routine_commands[command](
+                send, server_instance.control_system, server_instance.robot_state
+            )
+            return
+
         # --- Start Motion Routines (march/run) ---
         if command in {
             "march_forward", "march_left", "march_right", "march_back",
@@ -150,6 +158,10 @@ def dispatch_command(source, command):
         return
 
     elif command.startswith(cmd.CMD_IMU_STATUS):
+        send_str(command)
+        return
+    
+    elif command.startswith(cmd.CMD_CALIBRATION):
         send_str(command)
         return
 

@@ -18,18 +18,15 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("main")
 vosk_logger = logging.getLogger("vosk")
 
-
 class VoskLogRedirector:
     def write(self, message):
         message = message.strip()
         if message:
             vosk_logger.info(message)
-
     def flush(self):
         pass
 
 sys.stderr = VoskLogRedirector()
-
 
 # --- Flask threaded server ---
 class FlaskServerThread(threading.Thread):
@@ -38,15 +35,12 @@ class FlaskServerThread(threading.Thread):
         self.server = make_server('0.0.0.0', 80, app)
         self.ctx = app.app_context()
         self.ctx.push()
-
     def run(self):
         print("Web server started on port 80 (HTTP)")
         self.server.serve_forever()
-
     def shutdown(self):
         self.server.shutdown()
         print("Web server stopped")
-
 
 # --- Main entrypoint ---
 shutdown_event = threading.Event()
@@ -55,15 +49,17 @@ web_thread = None
 
 if __name__ == '__main__':
     try:
-        # Initialize server
-        server = Server()
+        # Initialize server and robot state (ONE instance only!)
         robot_state = RobotState()
+        server = Server(robot_state=robot_state)
         server.robot_state = robot_state
+
+        # Pass robot_state to Control when initializing (you may need to update Control's __init__)
+        # Example: server.control_system = Control(robot_state=robot_state, ...)
+        # If control system is created inside Server(), make sure it also receives robot_state
+
         server.start_server()
         server.is_tcp_active = True
-
-        # Create shared robot state (NEW)
-        robot_state = RobotState()
 
         # Start server threads
         video_thread = threading.Thread(target=server.transmit_video, args=(shutdown_event,), daemon=True)
