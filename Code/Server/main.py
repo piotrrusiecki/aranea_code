@@ -4,6 +4,7 @@ import time
 import sys
 import os
 import logging
+from datetime import datetime
 from flask import Flask
 from server import Server
 from voice_manager import start_voice, stop_voice
@@ -13,35 +14,46 @@ from werkzeug.serving import make_server
 from robot_state import RobotState
 from config import robot_config
 
-# --- Logging setup ---
+# --- Vosk/C-level stderr redirect (rotate per server start) ---
+VOSK_LOG_DIR = "/path/to/log/dir"  # <-- CHANGE THIS to your preferred directory (e.g. "/home/piotr/logs")
+if not os.path.exists(VOSK_LOG_DIR):
+    os.makedirs(VOSK_LOG_DIR)
+vosk_log_basename = "vosk_native-" + datetime.now().strftime("%Y%m%d-%H%M%S") + ".log"
+vosk_log_path = os.path.join(VOSK_LOG_DIR, vosk_log_basename)
+vosk_log_file = open(vosk_log_path, "w")
+sys.stderr.flush()
+os.dup2(vosk_log_file.fileno(), sys.stderr.fileno())
+sys.stderr = vosk_log_file
+
+# --- Logging setup with color by logger name ---
+class LoggerColorFormatter(logging.Formatter):
+    def format(self, record):
+        colors = robot_config.LOGGER_COLORS
+        # Try exact match
+        color = colors.get(record.name)
+        if not color:
+            # Try to match by prefix
+            for prefix, c in colors.items():
+                if prefix != 'RESET' and record.name.startswith(prefix + '.'):
+                    color = c
+                    break
+        if not color:
+            color = colors.get('RESET')
+        message = super().format(record)
+        return f"{color}{message}{colors['RESET']}"
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(LoggerColorFormatter("%(asctime)s %(levelname)s [%(name)s] %(message)s"))
+
 log_level = getattr(logging, robot_config.LOGGING_LEVEL.upper(), logging.INFO)
 logging.basicConfig(
     level=log_level,
-    format="%(asctime)s %(levelname)s [%(name)s] %(message)s"
+    handlers=[handler]
 )
 logger = logging.getLogger("main")
 
 # Suppress Flask/Werkzeug info logs
 logging.getLogger('werkzeug').setLevel(logging.WARNING)
-
-# --- Vosk logger setup (attempt to capture/suppress) ---
-vosk_logger = logging.getLogger("vosk")
-vosk_logger.setLevel(log_level)
-vosk_logger.handlers = []  # Remove any existing handlers Vosk might set up
-vosk_stream_handler = logging.StreamHandler(sys.stdout)
-vosk_stream_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s [vosk] %(message)s"))
-vosk_logger.addHandler(vosk_stream_handler)
-
-# Optional: Redirect sys.stderr to capture additional raw Vosk (or other C/C++) logs
-class VoskLogRedirector:
-    def write(self, message):
-        message = message.strip()
-        if message:
-            vosk_logger.info(message)
-    def flush(self):
-        pass
-
-sys.stderr = VoskLogRedirector()
 
 # --- Flask threaded server ---
 class FlaskServerThread(threading.Thread):
@@ -69,8 +81,6 @@ if __name__ == '__main__':
         robot_state.set_flag("servo_off", False)
         server = Server(robot_state=robot_state)
         server.robot_state = robot_state
-
-        # Pass robot_state to Control when initializing if needed
 
         server.start_server()
         server.is_tcp_active = True

@@ -15,7 +15,7 @@ from robot_pose import calculate_posture_balance, transform_coordinates
 from robot_gait import run_gait
 from robot_calibration import read_from_txt, save_to_txt, calibrate
 
-logger = logging.getLogger("robot")
+logger = logging.getLogger("robot.control")
 
 class Control:
     def __init__(self, robot_state):  # Add any other params you need

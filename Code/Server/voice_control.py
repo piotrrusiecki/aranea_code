@@ -24,7 +24,7 @@ class VoiceControl:
 
     def _callback(self, indata, frames, time_info, status):
         if status:
-            logger.warning("Audio status: %s", status)
+            logger.debug("Audio status: %s", status)
         self.queue.put(bytes(indata))
 
     def stop(self):

@@ -16,7 +16,7 @@ from ultrasonic import Ultrasonic
 from command import COMMAND as cmd
 from camera import Camera  
 
-logger = logging.getLogger("robot")
+logger = logging.getLogger("robot.server")
 
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
@@ -56,6 +56,8 @@ class Server:
             cmd.CMD_MOVE: self.handle_move,
             cmd.CMD_IMU_STATUS: self.handle_imu_status,
             cmd.CMD_CALIBRATION: self.handle_calibration,
+            cmd.CMD_ATTITUDE: self.handle_attitude,
+            cmd.CMD_POSITION: self.handle_position,
         }
 
     def handle_calibration(self, parts):
@@ -120,6 +122,17 @@ class Server:
     def handle_move(self, parts):
         self.control_system.command_queue = parts
         self.control_system.timeout = time.time()
+
+    def handle_attitude(self, parts):
+        logger.info("Handling attitude command")
+        self.control_system.command_queue = parts.copy()
+        self.control_system.timeout = time.time()
+
+    def handle_position(self, parts):
+        logger.info("Handling position command")
+        self.control_system.command_queue = parts.copy()
+        self.control_system.timeout = time.time()
+
 
     def get_interface_ip(self):
         # Get the IP address of the wlan0 interface
