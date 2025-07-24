@@ -5,9 +5,12 @@ import time
 import difflib
 import sounddevice as sd
 from vosk import Model, KaldiRecognizer
+import logging
 
 from config.voice import command_map, model_path, samplerate, blocksize
 from voice_command_handler import VoiceCommandHandler
+
+logger = logging.getLogger("voice")
 
 class VoiceControl:
     def __init__(self, command_sender, ultrasonic_sensor, robot_state):
@@ -21,7 +24,7 @@ class VoiceControl:
 
     def _callback(self, indata, frames, time_info, status):
         if status:
-            print("Audio status:", status)
+            logger.warning("Audio status: %s", status)
         self.queue.put(bytes(indata))
 
     def stop(self):
@@ -38,7 +41,7 @@ class VoiceControl:
                 device=1,
                 callback=self._callback
             ):
-                print("Voice control listening... Press Ctrl+C to stop.")
+                logger.info("Voice control listening... Press Ctrl+C to stop.")
                 while self.running:
                     data = self.queue.get()
                     if self.recognizer.AcceptWaveform(data):
@@ -49,19 +52,19 @@ class VoiceControl:
 
                         if spoken in command_map:
                             command = command_map[spoken]
-                            print(f"Exact match: '{spoken}' -> {command}")
+                            logger.info("Exact match: '%s' -> %s", spoken, command)
                         else:
                             match = difflib.get_close_matches(spoken, command_map.keys(), n=1, cutoff=0.6)
                             if match:
                                 spoken = match[0]
                                 command = command_map[spoken]
-                                print(f"Fuzzy match: '{spoken}' -> {command}")
+                                logger.info("Fuzzy match: '%s' -> %s", spoken, command)
                             else:
-                                print(f"No match for: '{spoken}'")
+                                logger.info("No match for: '%s'", spoken)
                                 continue
 
                         self.command_handler.handle_command(spoken, command)
         except KeyboardInterrupt:
-            print("Ctrl+C received. Shutting down voice control.")
+            logger.info("Ctrl+C received. Shutting down voice control.")
             from robot_routines import shutdown_sequence
             shutdown_sequence(self.command_sender)

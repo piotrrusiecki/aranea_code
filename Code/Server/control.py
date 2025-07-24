@@ -3,6 +3,7 @@ import time
 import math
 import copy
 import threading
+import logging
 import numpy as np
 from gpiozero import OutputDevice
 from pid import Incremental_PID
@@ -13,6 +14,8 @@ from robot_kinematics import coordinate_to_angle, angle_to_coordinate, restrict_
 from robot_pose import calculate_posture_balance, transform_coordinates
 from robot_gait import run_gait
 from robot_calibration import read_from_txt, save_to_txt, calibrate
+
+logger = logging.getLogger("robot")
 
 class Control:
     def __init__(self, robot_state):  # Add any other params you need
@@ -48,9 +51,9 @@ class Control:
             self.condition_thread.join()
 
     def set_leg_angles(self):
-        print("DEBUG: set_leg_angles called.")
-        print("DEBUG: leg_positions before calculation:", self.leg_positions)
-        print("DEBUG: calibration_angles:", self.calibration_angles)
+        logger.debug("set_leg_angles called.")
+        logger.debug("leg_positions before calculation: %s", self.leg_positions)
+        logger.debug("calibration_angles: %s", self.calibration_angles)
 
         if self.check_point_validity():
             # Calculate angles based on leg_positions
@@ -68,7 +71,7 @@ class Control:
                 self.current_angles[i + 3][1] = restrict_value(90 + self.current_angles[i + 3][1] + self.calibration_angles[i + 3][1], 0, 180)
                 self.current_angles[i + 3][2] = restrict_value(180 - (self.current_angles[i + 3][2] + self.calibration_angles[i + 3][2]), 0, 180)
 
-            print("DEBUG: current_angles after applying calibration:", self.current_angles)
+            logger.debug("current_angles after applying calibration: %s", self.current_angles)
 
             # Send angles to servos in the correct order
             # Leg 1
@@ -96,8 +99,7 @@ class Control:
             self.servo.set_servo_angle(23, self.current_angles[3][1])
             self.servo.set_servo_angle(27, self.current_angles[3][2])
         else:
-            print("This coordinate point is out of the active range")
-
+            logger.warning("This coordinate point is out of the active range.")
 
     def check_point_validity(self):
         is_valid = True
@@ -151,17 +153,17 @@ class Control:
             elif cmd.CMD_CALIBRATION in self.command_queue:
                 # --- Calibration mode safety check ---
                 if not self.robot_state.get_flag("calibration_mode"):
-                    print("Ignoring calibration command: not in calibration mode.")
+                    logger.warning("Ignoring calibration command: not in calibration mode.")
                     self.command_queue = ['', '', '', '', '', '']
                     continue
 
-                print("DEBUG: Calibration block hit. Queue:", self.command_queue)
+                logger.debug("Calibration block hit. Queue: %s", self.command_queue)
                 self.timeout = 0
                 calibrate(self.leg_positions, self.calibration_leg_positions, self.calibration_angles, self.current_angles)
-                print("DEBUG: After calibrate, angles:", self.calibration_angles)
+                logger.debug("After calibrate, angles: %s", self.calibration_angles)
                 self.set_leg_angles()
                 if len(self.command_queue) >= 2:
-                    print("DEBUG: Command details:", self.command_queue[1:])
+                    logger.debug("Command details: %s", self.command_queue[1:])
                     if self.command_queue[1] == "one":
                         idx = 0
                         self.calibration_leg_positions[idx][0] = int(self.command_queue[2])
@@ -213,8 +215,6 @@ class Control:
                     elif self.command_queue[1] == "save":
                         save_to_txt(self.calibration_leg_positions, 'point')
                 self.command_queue = ['', '', '', '', '', '']
-
-
 
     def relax(self, flag):
         if flag:

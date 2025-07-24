@@ -1,5 +1,6 @@
 import threading
 import time
+import logging
 from command import COMMAND as cmd
 from robot_routines import (
     march_forward, march_left, march_right, march_back,
@@ -7,6 +8,7 @@ from robot_routines import (
     sonic_monitor_loop, shutdown_sequence, prepare_for_calibration, exit_calibration
 )
 
+logger = logging.getLogger("dispatcher")
 server_instance = None
 
 def init_command_dispatcher(server):
@@ -14,7 +16,7 @@ def init_command_dispatcher(server):
     server_instance = server
 
 def dispatch_command(source, command):
-    print(f"[{source}] dispatch_command received: {command}")
+    logger.info("[%s] dispatch_command received: %s", source, command)
 
     def send(parts):
         server_instance.process_command(parts)
@@ -51,7 +53,7 @@ def dispatch_command(source, command):
         return
 
     if not isinstance(command, str):
-        print(f"[{source}] Invalid command type: {command}")
+        logger.warning("[%s] Invalid command type: %s", source, command)
         return
 
     # --- Routine triggers ---
@@ -60,7 +62,7 @@ def dispatch_command(source, command):
         # --- Start Sonic Mode ---
         if command == "start_sonic":
             if not server_instance.robot_state.get_flag("sonic_state"):
-                print("Starting sonic mode...")
+                logger.info("Starting sonic mode...")
                 server_instance.robot_state.set_flag("sonic_state", True)
                 threading.Thread(
                     target=sonic_monitor_loop,
@@ -68,33 +70,33 @@ def dispatch_command(source, command):
                     daemon=True
                 ).start()
             else:
-                print("Sonic mode already active.")
+                logger.info("Sonic mode already active.")
             return
 
         # --- Stop Sonic Mode ---
         if command == "stop_sonic":
             if server_instance.robot_state.get_flag("sonic_state"):
-                print("Stopping sonic mode...")
+                logger.info("Stopping sonic mode...")
                 server_instance.robot_state.set_flag("sonic_state", False)
             else:
-                print("Sonic mode was not active.")
+                logger.info("Sonic mode was not active.")
             return
 
         # --- Stop Motion Loops ---
         if command == "stop_motion":
             if server_instance.robot_state.get_flag("motion_state"):
-                print("Stopping motion loop...")
+                logger.info("Stopping motion loop...")
                 server_instance.robot_state.set_flag("motion_state", False)
                 send_str(f"{cmd.CMD_MOVE}#1#0#0#8#0")
                 send_str(f"{cmd.CMD_LED}#0#0#0")
                 send_str(f"{cmd.CMD_HEAD}#1#90")
             else:
-                print("Motion was not active.")
+                logger.info("Motion was not active.")
             return
 
         # --- Shutdown Routine ---
         if command == "shutdown":
-            print("Running shutdown sequence...")
+            logger.info("Running shutdown sequence...")
             shutdown_sequence(send)
             return
 
@@ -111,7 +113,7 @@ def dispatch_command(source, command):
         }:
             # Always forcibly clear stale motion state before new routine
             if server_instance.robot_state.get_flag("motion_state"):
-                print("Motion already active or stuck, forcibly resetting state before starting new motion.")
+                logger.warning("Motion already active or stuck, forcibly resetting state before starting new motion.")
                 server_instance.robot_state.set_flag("motion_state", False)
                 time.sleep(0.1)
             # --- KEY FIX HERE ---
@@ -119,7 +121,7 @@ def dispatch_command(source, command):
                 use_sensor = False
             else:
                 use_sensor = server_instance.robot_state.get_flag("sonic_state")
-            print(f"Starting routine: {command} (safety {'ON' if use_sensor else 'OFF'})")
+            logger.info("Starting routine: %s (safety %s)", command, 'ON' if use_sensor else 'OFF')
             server_instance.robot_state.set_flag("motion_state", True)
             routine_fn = routine_commands[command]
             threading.Thread(
@@ -165,4 +167,4 @@ def dispatch_command(source, command):
         send_str(command)
         return
 
-    print(f"[{source}] Unknown or unhandled command: {command}")
+    logger.warning("[%s] Unknown or unhandled command: %s", source, command)

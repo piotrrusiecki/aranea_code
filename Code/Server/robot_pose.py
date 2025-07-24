@@ -2,6 +2,9 @@
 
 import math
 import numpy as np
+import logging
+
+logger = logging.getLogger("robot")
 
 def calculate_posture_balance(roll, pitch, yaw, body_height):
     """
@@ -74,10 +77,9 @@ def transform_coordinates(points, leg_positions, body_points):
 
 if __name__ == '__main__':
     # Example usage/tests (dummy values)
-    # These would need real data in a live test.
     body_height = -25
     result = calculate_posture_balance(0, 0, 0, body_height)
-    print(result)
+    logger.info("calculate_posture_balance(0,0,0,%d): %s", body_height, result)
     leg_pos = [[0, 0, 0] for _ in range(6)]
     body_pts = [[0, 0, 0] for _ in range(6)]
-    print(transform_coordinates(result, leg_pos, body_pts))
+    logger.info("transform_coordinates: %s", transform_coordinates(result, leg_pos, body_pts))

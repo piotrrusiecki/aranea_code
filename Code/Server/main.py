@@ -10,14 +10,29 @@ from voice_manager import start_voice, stop_voice
 from command_dispatcher import init_command_dispatcher, dispatch_command
 from web_server import create_app
 from werkzeug.serving import make_server
-from robot_state import RobotState  # <--- NEW
+from robot_state import RobotState
+from config import robot_config
 
 # --- Logging setup ---
-logging.getLogger('werkzeug').setLevel(logging.WARNING)
-logging.basicConfig(level=logging.INFO)
+log_level = getattr(logging, robot_config.LOGGING_LEVEL.upper(), logging.INFO)
+logging.basicConfig(
+    level=log_level,
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s"
+)
 logger = logging.getLogger("main")
-vosk_logger = logging.getLogger("vosk")
 
+# Suppress Flask/Werkzeug info logs
+logging.getLogger('werkzeug').setLevel(logging.WARNING)
+
+# --- Vosk logger setup (attempt to capture/suppress) ---
+vosk_logger = logging.getLogger("vosk")
+vosk_logger.setLevel(log_level)
+vosk_logger.handlers = []  # Remove any existing handlers Vosk might set up
+vosk_stream_handler = logging.StreamHandler(sys.stdout)
+vosk_stream_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s [vosk] %(message)s"))
+vosk_logger.addHandler(vosk_stream_handler)
+
+# Optional: Redirect sys.stderr to capture additional raw Vosk (or other C/C++) logs
 class VoskLogRedirector:
     def write(self, message):
         message = message.strip()
@@ -36,11 +51,11 @@ class FlaskServerThread(threading.Thread):
         self.ctx = app.app_context()
         self.ctx.push()
     def run(self):
-        print("Web server started on port 80 (HTTP)")
+        logger.info("Web server started on port 80 (HTTP)")
         self.server.serve_forever()
     def shutdown(self):
         self.server.shutdown()
-        print("Web server stopped")
+        logger.info("Web server stopped")
 
 # --- Main entrypoint ---
 shutdown_event = threading.Event()
@@ -51,13 +66,11 @@ if __name__ == '__main__':
     try:
         # Initialize server and robot state (ONE instance only!)
         robot_state = RobotState()
-        robot_state.set_flag("servo_off", False) 
+        robot_state.set_flag("servo_off", False)
         server = Server(robot_state=robot_state)
         server.robot_state = robot_state
 
-        # Pass robot_state to Control when initializing (you may need to update Control's __init__)
-        # Example: server.control_system = Control(robot_state=robot_state, ...)
-        # If control system is created inside Server(), make sure it also receives robot_state
+        # Pass robot_state to Control when initializing if needed
 
         server.start_server()
         server.is_tcp_active = True
@@ -73,7 +86,7 @@ if __name__ == '__main__':
         start_voice(
             lambda cmd: dispatch_command("voice", cmd),
             server.ultrasonic_sensor,
-            robot_state  # <--- pass shared state to voice
+            robot_state
         )
 
         # Start web interface
@@ -81,11 +94,11 @@ if __name__ == '__main__':
         web_thread = FlaskServerThread(flask_app)
         web_thread.start()
 
-        print("Server started. Press Ctrl+C to stop.")
+        logger.info("Server started. Press Ctrl+C to stop.")
         shutdown_event.wait()
 
     except KeyboardInterrupt:
-        print("\nStopping server...")
+        logger.warning("Stopping server...")
 
     except Exception as e:
         logger.exception("Unexpected error occurred")
@@ -101,5 +114,5 @@ if __name__ == '__main__':
         if web_thread:
             web_thread.shutdown()
 
-        print("Server stopped.")
+        logger.info("Server stopped.")
         os._exit(0)

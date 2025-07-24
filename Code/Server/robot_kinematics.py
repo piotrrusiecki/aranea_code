@@ -1,6 +1,9 @@
 # robot_kinematics.py
 
 import math
+import logging
+
+logger = logging.getLogger("robot")
 
 def coordinate_to_angle(x, y, z, l1=33, l2=90, l3=110):
     """
@@ -49,5 +52,5 @@ def map_value(value, from_low, from_high, to_low, to_high):
 
 if __name__ == '__main__':
     # Example usage/tests:
-    print(coordinate_to_angle(140, 0, 0))
-    print(angle_to_coordinate(90, 0, 0))
+    logger.info("coordinate_to_angle(140, 0, 0): %s", coordinate_to_angle(140, 0, 0))
+    logger.info("angle_to_coordinate(90, 0, 0): %s", angle_to_coordinate(90, 0, 0))

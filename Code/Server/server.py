@@ -6,6 +6,7 @@ import socket
 import struct
 from threading import Condition
 import threading
+import logging
 from led import Led
 from servo import Servo
 from buzzer import Buzzer
@@ -14,6 +15,8 @@ from adc import ADC
 from ultrasonic import Ultrasonic
 from command import COMMAND as cmd
 from camera import Camera  
+
+logger = logging.getLogger("robot")
 
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
@@ -24,6 +27,7 @@ class StreamingOutput(io.BufferedIOBase):
         with self.condition:
             self.frame = buf
             self.condition.notify_all()
+
 class Server:
     def __init__(self, robot_state):
         self.robot_state = robot_state
@@ -78,8 +82,8 @@ class Server:
                     time.sleep(0.15)
                     self.buzzer_controller.set_state(False)
                     time.sleep(0.1)
-        except:
-            pass
+        except Exception as e:
+            logger.error("Power handling error: %s", e)
 
     def handle_led(self, parts):
         self.led_controller.process_light_command(parts)
@@ -104,7 +108,7 @@ class Server:
         new_state = not self.robot_state.get_flag("servo_relaxed")
         self.robot_state.set_flag("servo_relaxed", new_state)
         self.control_system.relax(new_state)
-        print("Relax" if new_state else "Unrelax")
+        logger.info("Relax" if new_state else "Unrelax")
 
     def handle_servo_power(self, parts):
         if len(parts) >= 2:
@@ -136,7 +140,7 @@ class Server:
         self.command_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         self.command_socket.bind((host_ip, 5002))
         self.command_socket.listen(1)
-        print('Server address: ' + host_ip)
+        logger.info('Server address: %s', host_ip)
 
     def stop_server(self):
         try:
@@ -156,7 +160,7 @@ class Server:
             if hasattr(self.camera_device, "stop_stream"):
                 self.camera_device.stop_stream()
         except Exception as e:
-            print("Error during stop_server:", e)
+            logger.error("Error during stop_server: %s", e)
 
     def process_command(self, parts):
         if not parts or parts[0].strip() == "":
@@ -168,7 +172,7 @@ class Server:
         if handler:
             handler(parts)
         else:
-            print(f"Unknown command received: {command} | full: {parts}")
+            logger.warning("Unknown command received: %s | full: %s", command, parts)
             self.control_system.command_queue = parts
             self.control_system.timeout = time.time()
 
@@ -178,17 +182,17 @@ class Server:
             if data.strip():  # skip empty or whitespace-only strings
                 connection.send(data.encode('utf-8'))
         except Exception as e:
-            print(e)
+            logger.error("Send data error: %s", e)
 
 
     def transmit_video(self, shutdown_event):
         while not shutdown_event.is_set():
             try:
-                print("Waiting for video connection...")
+                logger.info("Waiting for video connection...")
                 self.video_raw_socket, addr = self.video_socket.accept()
                 self.video_raw_socket.settimeout(1.0)
                 self.video_connection = self.video_raw_socket.makefile('wb')
-                print("Video socket connected ...")
+                logger.info("Video socket connected ...")
 
                 self.camera_device.start_stream()
                 while not shutdown_event.is_set():
@@ -199,25 +203,25 @@ class Server:
                         self.video_connection.write(length_binary)
                         self.video_connection.write(frame)
                     except Exception as e:
-                        print("Video transmission error:", e)
+                        logger.error("Video transmission error: %s", e)
                         break
                 self.camera_device.stop_stream()
 
             except Exception as e:
-                print("Video accept failed:", e)
+                logger.error("Video accept failed: %s", e)
                 time.sleep(1)
 
 
     def receive_commands(self, shutdown_event):
         while not shutdown_event.is_set():
             try:
-                print("Waiting for command connection...")
+                logger.info("Waiting for command connection...")
                 self.command_raw_socket, self.command_client_address = self.command_socket.accept()
                 self.command_raw_socket.settimeout(1.0)
                 self.command_connection = self.command_raw_socket  
-                print("Client connection successful!")
+                logger.info("Client connection successful!")
             except Exception as e:
-                print("Client connect failed:", e)
+                logger.error("Client connect failed: %s", e)
                 time.sleep(1)
                 continue  # Retry accept()
 
@@ -227,20 +231,20 @@ class Server:
                 except socket.timeout:
                     continue
                 except Exception as e:
-                    print("Receive error:", e)
+                    logger.error("Receive error: %s", e)
                     break
 
                 if received_data == "" and self.is_tcp_active:
-                    print("Client disconnected.")
+                    logger.warning("Client disconnected.")
                     break
 
                 command_array = [cmd for cmd in received_data.split('\n') if cmd.strip()]
-                print("Received command array:", command_array)
+                logger.info("Received command array: %s", command_array)
 
                 for single_command in command_array:
                     parts = single_command.split("#")
                     self.process_command(parts)
 
-            print("Command session ended. Awaiting new connection...")
+            logger.info("Command session ended. Awaiting new connection...")
 
-        print("close_recv")
+        logger.info("close_recv")

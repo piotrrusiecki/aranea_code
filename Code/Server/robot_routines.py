@@ -1,5 +1,8 @@
 import time
+import logging
 from command import COMMAND as cmd
+
+logger = logging.getLogger("robot.routines")
 
 def motion_loop(
     command_sender,
@@ -27,9 +30,9 @@ def motion_loop(
             time.sleep(1)
             # Pre-move sonic check
             distance = ultrasonic_sensor.get_distance()
-            print(f"PRE-MOVE SONIC distance: {distance:.1f} cm")
+            logger.info("PRE-MOVE SONIC distance: %.1f cm", distance)
             if distance < 40:
-                print("Obstacle detected before starting motion. Aborting.")
+                logger.warning("Obstacle detected before starting motion. Aborting.")
                 if robot_state is not None:
                     robot_state.set_flag("motion_state", False)
                 for _ in range(3):
@@ -50,9 +53,9 @@ def motion_loop(
             try:
                 if use_sensor:
                     distance = ultrasonic_sensor.get_distance()
-                    print(f"SONIC distance: {distance:.1f} cm")
+                    logger.info("SONIC distance: %.1f cm", distance)
                     if distance < 40:
-                        print("Obstacle too close. Stopping.")
+                        logger.warning("Obstacle too close. Stopping.")
                         for _ in range(3):
                             command_sender([cmd.CMD_LED, "255", "0", "0"])
                             time.sleep(0.2)
@@ -77,7 +80,7 @@ def motion_loop(
                     time.sleep(0.1)
 
             except Exception as e:
-                print(f"Motion loop error: {e}")
+                logger.error("Motion loop error: %s", e)
                 break
 
     finally:
@@ -98,7 +101,7 @@ def sonic_monitor_loop(command_sender, ultrasonic_sensor, sonic_mode_flag):
     while sonic_mode_flag():
         try:
             distance = ultrasonic_sensor.get_distance()
-            print(f"SONIC distance: {distance:.1f} cm")
+            logger.info("SONIC distance: %.1f cm", distance)
             if distance < 40:
                 # Optional: flash LED or log, but do NOT move!
                 command_sender([cmd.CMD_LED, "255", "128", "0"])
@@ -106,13 +109,14 @@ def sonic_monitor_loop(command_sender, ultrasonic_sensor, sonic_mode_flag):
                 command_sender([cmd.CMD_LED, "0", "0", "0"])
             time.sleep(1.0)
         except Exception as e:
-            print(f"Sonic mode error: {e}")
+            logger.error("Sonic mode error: %s", e)
             break
 
 def shutdown_sequence(command_sender):
     """
     Sends the robot to a reset pose, powers down servos and LEDs, centers head.
     """
+    logger.info("Shutdown sequence triggered.")
     command_sender([cmd.CMD_MOVE, "1", "0", "0", "8", "0"])
     command_sender([cmd.CMD_SERVOPOWER, "0"])
     command_sender([cmd.CMD_LED, "0", "0", "0"])
@@ -120,7 +124,7 @@ def shutdown_sequence(command_sender):
     command_sender([cmd.CMD_HEAD, "0", "90"])
 
 def prepare_for_calibration(send, control_system, robot_state):
-    print("Preparing robot for calibration...")
+    logger.info("Preparing robot for calibration...")
 
     saved_positions = []
     try:
@@ -130,10 +134,10 @@ def prepare_for_calibration(send, control_system, robot_state):
                 if len(parts) == 3:
                     saved_positions.append([int(parts[0]), int(parts[1]), int(parts[2])])
         if len(saved_positions) != 6:
-            print(f"Warning: point.txt has {len(saved_positions)} lines, expected 6. Using default positions.")
+            logger.warning("point.txt has %d lines, expected 6. Using default positions.", len(saved_positions))
             saved_positions = [[140, 0, 0] for _ in range(6)]
     except FileNotFoundError:
-        print("point.txt not found; using default calibration positions.")
+        logger.warning("point.txt not found; using default calibration positions.")
         saved_positions = [[140, 0, 0] for _ in range(6)]
 
     robot_state.set_flag("calibration_mode", True)
@@ -144,14 +148,14 @@ def prepare_for_calibration(send, control_system, robot_state):
 
     control_system.set_leg_angles()
 
-    print("Robot set to saved calibration pose. Calibration mode ON.")
+    logger.info("Robot set to saved calibration pose. Calibration mode ON.")
 
 
 def exit_calibration(send, control_system, robot_state):
-    print("Exiting calibration mode...")
+    logger.info("Exiting calibration mode...")
     robot_state.set_flag("calibration_mode", False)
     # Optionally: relax servos or move to safe pose
-    print("Calibration mode OFF.")
+    logger.info("Calibration mode OFF.")
 
 # === High-level wrappers for routines ===
 
@@ -266,4 +270,3 @@ def run_back(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=No
         robot_state=robot_state,
         use_sensor=use_sensor
     )
-
