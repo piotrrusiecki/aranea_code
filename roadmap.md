@@ -1,4 +1,5 @@
 ## Robot Roadmap
+[ ] turning!
 [x] Remove auto servo relax logic
 [ ] Centralize status_flag management in robot_state.py
 [ ] Improve web UI responsiveness
@@ -10,3 +11,4 @@
 [ ] Multilingual voice control
 [ ] LED control and feedback
 [ ] Dancing
+[ ] stand alone AP

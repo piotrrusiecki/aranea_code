@@ -20,7 +20,6 @@ class Control:
         self.imu = IMU()
         self.servo = Servo()
         self.movement_flag = 0x01
-        self.relaxation_flag = False
         self.pid_controller = Incremental_PID(0.500, 0.00, 0.0025)
         self.servo_power_disable = OutputDevice(4)
         self.servo_power_disable.off()
@@ -112,18 +111,20 @@ class Control:
 
     def condition_monitor(self):
         while not self.stop_event.is_set():
+            # Block all actions if servos are powered off
+            if self.robot_state.get_flag("servo_off"):
+                time.sleep(0.1)
+                continue
+
             if cmd.CMD_POSITION in self.command_queue and len(self.command_queue) == 4:
-                if self.status_flag != 0x01:
-                    self.relax(False)
                 x = restrict_value(int(self.command_queue[1]), -40, 40)
                 y = restrict_value(int(self.command_queue[2]), -40, 40)
                 z = restrict_value(int(self.command_queue[3]), -20, 20)
                 self.move_position(x, y, z)
                 self.status_flag = 0x01
                 self.command_queue = ['', '', '', '', '', '']
+
             elif cmd.CMD_ATTITUDE in self.command_queue and len(self.command_queue) == 4:
-                if self.status_flag != 0x02:
-                    self.relax(False)
                 roll = restrict_value(int(self.command_queue[1]), -15, 15)
                 pitch = restrict_value(int(self.command_queue[2]), -15, 15)
                 yaw = restrict_value(int(self.command_queue[3]), -15, 15)
@@ -132,29 +133,27 @@ class Control:
                 self.set_leg_angles()
                 self.status_flag = 0x02
                 self.command_queue = ['', '', '', '', '', '']
+
             elif cmd.CMD_MOVE in self.command_queue and len(self.command_queue) == 6:
                 if self.command_queue[2] == "0" and self.command_queue[3] == "0":
                     self.run_gait(self.command_queue)
                     self.command_queue = ['', '', '', '', '', '']
                 else:
-                    if self.status_flag != 0x03:
-                        self.relax(False)
                     self.run_gait(self.command_queue)
                     self.status_flag = 0x03
+
             elif cmd.CMD_BALANCE in self.command_queue and len(self.command_queue) == 2:
                 if self.command_queue[1] == "1":
                     self.command_queue = ['', '', '', '', '', '']
-                    if self.status_flag != 0x04:
-                        self.relax(False)
                     self.status_flag = 0x04
                     self.imu6050()
+
             elif cmd.CMD_CALIBRATION in self.command_queue:
                 # --- Calibration mode safety check ---
                 if not self.robot_state.get_flag("calibration_mode"):
                     print("Ignoring calibration command: not in calibration mode.")
                     self.command_queue = ['', '', '', '', '', '']
-                    return
-
+                    continue
 
                 print("DEBUG: Calibration block hit. Queue:", self.command_queue)
                 self.timeout = 0
