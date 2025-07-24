@@ -1,14 +1,15 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <style>
     .btn-xlarge {
       height: 10rem;
-      font-size: 5rem !important; 
+      font-size: 5rem !important;
       display: flex;
       justify-content: center;
       align-items: center;
-      }
+    }
   </style>
   <meta charset="utf-8">
   <title>Aranea Robot Control</title>
@@ -17,6 +18,7 @@
   <link href="{{ url_for('static', filename='css/bootstrap-icons.min.css') }}" rel="stylesheet">
   <link rel="icon" href="data:,">
 </head>
+
 <body class="bg-light" style="font-size: 2.5rem;">
   <div class="container-fluid px-3 pt-3 pb-5 h-100">
 
@@ -37,187 +39,234 @@
       <div class="tab-pane fade show active h-100" id="move">
         <!-- Gait Mode -->
         <div class="row" style="height: 10%">
-			<div class="col">
-				<div class="row"><label class="form-label col"><strong>Gait Mode:</strong></label></div>
-				<div class="row"><div class="text-muted col">Current: <span id="gaitModeDisplay">1</span></div></div>
-			</div>
-            <button class="btn btn-outline-primary btn-lg col" onclick="setGaitMode(1)">1</button>
-            <button class="btn btn-outline-primary btn-lg col" onclick="setGaitMode(2)">2</button>
+          <div class="col">
+            <div class="row"><label class="form-label col"><strong>Gait Mode:</strong></label></div>
+            <div class="row">
+              <div class="text-muted col">Current: <span id="gaitModeDisplay">1</span></div>
+            </div>
+          </div>
+          <button class="btn btn-outline-primary btn-lg col" onclick="setGaitMode(1)">1</button>
+          <button class="btn btn-outline-primary btn-lg col" onclick="setGaitMode(2)">2</button>
         </div>
 
         <!-- Action Mode -->
-		<div class="row" style="height: 10%">
-			<div class="col">
-				<div class="row"><label class="form-label col"><strong>Action Mode</strong></label></div>
-				<div class="row"><div class="text-muted col">Current: <span id="actionModeDisplay">0</span></div></div>
-			</div>
-            <button class="btn btn-outline-secondary btn-lg col" onclick="setActionMode(0)">0</button>
-            <button class="btn btn-outline-secondary btn-lg col" onclick="setActionMode(1)">1</button>
+        <div class="row" style="height: 10%">
+          <div class="col">
+            <div class="row"><label class="form-label col"><strong>Action Mode</strong></label></div>
+            <div class="row">
+              <div class="text-muted col">Current: <span id="actionModeDisplay">0</span></div>
+            </div>
           </div>
+          <button class="btn btn-outline-secondary btn-lg col" onclick="setActionMode(0)">0</button>
+          <button class="btn btn-outline-secondary btn-lg col" onclick="setActionMode(1)">1</button>
+        </div>
 
         <!-- Speed -->
         <div class="row" style="height: 10%">
           <label class="form-label col-4"><strong>Speed</strong> (2–10): <span id="speedDisplay">8</span></label>
-          <input type="range" class="form-range col-8" min="2" max="10" step="1" id="speedSlider" value="8" oninput="updateSpeed(this.value)">
+          <input type="range" class="form-range col-8" min="2" max="10" step="1" id="speedSlider" value="8"
+            oninput="updateSpeed(this.value)">
         </div>
 
         <!-- Movement -->
         <div class="text-center row mb-3 mt-3" style="height: 35%">
-          <div class="col"><h5 class="mt-5 mb-4 fs-3 text-center">Movement</h5></div>
-		</div>
-        <div class="row mb-3 mt-3">
-			<div class="col-4"></div>
-            <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(0,34)"><i class="bi bi-arrow-up"></i></button></div>
-			<div class="col-4"></div>
-		</div>
-        <div class="row mb-3 mt-3">
-			<div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(-34,0)"><i class="bi bi-arrow-left"></i></button></div>
-			<div class="col-4"><button class="btn btn-danger btn-lg w-100 btn-xlarge" onclick="sendMove(0,0)"><i class="bi bi-stop-fill"></i></button></div>
-			<div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(34,0)"><i class="bi bi-arrow-right"></i></button></div>
+          <div class="col">
+            <h5 class="mt-5 mb-4 fs-3 text-center">Movement</h5>
+          </div>
         </div>
-		<div class="row mb-3 mt-3">
-			<div class="col-4"></div>
-			<div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(0,-34)"><i class="bi bi-arrow-down"></i></button></div>
-			<div class="col-4"></div>
-		</div>
+        <div class="row mb-3 mt-3">
+          <div class="col-4"></div>
+          <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(0,34)"><i
+                class="bi bi-arrow-up"></i></button></div>
+          <div class="col-4"></div>
+        </div>
+        <div class="row mb-3 mt-3">
+          <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(-34,0)"><i
+                class="bi bi-arrow-left"></i></button></div>
+          <div class="col-4"><button class="btn btn-danger btn-lg w-100 btn-xlarge" onclick="sendMove(0,0)"><i
+                class="bi bi-stop-fill"></i></button></div>
+          <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(34,0)"><i
+                class="bi bi-arrow-right"></i></button></div>
+        </div>
+        <div class="row mb-3 mt-3">
+          <div class="col-4"></div>
+          <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(0,-34)"><i
+                class="bi bi-arrow-down"></i></button></div>
+          <div class="col-4"></div>
+        </div>
 
         <!-- Head Control -->
-        <div class=" text-center row mb-3 mt-3"  style="height: 10%">
-			<h5 class="mt-5 mb-4 fs-3 text-center">Head Control</h5>
-		</div>
-		<div class="row mb-3 mt-3">
-			<div class="col-4"></div>
-            <div class="col-4"><button class="btn btn-secondary btn-lg w-100 btn-xlarge" onclick="sendHead(tilt + 10, pan)"><i class="bi bi-chevron-bar-up"></i></button></div>
-			<div class="col-4"></div>
-		</div>
-		<div class="row mb-3 mt-3">
-            <div class="col-4"><button class="btn btn-secondary btn-lg w-100 btn-xlarge" onclick="sendHead(tilt, pan + 10)"><i class="bi bi-chevron-bar-left"></i></button></div>
-            <div class="col-4"><button class="btn btn-secondary btn-lg w-100 btn-xlarge" onclick="sendHead(90, 90)"><i class="bi bi-crosshair"></i></button></div>
-            <div class="col-4"><button class="btn btn-secondary btn-lg w-100 btn-xlarge" onclick="sendHead(tilt, pan - 10)"><i class="bi bi-chevron-bar-right"></i></button></div>
+        <div class=" text-center row mb-3 mt-3" style="height: 10%">
+          <h5 class="mt-5 mb-4 fs-3 text-center">Head Control</h5>
         </div>
-		<div class="row mb-3 mt-3"> 
-			<div class="col-4"></div>
-			<div class="col-4"><button class="btn btn-secondary btn-lg w-100 btn-xlarge" onclick="sendHead(tilt - 10, pan)"><i class="bi bi-chevron-bar-down"></i></button></div>
-			<div class="col-4"></div>
-		</div>
-		<div class="row mb-3 mt-3">
-			<div class="col">
-				<div class="text-muted mt-2">Tilt: <span id="tiltDisplay">90</span> | Pan: <span id="panDisplay">90</span>
-				</div>
-			</div>
+        <div class="row mb-3 mt-3">
+          <div class="col-4"></div>
+          <div class="col-4"><button class="btn btn-secondary btn-lg w-100 btn-xlarge"
+              onclick="sendHead(tilt + 10, pan)"><i class="bi bi-chevron-bar-up"></i></button></div>
+          <div class="col-4"></div>
         </div>
-	  </div>
-
-    <!-- Position Tab -->
-    <div class="tab-pane fade" id="position">
-      <div class="text-center row mb-3 mt-3">
-        <div class="col"><h5 class="mt-5 mb-4 fs-3 text-center">Attitude Control</h5></div>
-      </div>
-
-      <!-- Attitude Control Buttons -->
-      <div class="row mb-3 mt-3">
-        <div class="col-4"></div>
-        <div class="col-4">
-          <button class="btn btn-warning btn-lg w-100 btn-xlarge" onclick="adjustAttitude(0, stepAttY)"><i class="bi bi-arrow-up"></i></button>
+        <div class="row mb-3 mt-3">
+          <div class="col-4"><button class="btn btn-secondary btn-lg w-100 btn-xlarge"
+              onclick="sendHead(tilt, pan + 10)"><i class="bi bi-chevron-bar-left"></i></button></div>
+          <div class="col-4"><button class="btn btn-secondary btn-lg w-100 btn-xlarge" onclick="sendHead(90, 90)"><i
+                class="bi bi-crosshair"></i></button></div>
+          <div class="col-4"><button class="btn btn-secondary btn-lg w-100 btn-xlarge"
+              onclick="sendHead(tilt, pan - 10)"><i class="bi bi-chevron-bar-right"></i></button></div>
         </div>
-        <div class="col-4"></div>
-      </div>
-      <div class="row mb-3 mt-3">
-        <div class="col-4">
-          <button class="btn btn-warning btn-lg w-100 btn-xlarge" onclick="adjustAttitude(-stepAttX, 0)"><i class="bi bi-arrow-left"></i></button>
+        <div class="row mb-3 mt-3">
+          <div class="col-4"></div>
+          <div class="col-4"><button class="btn btn-secondary btn-lg w-100 btn-xlarge"
+              onclick="sendHead(tilt - 10, pan)"><i class="bi bi-chevron-bar-down"></i></button></div>
+          <div class="col-4"></div>
         </div>
-        <div class="col-4">
-          <button class="btn btn-dark btn-lg w-100 btn-xlarge" onclick="adjustAttitude(0,0,true)"><i class="bi bi-crosshair"></i></button>
-        </div>
-        <div class="col-4">
-          <button class="btn btn-warning btn-lg w-100 btn-xlarge" onclick="adjustAttitude(stepAttX, 0)"><i class="bi bi-arrow-right"></i></button>
-        </div>
-      </div>
-      <div class="row mb-3 mt-3">
-        <div class="col-4"></div>
-        <div class="col-4">
-          <button class="btn btn-warning btn-lg w-100 btn-xlarge" onclick="adjustAttitude(0, -stepAttY)"><i class="bi bi-arrow-down"></i></button>
-        </div>
-        <div class="col-4"></div>
-      </div>
-      <div class="row mb-3 mt-3">
-        <div class="col-6">
-          <button class="btn btn-secondary btn-lg w-100" onclick="adjustAttitudeZ(stepAttZ)">Roll +</button>
-        </div>
-        <div class="col-6">
-          <button class="btn btn-secondary btn-lg w-100" onclick="adjustAttitudeZ(-stepAttZ)">Roll -</button>
+        <div class="row mb-3 mt-3">
+          <div class="col">
+            <div class="text-muted mt-2">Tilt: <span id="tiltDisplay">90</span> | Pan: <span id="panDisplay">90</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="text-center row mb-3 mt-5">
-        <div class="col"><h5 class="mt-5 mb-4 fs-3 text-center">Position Control</h5></div>
-      </div>
-
-      <!-- Position Control Buttons -->
-      <div class="row mb-3 mt-3">
-        <div class="col-4"></div>
-        <div class="col-4">
-          <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="adjustPosition(0, stepPosY)"><i class="bi bi-arrow-up"></i></button>
+      <!-- Position Tab -->
+      <div class="tab-pane fade" id="position">
+        <div class="text-center row mb-3 mt-3">
+          <div class="col">
+            <h5 class="mt-5 mb-4 fs-3 text-center">Attitude Control</h5>
+          </div>
         </div>
-        <div class="col-4"></div>
-      </div>
-      <div class="row mb-3 mt-3">
-        <div class="col-4">
-          <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="adjustPosition(-stepPosX, 0)"><i class="bi bi-arrow-left"></i></button>
+        <!-- Attitude Control Buttons -->
+        <div class="row mb-3 mt-3">
+          <div class="col-4"></div>
+          <div class="col-4"><button class="btn btn-warning btn-lg w-100 btn-xlarge"
+              onclick="adjustAttitude(0, stepAttY)"><i class="bi bi-arrow-up"></i></button></div>
+          <div class="col-4"></div>
         </div>
-        <div class="col-4">
-          <button class="btn btn-dark btn-lg w-100 btn-xlarge" onclick="adjustPosition(0,0,true)"><i class="bi bi-crosshair"></i></button>
+        <div class="row mb-3 mt-3">
+          <div class="col-4"><button class="btn btn-warning btn-lg w-100 btn-xlarge"
+              onclick="adjustAttitude(-stepAttX, 0)"><i class="bi bi-arrow-left"></i></button></div>
+          <div class="col-4"><button class="btn btn-dark btn-lg w-100 btn-xlarge" onclick="adjustAttitude(0,0,true)"><i
+                class="bi bi-crosshair"></i></button></div>
+          <div class="col-4"><button class="btn btn-warning btn-lg w-100 btn-xlarge"
+              onclick="adjustAttitude(stepAttX, 0)"><i class="bi bi-arrow-right"></i></button></div>
         </div>
-        <div class="col-4">
-          <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="adjustPosition(stepPosX, 0)"><i class="bi bi-arrow-right"></i></button>
+        <div class="row mb-3 mt-3">
+          <div class="col-4"></div>
+          <div class="col-4"><button class="btn btn-warning btn-lg w-100 btn-xlarge"
+              onclick="adjustAttitude(0, -stepAttY)"><i class="bi bi-arrow-down"></i></button></div>
+          <div class="col-4"></div>
         </div>
-      </div>
-      <div class="row mb-3 mt-3">
-        <div class="col-4"></div>
-        <div class="col-4">
-          <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="adjustPosition(0, -stepPosY)"><i class="bi bi-arrow-down"></i></button>
-        </div>
-        <div class="col-4"></div>
-      </div>
-      <div class="row mb-3 mt-3">
-        <div class="col-6">
-          <button class="btn btn-secondary btn-lg w-100" onclick="adjustPositionZ(stepPosZ)">Z +</button>
-        </div>
-        <div class="col-6">
-          <button class="btn btn-secondary btn-lg w-100" onclick="adjustPositionZ(-stepPosZ)">Z -</button>
-        </div>
-      </div>
-    </div>
-    <!-- ROUTINES TAB -->
-    <div class="tab-pane fade" id="routines">
-      <div class="text-center py-4">
-        <h5 class="mb-4">Routines</h5>
-
-        <!-- Sonic mode toggle -->
-        <div class="form-check form-switch mb-4 d-flex justify-content-center align-items-center" style="gap: 1rem; max-width: 300px; margin: 0 auto;">
-          <input class="form-check-input" type="checkbox" id="sonicToggle" onchange="toggleSonic(this.checked)">
-          <label class="form-check-label fs-4" for="sonicToggle">Obstacle Avoidance</label>
+        <div class="row mb-3 mt-3">
+          <div class="col-6"><button class="btn btn-secondary btn-lg w-100" onclick="adjustAttitudeZ(stepAttZ)">Roll
+              +</button></div>
+          <div class="col-6"><button class="btn btn-secondary btn-lg w-100" onclick="adjustAttitudeZ(-stepAttZ)">Roll
+              -</button></div>
         </div>
 
-        <!-- March controls -->
-        <div class="btn-group btn-group-lg mb-3" role="group" aria-label="March controls" style="width: 100%; max-width: 600px; margin: 0 auto;">
-          <button class="btn btn-warning flex-fill" onclick="runRoutine('march_forward')">March Forward</button>
-          <button class="btn btn-warning flex-fill" onclick="runRoutine('march_left')">March Left</button>
-          <button class="btn btn-danger flex-fill" onclick="stopMotion()">Stop</button>
-          <button class="btn btn-warning flex-fill" onclick="runRoutine('march_right')">March Right</button>
-          <button class="btn btn-warning flex-fill" onclick="runRoutine('march_back')">March Back</button>
+        <div class="text-center row mb-3 mt-5">
+          <div class="col">
+            <h5 class="mt-5 mb-4 fs-3 text-center">Position Control</h5>
+          </div>
         </div>
 
-        <!-- Run controls -->
-        <div class="btn-group btn-group-lg" role="group" aria-label="Run controls" style="width: 100%; max-width: 600px; margin: 0 auto;">
-          <button class="btn btn-success flex-fill" onclick="runRoutine('run_forward')">Run Forward</button>
-          <button class="btn btn-success flex-fill" onclick="runRoutine('run_left')">Run Left</button>
-          <button class="btn btn-danger flex-fill" onclick="stopMotion()">Stop</button>
-          <button class="btn btn-success flex-fill" onclick="runRoutine('run_right')">Run Right</button>
-          <button class="btn btn-success flex-fill" onclick="runRoutine('run_back')">Run Back</button>
+        <!-- Position Control Buttons -->
+        <div class="row mb-3 mt-3">
+          <div class="col-4"></div>
+          <div class="col-4"><button class="btn btn-primary btn-lg w-100 btn-xlarge"
+              onclick="adjustPosition(0, stepPosY)"><i class="bi bi-arrow-up"></i></button></div>
+          <div class="col-4"></div>
+        </div>
+        <div class="row mb-3 mt-3">
+          <div class="col-4"><button class="btn btn-primary btn-lg w-100 btn-xlarge"
+              onclick="adjustPosition(-stepPosX, 0)"><i class="bi bi-arrow-left"></i></button></div>
+          <div class="col-4"><button class="btn btn-dark btn-lg w-100 btn-xlarge" onclick="adjustPosition(0,0,true)"><i
+                class="bi bi-crosshair"></i></button></div>
+          <div class="col-4"><button class="btn btn-primary btn-lg w-100 btn-xlarge"
+              onclick="adjustPosition(stepPosX, 0)"><i class="bi bi-arrow-right"></i></button></div>
+        </div>
+        <div class="row mb-3 mt-3">
+          <div class="col-4"></div>
+          <div class="col-4"><button class="btn btn-primary btn-lg w-100 btn-xlarge"
+              onclick="adjustPosition(0, -stepPosY)"><i class="bi bi-arrow-down"></i></button></div>
+          <div class="col-4"></div>
+        </div>
+        <div class="row mb-3 mt-3">
+          <div class="col-6"><button class="btn btn-secondary btn-lg w-100" onclick="adjustPositionZ(stepPosZ)">Z
+              +</button></div>
+          <div class="col-6"><button class="btn btn-secondary btn-lg w-100" onclick="adjustPositionZ(-stepPosZ)">Z
+              -</button></div>
         </div>
       </div>
-    </div>
+      <!-- ROUTINES TAB -->
+      <div class="tab-pane fade" id="routines">
+        <div class="text-center py-4">
+          <h5 class="mb-4">Routines</h5>
+
+          <!-- Sonic mode toggle -->
+          <div class="form-check form-switch mb-4 d-flex justify-content-center align-items-center"
+            style="gap: 1rem; max-width: 300px; margin: 0 auto;">
+            <input class="form-check-input" type="checkbox" id="sonicToggle" onchange="toggleSonic(this.checked)">
+            <label class="form-check-label fs-4" for="sonicToggle">Obstacle Avoidance</label>
+          </div>
+
+          <div class="text-center row mb-3 mt-5">
+            <div class="col">
+              <h5 class="mt-5 mb-4 fs-3 text-center">March</h5>
+            </div>
+          </div>
+
+          <!-- March controls -->
+          <div class="row mb-3 mt-3">
+            <div class="col-4"></div>
+            <div class="col-4"><button class="btn btn-primary btn-lg w-100 btn-xlarge"
+                onclick="runRoutine('march_forward')"><i class="bi bi-arrow-up"></i></button></div>
+            <div class="col-4"></div>
+          </div>
+          <div class="row mb-3 mt-3">
+            <div class="col-4"><button class="btn btn-primary btn-lg w-100 btn-xlarge"
+                onclick="runRoutine('march_left')"><i class="bi bi-arrow-left"></i></button></div>
+            <div class="col-4"><button class="btn btn-dark btn-lg w-100 btn-xlarge" onclick="stopMotion()">Stop</button>
+            </div>
+            <div class="col-4"><button class="btn btn-primary btn-lg w-100 btn-xlarge"
+                onclick="runRoutine('march_right')"><i class="bi bi-arrow-right"></i></button></div>
+          </div>
+          <div class="row mb-3 mt-3">
+            <div class="col-4"></div>
+            <div class="col-4"><button class="btn btn-primary btn-lg w-100 btn-xlarge"
+                onclick="runRoutine('march_back')"><i class="bi bi-arrow-down"></i></button></div>
+            <div class="col-4"></div>
+          </div>
+
+          <!-- Run controls -->
+
+          <div class="text-center row mb-3 mt-5">
+            <div class="col">
+              <h5 class="mt-5 mb-4 fs-3 text-center">Run</h5>
+            </div>
+          </div>
+
+          <div class="row mb-3 mt-3">
+            <div class="col-4"></div>
+            <div class="col-4"><button class="btn btn-primary btn-lg w-100 btn-xlarge"
+                onclick="runRoutine('run_forward')"><i class="bi bi-arrow-up"></i></button></div>
+            <div class="col-4"></div>
+          </div>
+          <div class="row mb-3 mt-3">
+            <div class="col-4"><button class="btn btn-primary btn-lg w-100 btn-xlarge"
+                onclick="runRoutine('run_left')"><i class="bi bi-arrow-left"></i></button></div>
+            <div class="col-4"><button class="btn btn-dark btn-lg w-100 btn-xlarge" onclick="stopMotion()">Stop</button>
+            </div>
+            <div class="col-4"><button class="btn btn-primary btn-lg w-100 btn-xlarge"
+                onclick="runRoutine('run_right')"><i class="bi bi-arrow-right"></i></button></div>
+          </div>
+          <div class="row mb-3 mt-3">
+            <div class="col-4"></div>
+            <div class="col-4"><button class="btn btn-primary btn-lg w-100 btn-xlarge"
+                onclick="runRoutine('run_back')"><i class="bi bi-arrow-down"></i></button></div>
+            <div class="col-4"></div>
+          </div>
+
+        </div>
+      </div>
 
       <!-- Servos Tab -->
       <div class="tab-pane fade" id="servos">
@@ -235,7 +284,8 @@
           </div>
           <div class="card-footer text-center">
             <button class="btn btn-primary" onclick="fetchIMU()">Refresh</button>
-            <button class="btn btn-outline-secondary ms-2" onclick="toggleIMUPolling()">Auto-refresh: <span id="imuPollingStatus">OFF</span></button>
+            <button class="btn btn-outline-secondary ms-2" onclick="toggleIMUPolling()">Auto-refresh: <span
+                id="imuPollingStatus">OFF</span></button>
           </div>
         </div>
       </div>
@@ -247,8 +297,9 @@
           <button class="btn btn-success btn-lg w-100 " onclick="toggleVoice('start')">Start Voice</button>
         </div>
       </div>
-  </div>
+    </div>
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
+
 </html>

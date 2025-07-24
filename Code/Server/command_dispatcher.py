@@ -22,6 +22,23 @@ def dispatch_command(source, command):
     def send_str(cmd_string):
         send(cmd_string.strip().split("#"))
 
+    # Routine function map
+    routine_commands = {
+        "march_forward": march_forward,
+        "march_left": march_left,
+        "march_right": march_right,
+        "march_back": march_back,
+        "run_forward": run_forward,
+        "run_left": run_left,
+        "run_right": run_right,
+        "run_back": run_back,
+        "start_sonic": sonic_monitor_loop,
+        "stop_sonic": None,   # handled inline
+        "shutdown": shutdown_sequence,
+        "stop_motion": None,  # handled inline
+    }
+
+    # Support for both single and batch commands (as string or list)
     if isinstance(command, list):
         if command and isinstance(command[0], str) and command[0].startswith("CMD_"):
             send(command)
@@ -35,24 +52,10 @@ def dispatch_command(source, command):
         print(f"[{source}] Invalid command type: {command}")
         return
 
-    # Routine commands map
-    routine_commands = {
-        "march_forward": march_forward,
-        "march_left": march_left,
-        "march_right": march_right,
-        "march_back": march_back,
-        "run_forward": run_forward,
-        "run_left": run_left,
-        "run_right": run_right,
-        "run_back": run_back,
-        "start_sonic": sonic_monitor_loop,
-        "stop_sonic": None,   # handled separately
-        "shutdown": shutdown_sequence,
-        "stop_motion": None,  # handled separately
-    }
-
+    # --- Routine triggers ---
     if command in routine_commands:
-        # Start sonic mode
+
+        # --- Start Sonic Mode ---
         if command == "start_sonic":
             if not server_instance.robot_state.get_flag("sonic_state"):
                 print("Starting sonic mode...")
@@ -62,16 +65,20 @@ def dispatch_command(source, command):
                     args=(send, server_instance.ultrasonic_sensor, lambda: server_instance.robot_state.get_flag("sonic_state")),
                     daemon=True
                 ).start()
+            else:
+                print("Sonic mode already active.")
             return
 
-        # Stop sonic mode
+        # --- Stop Sonic Mode ---
         if command == "stop_sonic":
             if server_instance.robot_state.get_flag("sonic_state"):
                 print("Stopping sonic mode...")
                 server_instance.robot_state.set_flag("sonic_state", False)
+            else:
+                print("Sonic mode was not active.")
             return
 
-        # Stop motion loops
+        # --- Stop Motion Loops ---
         if command == "stop_motion":
             if server_instance.robot_state.get_flag("motion_state"):
                 print("Stopping motion loop...")
@@ -79,33 +86,43 @@ def dispatch_command(source, command):
                 send_str(f"{cmd.CMD_MOVE}#1#0#0#8#0")
                 send_str(f"{cmd.CMD_LED}#0#0#0")
                 send_str(f"{cmd.CMD_HEAD}#1#90")
+            else:
+                print("Motion was not active.")
             return
 
-        # Shutdown routine
+        # --- Shutdown Routine ---
         if command == "shutdown":
             print("Running shutdown sequence...")
             shutdown_sequence(send)
             return
 
-        # Start march or run routines
+        # --- Start Motion Routines (march/run) ---
         if command in {
             "march_forward", "march_left", "march_right", "march_back",
             "run_forward", "run_left", "run_right", "run_back"
         }:
-            if not server_instance.robot_state.get_flag("motion_state"):
-                print(f"Starting routine: {command}")
-                server_instance.robot_state.set_flag("motion_state", True)
-                routine_fn = routine_commands[command]
-                threading.Thread(
-                    target=routine_fn,
-                    args=(send, server_instance.ultrasonic_sensor, lambda: server_instance.robot_state.get_flag("motion_state")),
-                    daemon=True
-                ).start()
+            # Always forcibly clear stale motion state before new routine
+            if server_instance.robot_state.get_flag("motion_state"):
+                print("Motion already active or stuck, forcibly resetting state before starting new motion.")
+                server_instance.robot_state.set_flag("motion_state", False)
+                time.sleep(0.1)
+            # --- KEY FIX HERE ---
+            if command in {"march_back", "run_back"}:
+                use_sensor = False
             else:
-                print(f"Motion already active; ignoring routine {command}")
+                use_sensor = server_instance.robot_state.get_flag("sonic_state")
+            print(f"Starting routine: {command} (safety {'ON' if use_sensor else 'OFF'})")
+            server_instance.robot_state.set_flag("motion_state", True)
+            routine_fn = routine_commands[command]
+            threading.Thread(
+                target=routine_fn,
+                args=(send, server_instance.ultrasonic_sensor, lambda: server_instance.robot_state.get_flag("motion_state"),
+                      server_instance.robot_state, use_sensor),
+                daemon=True
+            ).start()
             return
 
-    # Handle low-level commands
+    # --- Low-level commands ---
     if command.startswith(cmd.CMD_MOVE):
         send_str(command)
         time.sleep(0.6)

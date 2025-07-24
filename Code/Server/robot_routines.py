@@ -1,85 +1,235 @@
 import time
 from command import COMMAND as cmd
 
-def motion_loop(command_sender, ultrasonic_sensor, gait, x, y, speed, head_angle, motion_mode_flag):
-    command_sender([cmd.CMD_HEAD, "1", str(head_angle)])
-    command_sender([cmd.CMD_HEAD, "0", "90"])
-    while motion_mode_flag():
-        try:
+def motion_loop(
+    command_sender,
+    ultrasonic_sensor,
+    gait,
+    x,
+    y,
+    speed,
+    head_angle,
+    motion_mode_flag,
+    robot_state=None,
+    use_sensor=True
+):
+    """
+    Main motion loop for routines (march/run, all directions).
+    Will stop and clear motion_state if obstacle too close (if use_sensor is True),
+    or if motion is otherwise ended.
+    """
+    try:
+        if use_sensor:
+            # Move head to intended direction and center tilt
+            command_sender([cmd.CMD_HEAD, "1", str(head_angle)])
+            command_sender([cmd.CMD_HEAD, "0", "90"])
+            # Allow servo to physically turn
+            time.sleep(1)
+            # Pre-move sonic check
             distance = ultrasonic_sensor.get_distance()
-            print(f"SONIC distance: {distance:.1f} cm")
-            if distance < 30:
-                print("Obstacle too close. Stopping.")
+            print(f"PRE-MOVE SONIC distance: {distance:.1f} cm")
+            if distance < 40:
+                print("Obstacle detected before starting motion. Aborting.")
+                if robot_state is not None:
+                    robot_state.set_flag("motion_state", False)
                 for _ in range(3):
                     command_sender([cmd.CMD_LED, "255", "0", "0"])
                     time.sleep(0.2)
                     command_sender([cmd.CMD_LED, "0", "0", "0"])
                     time.sleep(0.2)
+                # Issue stop command for safety
+                command_sender([cmd.CMD_MOVE, "1", "0", "0", "8", "0"])
+                return  # Abort starting the loop
+
+        else:
+            # Even if not using sensor, still set head position for visual clarity
+            command_sender([cmd.CMD_HEAD, "1", str(head_angle)])
+            command_sender([cmd.CMD_HEAD, "0", "90"])
+
+        while motion_mode_flag():
+            try:
+                if use_sensor:
+                    distance = ultrasonic_sensor.get_distance()
+                    print(f"SONIC distance: {distance:.1f} cm")
+                    if distance < 40:
+                        print("Obstacle too close. Stopping.")
+                        for _ in range(3):
+                            command_sender([cmd.CMD_LED, "255", "0", "0"])
+                            time.sleep(0.2)
+                            command_sender([cmd.CMD_LED, "0", "0", "0"])
+                            time.sleep(0.2)
+                        command_sender([cmd.CMD_MOVE, "1", "0", "0", "8", "0"])
+                        break
+                # If not using sensor, just walk, no printout
+                command_sender([
+                    cmd.CMD_MOVE,
+                    str(gait),
+                    str(x),
+                    str(y),
+                    str(speed),
+                    "0"
+                ])
+
+                # Check flag more frequently for responsiveness
+                for _ in range(6):  # ~0.6 seconds total
+                    if not motion_mode_flag():
+                        break
+                    time.sleep(0.1)
+
+            except Exception as e:
+                print(f"Motion loop error: {e}")
                 break
-            command_sender([cmd.CMD_MOVE, str(gait), str(x), str(y), str(speed), "0"])
 
-            # Sleep in smaller intervals to check flag more often
-            for _ in range(6):  # total ~0.6s
-                if not motion_mode_flag():
-                    break
-                time.sleep(0.1)
+    finally:
+        # Always reset state and pose
+        if robot_state is not None:
+            robot_state.set_flag("motion_state", False)
+        time.sleep(0.2)  # Allow any outside resets or command race conditions to settle
+        command_sender([cmd.CMD_MOVE, "1", "0", "0", "8", "0"])
+        command_sender([cmd.CMD_HEAD, "0", "90"])
 
-        except Exception as e:
-            print(f"Motion loop error: {e}")
-            break
-        # Similarly reduce or split this sleep if still used
-        # time.sleep(0.5)
-    command_sender([cmd.CMD_HEAD, "0", "90"])
 
 def sonic_monitor_loop(command_sender, ultrasonic_sensor, sonic_mode_flag):
-    """Monitor ultrasonic sensor and avoid obstacles (auto-move left/right)."""
+    """
+    Obstacle detection/monitoring only.
+    Does NOT send any move commands; only logs or flashes LEDs if obstacle detected.
+    All stopping and avoidance is handled by motion routines, not here.
+    """
     while sonic_mode_flag():
         try:
             distance = ultrasonic_sensor.get_distance()
             print(f"SONIC distance: {distance:.1f} cm")
             if distance < 40:
-                command_sender([cmd.CMD_MOVE, "1", "0", "-35", "8", "0"])
-                time.sleep(0.6)
-                command_sender([cmd.CMD_MOVE, "1", "0", "0", "8", "0"])
-            elif distance > 50:
-                command_sender([cmd.CMD_MOVE, "1", "0", "35", "8", "0"])
-                time.sleep(0.6)
-                command_sender([cmd.CMD_MOVE, "1", "0", "0", "8", "0"])
-            time.sleep(1.5)
+                # Optional: flash LED or log, but do NOT move!
+                command_sender([cmd.CMD_LED, "255", "128", "0"])
+                time.sleep(0.2)
+                command_sender([cmd.CMD_LED, "0", "0", "0"])
+            time.sleep(1.0)
         except Exception as e:
             print(f"Sonic mode error: {e}")
             break
 
 def shutdown_sequence(command_sender):
-    """Standard shutdown/reset pose for robot."""
+    """
+    Sends the robot to a reset pose, powers down servos and LEDs, centers head.
+    """
     command_sender([cmd.CMD_MOVE, "1", "0", "0", "8", "0"])
     command_sender([cmd.CMD_SERVOPOWER, "0"])
     command_sender([cmd.CMD_LED, "0", "0", "0"])
     command_sender([cmd.CMD_HEAD, "1", "90"])
     command_sender([cmd.CMD_HEAD, "0", "90"])
 
-# === High-level wrappers for voice/web commands ===
+# === High-level wrappers for routines ===
 
-def march_forward(command_sender, ultrasonic_sensor, motion_mode_flag):
-    motion_loop(command_sender, ultrasonic_sensor, gait=2, x=0, y=35, speed=10, head_angle=90, motion_mode_flag=motion_mode_flag)
+def march_forward(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=True):
+    motion_loop(
+        command_sender,
+        ultrasonic_sensor,
+        gait=2,
+        x=0,
+        y=35,
+        speed=8,
+        head_angle=90,
+        motion_mode_flag=motion_mode_flag,
+        robot_state=robot_state,
+        use_sensor=use_sensor
+    )
 
-def march_left(command_sender, ultrasonic_sensor, motion_mode_flag):
-    motion_loop(command_sender, ultrasonic_sensor, gait=2, x=-35, y=0, speed=10, head_angle=135, motion_mode_flag=motion_mode_flag)
+def march_left(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=True):
+    motion_loop(
+        command_sender,
+        ultrasonic_sensor,
+        gait=2,
+        x=-35,
+        y=0,
+        speed=8,
+        head_angle=180,
+        motion_mode_flag=motion_mode_flag,
+        robot_state=robot_state,
+        use_sensor=use_sensor
+    )
 
-def march_right(command_sender, ultrasonic_sensor, motion_mode_flag):
-    motion_loop(command_sender, ultrasonic_sensor, gait=2, x=35, y=0, speed=10, head_angle=45, motion_mode_flag=motion_mode_flag)
+def march_right(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=True):
+    motion_loop(
+        command_sender,
+        ultrasonic_sensor,
+        gait=2,
+        x=35,
+        y=0,
+        speed=8,
+        head_angle=0,
+        motion_mode_flag=motion_mode_flag,
+        robot_state=robot_state,
+        use_sensor=use_sensor
+    )
 
-def march_back(command_sender, ultrasonic_sensor, motion_mode_flag):
-    motion_loop(command_sender, ultrasonic_sensor, gait=2, x=0, y=-35, speed=10, head_angle=90, motion_mode_flag=motion_mode_flag)
+def march_back(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=False):
+    motion_loop(
+        command_sender,
+        ultrasonic_sensor,
+        gait=2,
+        x=0,
+        y=-35,
+        speed=8,
+        head_angle=90,
+        motion_mode_flag=motion_mode_flag,
+        robot_state=robot_state,
+        use_sensor=use_sensor
+    )
 
-def run_forward(command_sender, ultrasonic_sensor, motion_mode_flag):
-    motion_loop(command_sender, ultrasonic_sensor, gait=1, x=0, y=20, speed=10, head_angle=90, motion_mode_flag=motion_mode_flag)
+def run_forward(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=True):
+    motion_loop(
+        command_sender,
+        ultrasonic_sensor,
+        gait=1,
+        x=0,
+        y=20,
+        speed=10,
+        head_angle=90,
+        motion_mode_flag=motion_mode_flag,
+        robot_state=robot_state,
+        use_sensor=use_sensor
+    )
 
-def run_left(command_sender, ultrasonic_sensor, motion_mode_flag):
-    motion_loop(command_sender, ultrasonic_sensor, gait=1, x=-20, y=0, speed=10, head_angle=135, motion_mode_flag=motion_mode_flag)
+def run_left(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=True):
+    motion_loop(
+        command_sender,
+        ultrasonic_sensor,
+        gait=1,
+        x=-20,
+        y=0,
+        speed=10,
+        head_angle=180,
+        motion_mode_flag=motion_mode_flag,
+        robot_state=robot_state,
+        use_sensor=use_sensor
+    )
 
-def run_right(command_sender, ultrasonic_sensor, motion_mode_flag):
-    motion_loop(command_sender, ultrasonic_sensor, gait=1, x=20, y=0, speed=10, head_angle=45, motion_mode_flag=motion_mode_flag)
+def run_right(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=True):
+    motion_loop(
+        command_sender,
+        ultrasonic_sensor,
+        gait=1,
+        x=20,
+        y=0,
+        speed=10,
+        head_angle=0,
+        motion_mode_flag=motion_mode_flag,
+        robot_state=robot_state,
+        use_sensor=use_sensor
+    )
 
-def run_back(command_sender, ultrasonic_sensor, motion_mode_flag):
-    motion_loop(command_sender, ultrasonic_sensor, gait=1, x=0, y=-20, speed=10, head_angle=90, motion_mode_flag=motion_mode_flag)
+def run_back(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=False):
+    motion_loop(
+        command_sender,
+        ultrasonic_sensor,
+        gait=1,
+        x=0,
+        y=-20,
+        speed=10,
+        head_angle=90,
+        motion_mode_flag=motion_mode_flag,
+        robot_state=robot_state,
+        use_sensor=use_sensor
+    )
+
