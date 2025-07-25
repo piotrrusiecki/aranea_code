@@ -1,6 +1,7 @@
 import time
 import logging
 from command import COMMAND as cmd
+from robot_kinematics import map_value
 
 logger = logging.getLogger("robot.routines")
 
@@ -270,3 +271,58 @@ def run_back(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=No
         robot_state=robot_state,
         use_sensor=use_sensor
     )
+
+def compute_angle_for_speed(speed):
+    # F = map_value(speed, 2, 10, 126, 22), 6 @ 80 → 22.5 deg
+    F = round(map_value(speed, 2, 10, 126, 22))
+    # return max(1, round(7 * 80 / F))
+    return 6
+
+def turn_left(command_sender, steps=1, speed=5, pause=1):
+    angle_per_step = compute_angle_for_speed(speed)
+    logger.info("Executing turn_left routine... speed=%d, angle=%d", speed, angle_per_step)
+    for _ in range(steps):
+        try:
+            logger.debug("Sending left turn 1: CMD_MOVE#1#5#5#%d#%d", speed, -angle_per_step)
+            command_sender([cmd.CMD_MOVE, "1", "5", "5", str(5), str(-angle_per_step)])
+        except Exception as e:
+            logger.error("Failed to send first turn_left step: %s", e)
+        time.sleep(pause)
+
+        try:
+            logger.debug("Sending left turn 2: CMD_MOVE#1#-5#0#%d#%d", speed, -angle_per_step)
+            command_sender([cmd.CMD_MOVE, "1", "-5", "0", str(5), str(-angle_per_step)])
+        except Exception as e:
+            logger.error("Failed to send second turn_left step: %s", e)
+        time.sleep(pause)
+
+        try:
+            logger.debug("Sending  left turn 3: CMD_MOVE#1#0#0#%d#0", speed)
+            command_sender([cmd.CMD_MOVE, "1", "0", "0", str(5), "0"])
+        except Exception as e:
+            logger.error("Failed to send reset step in turn_left: %s", e)
+
+def turn_right(command_sender, steps=1, speed=5, pause=1):
+    angle_per_step = compute_angle_for_speed(speed)
+    logger.info("Executing turn_right routine... speed=%d, angle=%d", speed, angle_per_step)
+    for _ in range(steps):
+        try:
+            logger.debug("Sending right turn 1: CMD_MOVE#1#5#5#%d#%d", speed, angle_per_step)
+            command_sender([cmd.CMD_MOVE, "1", "5", "5", str(5), str(angle_per_step)])
+        except Exception as e:
+            logger.error("Failed to send first turn_right step: %s", e)
+        time.sleep(pause)
+
+        try:
+            logger.debug("Sending right turn 2: CMD_MOVE#1#-5#0#%d#%d", speed, angle_per_step)
+            command_sender([cmd.CMD_MOVE, "1", "-5", "0", str(5), str(angle_per_step)])
+        except Exception as e:
+            logger.error("Failed to send second turn_right step: %s", e)
+        time.sleep(pause)
+
+        try:
+            logger.debug("Sending right turn 3: CMD_MOVE#1#0#0#%d#0", speed)
+            command_sender([cmd.CMD_MOVE, "1", "0", "0", str(5), "0"])
+        except Exception as e:
+            logger.error("Failed to send reset step in turn_right: %s", e)
+

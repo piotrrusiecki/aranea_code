@@ -13,6 +13,8 @@ const stepPosX = 5;
 const stepPosY = 5;
 const stepPosZ = 4;
 
+const speed = document.getElementById("speedSlider").value;
+
 // State holders
 let attitudeX = 0, attitudeY = 0, attitudeZ = 0;
 let positionX = 0, positionY = 0, positionZ = 0;
@@ -368,4 +370,21 @@ function updateCalibrationModeStatus() {
     });
 }
 
+function sendTurn(direction) {
+  if (direction === "left") {
+    runRoutine("turn_left");
+  } else if (direction === "right") {
+    runRoutine("turn_right");
+  } else {
+    console.warn("Invalid turn direction:", direction);
+  }
+}
+
+function updateSpeedState(value) {
+  fetch('/set_speed', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ speed: value })
+  });
+}
 updateHeadDisplay();

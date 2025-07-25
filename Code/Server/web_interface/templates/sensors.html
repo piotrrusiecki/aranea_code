@@ -1,0 +1,16 @@
+<div class="tab-pane fade" id="sensors">
+  <div class="card mx-auto" style="max-width:500px;">
+    <div class="card-header text-center"><strong>IMU Status</strong></div>
+    <div class="card-body text-center fs-3">
+      <div>Pitch: <span id="imuPitch">--</span>&deg;</div>
+      <div>Roll: <span id="imuRoll">--</span>&deg;</div>
+      <!-- <div>Yaw: <span id="imuYaw">--</span>&deg;</div> -->
+    </div>
+    <div class="card-footer text-center">
+      <button class="btn btn-primary" onclick="fetchIMU()">Refresh</button>
+      <button class="btn btn-outline-secondary ms-2" onclick="toggleIMUPolling()">
+        Auto-refresh: <span id="imuPollingStatus">OFF</span>
+      </button>
+    </div>
+  </div>
+</div>

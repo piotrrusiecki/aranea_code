@@ -16,6 +16,7 @@ from ultrasonic import Ultrasonic
 from command import COMMAND as cmd
 from camera import Camera  
 
+
 logger = logging.getLogger("robot.server")
 
 class StreamingOutput(io.BufferedIOBase):

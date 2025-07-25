@@ -1,0 +1,103 @@
+<div class="tab-pane fade" id="position">
+  <div class="text-center row mb-3 mt-3">
+    <div class="col">
+      <h5 class="mt-5 mb-4 fs-3 text-center">Attitude Control</h5>
+    </div>
+  </div>
+
+  <!-- Attitude Control Buttons -->
+  <div class="row mb-3 mt-3">
+    <div class="col-4"></div>
+    <div class="col-4">
+      <button class="btn btn-warning btn-lg w-100 btn-xlarge" onclick="adjustAttitude(0, stepAttY)">
+        <i class="bi bi-arrow-up"></i>
+      </button>
+    </div>
+    <div class="col-4"></div>
+  </div>
+  <div class="row mb-3 mt-3">
+    <div class="col-4">
+      <button class="btn btn-warning btn-lg w-100 btn-xlarge" onclick="adjustAttitude(-stepAttX, 0)">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+    </div>
+    <div class="col-4">
+      <button class="btn btn-dark btn-lg w-100 btn-xlarge" onclick="adjustAttitude(0, 0, true)">
+        <i class="bi bi-crosshair"></i>
+      </button>
+    </div>
+    <div class="col-4">
+      <button class="btn btn-warning btn-lg w-100 btn-xlarge" onclick="adjustAttitude(stepAttX, 0)">
+        <i class="bi bi-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+  <div class="row mb-3 mt-3">
+    <div class="col-4"></div>
+    <div class="col-4">
+      <button class="btn btn-warning btn-lg w-100 btn-xlarge" onclick="adjustAttitude(0, -stepAttY)">
+        <i class="bi bi-arrow-down"></i>
+      </button>
+    </div>
+    <div class="col-4"></div>
+  </div>
+  <div class="row mb-3 mt-3">
+    <div class="col-6">
+      <button class="btn btn-secondary btn-lg w-100" onclick="adjustAttitudeZ(stepAttZ)">Roll +</button>
+    </div>
+    <div class="col-6">
+      <button class="btn btn-secondary btn-lg w-100" onclick="adjustAttitudeZ(-stepAttZ)">Roll -</button>
+    </div>
+  </div>
+
+  <div class="text-center row mb-3 mt-5">
+    <div class="col">
+      <h5 class="mt-5 mb-4 fs-3 text-center">Position Control</h5>
+    </div>
+  </div>
+
+  <!-- Position Control Buttons -->
+  <div class="row mb-3 mt-3">
+    <div class="col-4"></div>
+    <div class="col-4">
+      <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="adjustPosition(0, stepPosY)">
+        <i class="bi bi-arrow-up"></i>
+      </button>
+    </div>
+    <div class="col-4"></div>
+  </div>
+  <div class="row mb-3 mt-3">
+    <div class="col-4">
+      <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="adjustPosition(-stepPosX, 0)">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+    </div>
+    <div class="col-4">
+      <button class="btn btn-dark btn-lg w-100 btn-xlarge" onclick="adjustPosition(0, 0, true)">
+        <i class="bi bi-crosshair"></i>
+      </button>
+    </div>
+    <div class="col-4">
+      <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="adjustPosition(stepPosX, 0)">
+        <i class="bi bi-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+  <div class="row mb-3 mt-3">
+    <div class="col-4"></div>
+    <div class="col-4">
+      <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="adjustPosition(0, -stepPosY)">
+        <i class="bi bi-arrow-down"></i>
+      </button>
+    </div>
+    <div class="col-4"></div>
+  </div>
+  <div class="row mb-3 mt-3">
+    <div class="col-6">
+      <button class="btn btn-secondary btn-lg w-100" onclick="adjustPositionZ(stepPosZ)">Z +</button>
+    </div>
+    <div class="col-6">
+      <button class="btn btn-secondary btn-lg w-100" onclick="adjustPositionZ(-stepPosZ)">Z -</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Aranea Robot Control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/bootstrap-icons.min.css') }}" rel="stylesheet">
+  <link rel="icon" href="data:,">
+  <style>
+    .btn-xlarge {
+      height: 10rem;
+      font-size: 5rem !important;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+</head>
+<body class="bg-light" style="font-size: 2.5rem;">
+  <div class="container-fluid px-3 pt-3 pb-5 h-100">
+    <h1 class="text-center mb-4">Aranea Robot Interface</h1>
+
+    {% block content %}
+    <!-- Individual pages will inject content here -->
+    {% endblock %}
+  </div>
+
+  <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

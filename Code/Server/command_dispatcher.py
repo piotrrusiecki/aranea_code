@@ -5,7 +5,8 @@ from command import COMMAND as cmd
 from robot_routines import (
     march_forward, march_left, march_right, march_back,
     run_forward, run_left, run_right, run_back,
-    sonic_monitor_loop, shutdown_sequence, prepare_for_calibration, exit_calibration
+    sonic_monitor_loop, shutdown_sequence, prepare_for_calibration, exit_calibration,
+    turn_left, turn_right
 )
 
 logger = logging.getLogger("dispatcher")
@@ -39,7 +40,9 @@ def dispatch_command(source, command):
         "shutdown": shutdown_sequence,
         "stop_motion": None,  # handled inline
         "prep_calibration": prepare_for_calibration,
-        "exit_calibration": exit_calibration
+        "exit_calibration": exit_calibration,
+        "turn_right": turn_right,
+        "turn_left": turn_left
     }
 
     # Support for both single and batch commands (as string or list)
@@ -111,12 +114,10 @@ def dispatch_command(source, command):
             "march_forward", "march_left", "march_right", "march_back",
             "run_forward", "run_left", "run_right", "run_back"
         }:
-            # Always forcibly clear stale motion state before new routine
             if server_instance.robot_state.get_flag("motion_state"):
                 logger.warning("Motion already active or stuck, forcibly resetting state before starting new motion.")
                 server_instance.robot_state.set_flag("motion_state", False)
                 time.sleep(0.1)
-            # --- KEY FIX HERE ---
             if command in {"march_back", "run_back"}:
                 use_sensor = False
             else:
@@ -130,6 +131,20 @@ def dispatch_command(source, command):
                       server_instance.robot_state, use_sensor),
                 daemon=True
             ).start()
+            return
+
+        # --- Turn Left / Right Routines ---
+        if command in {"turn_left", "turn_right"}:
+            try:
+                speed = server_instance.robot_state.get_flag("move_speed")
+                if speed is None:
+                    speed = 5
+            except Exception as e:
+                logger.warning("Failed to read move_speed from robot_state: %s", e)
+                speed = 5
+            logger.info("Starting routine: %s (speed %d)", command, speed)
+            routine_fn = routine_commands[command]
+            routine_fn(send, steps=1, speed=speed)
             return
 
     # --- Low-level commands ---
@@ -162,7 +177,7 @@ def dispatch_command(source, command):
     elif command.startswith(cmd.CMD_IMU_STATUS):
         send_str(command)
         return
-    
+
     elif command.startswith(cmd.CMD_CALIBRATION):
         send_str(command)
         return

@@ -1,0 +1,79 @@
+<div class="tab-pane fade show active h-100" id="move">
+  <!-- Gait Mode -->
+  <div class="row" style="height: 10%">
+    <div class="col">
+      <div class="row"><label class="form-label col"><strong>Gait Mode:</strong></label></div>
+      <div class="row">
+        <div class="text-muted col">Current: <span id="gaitModeDisplay">1</span></div>
+      </div>
+    </div>
+    <button class="btn btn-outline-primary btn-lg col" onclick="setGaitMode(1)">1</button>
+    <button class="btn btn-outline-primary btn-lg col" onclick="setGaitMode(2)">2</button>
+  </div>
+
+  <!-- Action Mode -->
+  <div class="row" style="height: 10%">
+    <div class="col">
+      <div class="row"><label class="form-label col"><strong>Action Mode</strong></label></div>
+      <div class="row">
+        <div class="text-muted col">Current: <span id="actionModeDisplay">0</span></div>
+      </div>
+    </div>
+    <button class="btn btn-outline-secondary btn-lg col" onclick="setActionMode(0)">0</button>
+    <button class="btn btn-outline-secondary btn-lg col" onclick="setActionMode(1)">1</button>
+  </div>
+
+  <!-- Speed -->
+  <div class="row" style="height: 10%">
+    <label class="form-label col-4"><strong>Speed</strong> (2–10): <span id="speedDisplay">8</span></label>
+    <input type="range" class="form-range col-8" min="2" max="10" step="1" id="speedSlider" value="8"
+      oninput="updateSpeed(this.value); updateSpeedState(this.value);">
+  </div>
+
+  <!-- Movement -->
+  <div class="text-center row mb-3 mt-3" style="height: 35%">
+    <div class="col">
+      <h5 class="mt-5 mb-4 fs-3 text-center">Movement</h5>
+    </div>
+  </div>
+  <div class="row mb-3 mt-3">
+    <div class="col-4"><button class="btn btn-warning btn-lg w-100 btn-xlarge" onclick="sendTurn('left')"><i class="bi bi-arrow-counterclockwise"></i></button></div>
+    <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(0,34)"><i class="bi bi-arrow-up"></i></button></div>
+    <div class="col-4"><button class="btn btn-warning btn-lg w-100 btn-xlarge" onclick="sendTurn('right')"><i class="bi bi-arrow-clockwise"></i></button></div>
+  </div>
+  <div class="row mb-3 mt-3">
+    <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(-34,0)"><i class="bi bi-arrow-left"></i></button></div>
+    <div class="col-4"><button class="btn btn-danger btn-lg w-100 btn-xlarge" onclick="sendMove(0,0)"><i class="bi bi-stop-fill"></i></button></div>
+    <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(34,0)"><i class="bi bi-arrow-right"></i></button></div>
+  </div>
+  <div class="row mb-3 mt-3">
+    <div class="col-4"></div>
+    <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(0,-34)"><i class="bi bi-arrow-down"></i></button></div>
+    <div class="col-4"></div>
+  </div>
+
+  <!-- Head Control -->
+  <div class="text-center row mb-3 mt-3" style="height: 10%">
+    <h5 class="mt-5 mb-4 fs-3 text-center">Head Control</h5>
+  </div>
+  <div class="row mb-3 mt-3">
+    <div class="col-4"></div>
+    <div class="col-4"><button class="btn btn-secondary btn-lg w-100 btn-xlarge" onclick="sendHead(tilt + 10, pan)"><i class="bi bi-chevron-bar-up"></i></button></div>
+    <div class="col-4"></div>
+  </div>
+  <div class="row mb-3 mt-3">
+    <div class="col-4"><button class="btn btn-secondary btn-lg w-100 btn-xlarge" onclick="sendHead(tilt, pan + 10)"><i class="bi bi-chevron-bar-left"></i></button></div>
+    <div class="col-4"><button class="btn btn-secondary btn-lg w-100 btn-xlarge" onclick="sendHead(90, 90)"><i class="bi bi-crosshair"></i></button></div>
+    <div class="col-4"><button class="btn btn-secondary btn-lg w-100 btn-xlarge" onclick="sendHead(tilt, pan - 10)"><i class="bi bi-chevron-bar-right"></i></button></div>
+  </div>
+  <div class="row mb-3 mt-3">
+    <div class="col-4"></div>
+    <div class="col-4"><button class="btn btn-secondary btn-lg w-100 btn-xlarge" onclick="sendHead(tilt - 10, pan)"><i class="bi bi-chevron-bar-down"></i></button></div>
+    <div class="col-4"></div>
+  </div>
+  <div class="row mb-3 mt-3">
+    <div class="col">
+      <div class="text-muted mt-2">Tilt: <span id="tiltDisplay">90</span> | Pan: <span id="panDisplay">90</span></div>
+    </div>
+  </div>
+</div>

@@ -10,6 +10,7 @@ class RobotState:
             "sonic_state": False,
             "calibration_mode": False,
             "servo_off": False,  # <-- NEW FLAG
+            "move_speed": 5,
         }
         self._lock = threading.Lock()
 

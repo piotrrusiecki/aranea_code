@@ -51,55 +51,58 @@ class Control:
             self.condition_thread.join()
 
     def set_leg_angles(self):
-        logger.debug("set_leg_angles called.")
-        logger.debug("leg_positions before calculation: %s", self.leg_positions)
-        logger.debug("calibration_angles: %s", self.calibration_angles)
+        # Skip if servo power is off
+        if self.robot_state.get_flag("servo_off"):
+            logger.debug("Skipped set_leg_angles: servo_off is True.")
+            return
 
-        if self.check_point_validity():
-            # Calculate angles based on leg_positions
-            for i in range(6):
-                self.current_angles[i][0], self.current_angles[i][1], self.current_angles[i][2] = coordinate_to_angle(
-                    -self.leg_positions[i][2], self.leg_positions[i][0], self.leg_positions[i][1])
+        if not self.check_point_validity():
+            logger.debug("This coordinate point is out of the active range.")
+            return
 
-            # Apply calibration offsets and clamp for legs 0 to 2
-            for i in range(3):
-                self.current_angles[i][0] = restrict_value(self.current_angles[i][0] + self.calibration_angles[i][0], 0, 180)
-                self.current_angles[i][1] = restrict_value(90 - (self.current_angles[i][1] + self.calibration_angles[i][1]), 0, 180)
-                self.current_angles[i][2] = restrict_value(self.current_angles[i][2] + self.calibration_angles[i][2], 0, 180)
-                # Legs 3 to 5 with adjustments
-                self.current_angles[i + 3][0] = restrict_value(self.current_angles[i + 3][0] + self.calibration_angles[i + 3][0], 0, 180)
-                self.current_angles[i + 3][1] = restrict_value(90 + self.current_angles[i + 3][1] + self.calibration_angles[i + 3][1], 0, 180)
-                self.current_angles[i + 3][2] = restrict_value(180 - (self.current_angles[i + 3][2] + self.calibration_angles[i + 3][2]), 0, 180)
+        # Show GPIO state at the start of execution
 
-            logger.debug("current_angles after applying calibration: %s", self.current_angles)
+        # Calculate angles based on leg_positions
+        for i in range(6):
+            self.current_angles[i][0], self.current_angles[i][1], self.current_angles[i][2] = coordinate_to_angle(
+                -self.leg_positions[i][2], self.leg_positions[i][0], self.leg_positions[i][1])
 
-            # Send angles to servos in the correct order
-            # Leg 1
-            self.servo.set_servo_angle(15, self.current_angles[0][0])
-            self.servo.set_servo_angle(14, self.current_angles[0][1])
-            self.servo.set_servo_angle(13, self.current_angles[0][2])
-            # Leg 2
-            self.servo.set_servo_angle(12, self.current_angles[1][0])
-            self.servo.set_servo_angle(11, self.current_angles[1][1])
-            self.servo.set_servo_angle(10, self.current_angles[1][2])
-            # Leg 3
-            self.servo.set_servo_angle(9, self.current_angles[2][0])
-            self.servo.set_servo_angle(8, self.current_angles[2][1])
-            self.servo.set_servo_angle(31, self.current_angles[2][2])
-            # Leg 6
-            self.servo.set_servo_angle(16, self.current_angles[5][0])
-            self.servo.set_servo_angle(17, self.current_angles[5][1])
-            self.servo.set_servo_angle(18, self.current_angles[5][2])
-            # Leg 5
-            self.servo.set_servo_angle(19, self.current_angles[4][0])
-            self.servo.set_servo_angle(20, self.current_angles[4][1])
-            self.servo.set_servo_angle(21, self.current_angles[4][2])
-            # Leg 4
-            self.servo.set_servo_angle(22, self.current_angles[3][0])
-            self.servo.set_servo_angle(23, self.current_angles[3][1])
-            self.servo.set_servo_angle(27, self.current_angles[3][2])
-        else:
-            logger.warning("This coordinate point is out of the active range.")
+        # Apply calibration offsets and clamp for legs 0 to 2
+        for i in range(3):
+            self.current_angles[i][0] = restrict_value(self.current_angles[i][0] + self.calibration_angles[i][0], 0, 180)
+            self.current_angles[i][1] = restrict_value(90 - (self.current_angles[i][1] + self.calibration_angles[i][1]), 0, 180)
+            self.current_angles[i][2] = restrict_value(self.current_angles[i][2] + self.calibration_angles[i][2], 0, 180)
+            # Legs 3 to 5 with adjustments
+            self.current_angles[i + 3][0] = restrict_value(self.current_angles[i + 3][0] + self.calibration_angles[i + 3][0], 0, 180)
+            self.current_angles[i + 3][1] = restrict_value(90 + self.current_angles[i + 3][1] + self.calibration_angles[i + 3][1], 0, 180)
+            self.current_angles[i + 3][2] = restrict_value(180 - (self.current_angles[i + 3][2] + self.calibration_angles[i + 3][2]), 0, 180)
+
+        # Send angles to servos in the correct order
+        # Leg 1
+        self.servo.set_servo_angle(15, self.current_angles[0][0])
+        self.servo.set_servo_angle(14, self.current_angles[0][1])
+        self.servo.set_servo_angle(13, self.current_angles[0][2])
+        # Leg 2
+        self.servo.set_servo_angle(12, self.current_angles[1][0])
+        self.servo.set_servo_angle(11, self.current_angles[1][1])
+        self.servo.set_servo_angle(10, self.current_angles[1][2])
+        # Leg 3
+        self.servo.set_servo_angle(9, self.current_angles[2][0])
+        self.servo.set_servo_angle(8, self.current_angles[2][1])
+        self.servo.set_servo_angle(31, self.current_angles[2][2])
+        # Leg 6
+        self.servo.set_servo_angle(16, self.current_angles[5][0])
+        self.servo.set_servo_angle(17, self.current_angles[5][1])
+        self.servo.set_servo_angle(18, self.current_angles[5][2])
+        # Leg 5
+        self.servo.set_servo_angle(19, self.current_angles[4][0])
+        self.servo.set_servo_angle(20, self.current_angles[4][1])
+        self.servo.set_servo_angle(21, self.current_angles[4][2])
+        # Leg 4
+        self.servo.set_servo_angle(22, self.current_angles[3][0])
+        self.servo.set_servo_angle(23, self.current_angles[3][1])
+        self.servo.set_servo_angle(27, self.current_angles[3][2])
+
 
     def check_point_validity(self):
         is_valid = True
