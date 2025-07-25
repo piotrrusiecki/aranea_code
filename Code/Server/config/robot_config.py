@@ -1,6 +1,11 @@
 # config/robot_config.py
 VOICE_LANG = "eo"  # default language code, e.g. "eo", "en", etc.
-LOGGING_LEVEL = "INFO"
+VOICE_MODELS = {
+    "eo": "voice_models/vosk-model-small-eo-0.22",
+    "en": "voice_models/vosk-model-small-en-us-0.15",
+}
+
+LOGGING_LEVEL = "DEBUG"
 LOGGER_COLORS = {
     'main':           '\033[94m',    # Bright blue
     'voice':          '\033[35m',    # Magenta
@@ -14,3 +19,6 @@ LOGGER_COLORS = {
     'picamera2.picamera2':         '\033[96m',    # Bright cyan (aqua) for camera subsystem
     'RESET':          '\033[0m'
 }
+VOICE_SAMPLERATE = 44100
+VOICE_BLOCKSIZE = 4000
+VOICE_INPUT_DEVICE = 2

@@ -1,0 +1,92 @@
+<div class="tab-pane fade" id="routines">
+  <div class="text-center py-4">
+    <h5 class="mb-4">Routines</h5>
+
+    <!-- Sonic mode toggle -->
+    <div class="form-check form-switch mb-4 d-flex justify-content-center align-items-center"
+         style="gap: 1rem; max-width: 300px; margin: 0 auto;">
+      <input class="form-check-input" type="checkbox" id="sonicToggle" onchange="toggleSonic(this.checked)">
+      <label class="form-check-label fs-4" for="sonicToggle">Obstacle Avoidance</label>
+    </div>
+
+    <!-- March Controls -->
+    <div class="text-center row mb-3 mt-5">
+      <div class="col">
+        <h5 class="mt-5 mb-4 fs-3 text-center">March</h5>
+      </div>
+    </div>
+    <div class="row mb-3 mt-3">
+      <div class="col-4"></div>
+      <div class="col-4">
+        <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="runRoutine('march_forward')">
+          <i class="bi bi-arrow-up"></i>
+        </button>
+      </div>
+      <div class="col-4"></div>
+    </div>
+    <div class="row mb-3 mt-3">
+      <div class="col-4">
+        <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="runRoutine('march_left')">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+      </div>
+      <div class="col-4">
+        <button class="btn btn-dark btn-lg w-100 btn-xlarge" onclick="stopMotion()">Stop</button>
+      </div>
+      <div class="col-4">
+        <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="runRoutine('march_right')">
+          <i class="bi bi-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+    <div class="row mb-3 mt-3">
+      <div class="col-4"></div>
+      <div class="col-4">
+        <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="runRoutine('march_back')">
+          <i class="bi bi-arrow-down"></i>
+        </button>
+      </div>
+      <div class="col-4"></div>
+    </div>
+
+    <!-- Run Controls -->
+    <div class="text-center row mb-3 mt-5">
+      <div class="col">
+        <h5 class="mt-5 mb-4 fs-3 text-center">Run</h5>
+      </div>
+    </div>
+    <div class="row mb-3 mt-3">
+      <div class="col-4"></div>
+      <div class="col-4">
+        <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="runRoutine('run_forward')">
+          <i class="bi bi-arrow-up"></i>
+        </button>
+      </div>
+      <div class="col-4"></div>
+    </div>
+    <div class="row mb-3 mt-3">
+      <div class="col-4">
+        <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="runRoutine('run_left')">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+      </div>
+      <div class="col-4">
+        <button class="btn btn-dark btn-lg w-100 btn-xlarge" onclick="stopMotion()">Stop</button>
+      </div>
+      <div class="col-4">
+        <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="runRoutine('run_right')">
+          <i class="bi bi-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+    <div class="row mb-3 mt-3">
+      <div class="col-4"></div>
+      <div class="col-4">
+        <button class="btn btn-primary btn-lg w-100 btn-xlarge" onclick="runRoutine('run_back')">
+          <i class="bi bi-arrow-down"></i>
+        </button>
+      </div>
+      <div class="col-4"></div>
+    </div>
+  </div>
+</div>

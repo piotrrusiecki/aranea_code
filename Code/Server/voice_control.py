@@ -7,7 +7,8 @@ import sounddevice as sd
 from vosk import Model, KaldiRecognizer
 import logging
 
-from config.voice import command_map, model_path, samplerate, blocksize
+from config.voice import command_map
+from config.robot_config import VOICE_LANG, VOICE_MODELS, VOICE_SAMPLERATE, VOICE_BLOCKSIZE, VOICE_INPUT_DEVICE
 from voice_command_handler import VoiceCommandHandler
 
 logger = logging.getLogger("voice")
@@ -18,9 +19,19 @@ class VoiceControl:
         self.ultrasonic_sensor = ultrasonic_sensor
         self.robot_state = robot_state
         self.queue = queue.Queue()
-        self.recognizer = KaldiRecognizer(Model(model_path), samplerate)
         self.running = False
         self.command_handler = VoiceCommandHandler(command_sender, ultrasonic_sensor, robot_state)
+
+        # Load model from VOICE_MODELS based on VOICE_LANG
+        self.current_lang = VOICE_LANG
+        model_path = VOICE_MODELS.get(self.current_lang)
+
+        if not model_path:
+            raise ValueError(f"No model path defined for language: {self.current_lang}")
+
+        logger.info(f"Loading Vosk model for '{self.current_lang}' from: {model_path}")
+        self.model = Model(model_path)
+        self.recognizer = KaldiRecognizer(self.model, VOICE_SAMPLERATE)
 
     def _callback(self, indata, frames, time_info, status):
         if status:
@@ -34,11 +45,11 @@ class VoiceControl:
         self.running = True
         try:
             with sd.RawInputStream(
-                samplerate=samplerate,
-                blocksize=blocksize,
+                samplerate=VOICE_SAMPLERATE,
+                blocksize=VOICE_BLOCKSIZE,
                 dtype="int16",
                 channels=1,
-                device=1,
+                device=VOICE_INPUT_DEVICE,
                 callback=self._callback
             ):
                 logger.info("Voice control listening... Press Ctrl+C to stop.")

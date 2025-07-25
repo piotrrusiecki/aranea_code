@@ -161,6 +161,9 @@ def dispatch_command(source, command):
     elif command.startswith(cmd.CMD_SERVOPOWER):
         send_str(command)
         return
+    elif command.startswith(cmd.CMD_SERVOPOWER):
+        send_str(command)
+        return
 
     elif command == cmd.CMD_RELAX:
         send([cmd.CMD_RELAX])
