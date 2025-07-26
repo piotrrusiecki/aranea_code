@@ -35,14 +35,17 @@ let calibLegs = [
 ];
 let calibSelectedLeg = 0; // 0 = one, 1 = two, ...
 
-function sendCommand(cmd) {
+function sendCommand(cmd, callback = null) {
   fetch('/command', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ cmd })
   })
   .then(r => r.json())
-  .then(data => console.log("Command sent:", data))
+  .then(data => {
+    console.log("Command sent:", data);
+    if (callback) callback(data.result); // pass only the result payload
+  })
   .catch(err => console.error("Command failed:", err));
 }
 
@@ -387,4 +390,51 @@ function updateSpeedState(value) {
     body: JSON.stringify({ speed: value })
   });
 }
+
+function queryBattery() {
+    sendCommand('CMD_BATTERY', function(response) {
+        if (response && response.length === 3 && response[0] === "CMD_BATTERY") {
+            const loadVoltage = parseFloat(response[1]);
+            const raspiVoltage = parseFloat(response[2]);
+
+            updateVoltageBars(loadVoltage, raspiVoltage);
+        } else {
+            alert("Battery read failed or unexpected response.");
+        }
+    });
+}
+
+function getColor(voltage) {
+  if (voltage < 6.0) return 'bg-danger';  // red
+  else if (voltage < 7.0) return 'bg-warning';  // yellow
+  else return 'bg-success';  // green
+}
+
+function updateVoltageBars(loadVoltage, raspiVoltage) {
+  const minVoltage = 5.0;
+  const maxVoltage = 8.4;
+
+  function getPercent(voltage) {
+    return Math.min(100, Math.max(0, ((voltage - minVoltage) / (maxVoltage - minVoltage)) * 100));
+  }
+
+  // Calculate fill % for both consistently
+  const loadPercent = getPercent(loadVoltage);
+  const raspiPercent = getPercent(raspiVoltage);
+
+  const loadBar = document.getElementById('loadBar');
+  const raspiBar = document.getElementById('raspiBar');
+
+  loadBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+  raspiBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+
+  loadBar.style.width = loadPercent + '%';
+  loadBar.classList.add(getColor(loadVoltage));
+  loadBar.textContent = loadVoltage.toFixed(2) + ' V';
+
+  raspiBar.style.width = raspiPercent + '%';
+  raspiBar.classList.add(getColor(raspiVoltage));
+  raspiBar.textContent = raspiVoltage.toFixed(2) + ' V';
+}
+
 updateHeadDisplay();

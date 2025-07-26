@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <title>Aranea Robot Control</title>
@@ -15,8 +16,25 @@
       justify-content: center;
       align-items: center;
     }
+
+    #loadBar,
+    #raspiBar {
+      font-size: 3rem;
+      /* adjust as needed */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .progress-bar {
+      font-size: 3rem;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+    }
   </style>
 </head>
+
 <body class="bg-light" style="font-size: 2.5rem;">
   <div class="container-fluid px-3 pt-3 pb-5 h-100">
     <h1 class="text-center mb-4">Aranea Robot Interface</h1>
@@ -29,4 +47,5 @@
   <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
+
 </html>

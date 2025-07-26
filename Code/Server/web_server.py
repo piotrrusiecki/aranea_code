@@ -37,8 +37,8 @@ def create_app(server_instance, robot_state):
         if cmd:
             logger.info("Command received: %s", cmd)
             try:
-                dispatch_command("web", cmd)
-                return jsonify({"status": "ok", "executed": cmd})
+                result = dispatch_command("web", cmd)
+                return jsonify({"status": "ok", "executed": cmd, "result": result})
             except Exception as e:
                 logger.error("Failed to dispatch command '%s': %s", cmd, e)
                 return jsonify({"status": "error", "reason": "Command dispatch failed"}), 500

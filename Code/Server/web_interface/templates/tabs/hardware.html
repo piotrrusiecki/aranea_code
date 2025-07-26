@@ -1,0 +1,38 @@
+<div class="tab-pane fade" id="hardware" role="tabpanel">
+  <h3>Hardware</h3>
+
+  <div class="row mb-4">
+    <div class="col">
+      <button class="btn btn-secondary btn-xlarge w-100" onclick="queryBattery()">Check Battery</button>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col">
+      <label for="loadBar" class="form-label fs-5">Load</label>
+      <div class="progress" style="height: 10rem;">
+        <div id="loadBar" class="progress-bar d-flex align-items-center justify-content-center" role="progressbar" style="width: 0%;">-- V</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col">
+      <label for="raspiBar" class="form-label fs-5">RasPi</label>
+      <div class="progress" style="height: 10rem;">
+        <div id="raspiBar" class="progress-bar d-flex align-items-center justify-content-center" role="progressbar" style="width: 0%;">-- V</div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="row mb-4">
+    <div class="col-6">
+      <button class="btn btn-success btn-xlarge w-100" onclick="sendCommand('CMD_SERVOPOWER#on')">Servo On</button>
+    </div>
+    <div class="col-6">
+      <button class="btn btn-danger btn-xlarge w-100" onclick="sendCommand('CMD_SERVOPOWER#off')">Servo Off</button>
+    </div>
+  </div>
+</div>

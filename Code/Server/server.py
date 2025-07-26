@@ -68,7 +68,12 @@ class Server:
     def handle_buzzer(self, parts):
         if len(parts) >= 2:
             self.buzzer_controller.set_state(parts[1] == "1")
-
+    def read_battery_voltage(self):
+        try:
+            return self.adc_sensor.read_battery_voltage()
+        except Exception as e:
+            logger.error("Battery read failed: %s", e)
+            return None
     def handle_imu_status(self, parts):
         pitch, roll, yaw = self.control_system.imu.update_imu_state()
         response = f"{cmd.CMD_IMU_STATUS}#{pitch:.2f}#{roll:.2f}#{yaw:.2f}\n"

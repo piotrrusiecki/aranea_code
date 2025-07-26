@@ -5,7 +5,7 @@ VOICE_MODELS = {
     "en": "voice_models/vosk-model-small-en-us-0.15",
 }
 
-LOGGING_LEVEL = "DEBUG"
+LOGGING_LEVEL = "INFO"
 LOGGER_COLORS = {
     'main':           '\033[94m',    # Bright blue
     'voice':          '\033[35m',    # Magenta

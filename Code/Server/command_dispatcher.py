@@ -9,8 +9,8 @@ from robot_routines import (
     turn_left, turn_right
 )
 
-logger = logging.getLogger("dispatcher")
 server_instance = None
+logger = logging.getLogger("dispatcher")
 
 def init_command_dispatcher(server):
     global server_instance
@@ -25,7 +25,6 @@ def dispatch_command(source, command):
     def send_str(cmd_string):
         send(cmd_string.strip().split("#"))
 
-    # Routine function map
     routine_commands = {
         "march_forward": march_forward,
         "march_left": march_left,
@@ -36,16 +35,15 @@ def dispatch_command(source, command):
         "run_right": run_right,
         "run_back": run_back,
         "start_sonic": sonic_monitor_loop,
-        "stop_sonic": None,   # handled inline
+        "stop_sonic": None,
         "shutdown": shutdown_sequence,
-        "stop_motion": None,  # handled inline
+        "stop_motion": None,
         "prep_calibration": prepare_for_calibration,
         "exit_calibration": exit_calibration,
         "turn_right": turn_right,
         "turn_left": turn_left
     }
 
-    # Support for both single and batch commands (as string or list)
     if isinstance(command, list):
         if command and isinstance(command[0], str) and command[0].startswith("CMD_"):
             send(command)
@@ -59,10 +57,7 @@ def dispatch_command(source, command):
         logger.warning("[%s] Invalid command type: %s", source, command)
         return
 
-    # --- Routine triggers ---
     if command in routine_commands:
-
-        # --- Start Sonic Mode ---
         if command == "start_sonic":
             if not server_instance.robot_state.get_flag("sonic_state"):
                 logger.info("Starting sonic mode...")
@@ -76,7 +71,6 @@ def dispatch_command(source, command):
                 logger.info("Sonic mode already active.")
             return
 
-        # --- Stop Sonic Mode ---
         if command == "stop_sonic":
             if server_instance.robot_state.get_flag("sonic_state"):
                 logger.info("Stopping sonic mode...")
@@ -85,7 +79,6 @@ def dispatch_command(source, command):
                 logger.info("Sonic mode was not active.")
             return
 
-        # --- Stop Motion Loops ---
         if command == "stop_motion":
             if server_instance.robot_state.get_flag("motion_state"):
                 logger.info("Stopping motion loop...")
@@ -97,7 +90,6 @@ def dispatch_command(source, command):
                 logger.info("Motion was not active.")
             return
 
-        # --- Shutdown Routine ---
         if command == "shutdown":
             logger.info("Running shutdown sequence...")
             shutdown_sequence(send)
@@ -109,7 +101,6 @@ def dispatch_command(source, command):
             )
             return
 
-        # --- Start Motion Routines (march/run) ---
         if command in {
             "march_forward", "march_left", "march_right", "march_back",
             "run_forward", "run_left", "run_right", "run_back"
@@ -133,7 +124,6 @@ def dispatch_command(source, command):
             ).start()
             return
 
-        # --- Turn Left / Right Routines ---
         if command in {"turn_left", "turn_right"}:
             try:
                 speed = server_instance.robot_state.get_flag("move_speed")
@@ -147,7 +137,6 @@ def dispatch_command(source, command):
             routine_fn(send, steps=1, speed=speed)
             return
 
-    # --- Low-level commands ---
     if command.startswith(cmd.CMD_MOVE):
         send_str(command)
         time.sleep(0.6)
@@ -161,9 +150,6 @@ def dispatch_command(source, command):
     elif command.startswith(cmd.CMD_SERVOPOWER):
         send_str(command)
         return
-    elif command.startswith(cmd.CMD_SERVOPOWER):
-        send_str(command)
-        return
 
     elif command == cmd.CMD_RELAX:
         send([cmd.CMD_RELAX])
@@ -172,6 +158,19 @@ def dispatch_command(source, command):
     elif command.startswith(cmd.CMD_ATTITUDE):
         send_str(command)
         return
+
+    elif command.startswith(cmd.CMD_BATTERY):
+        try:
+            battery = server_instance.read_battery_voltage()
+            if battery:
+                logger.info("[web] Battery values: %s", battery)
+                return ["CMD_BATTERY", *battery]
+            else:
+                logger.error("[web] Battery read returned empty or None")
+                return ["CMD_BATTERY", "ERROR"]
+        except Exception as e:
+            logger.error("[web] Failed to read battery: %s", e)
+            return ["CMD_BATTERY", "ERROR"]
 
     elif command.startswith(cmd.CMD_POSITION):
         send_str(command)
