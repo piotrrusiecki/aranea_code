@@ -18,11 +18,12 @@
 
 ### Web Interface
 [ ] Improve web UI responsiveness (mobile scaling, overlap fix)
-[ ] Complete diagnostics tab (IMU, servo state, ultrasonic, battery)
+[ ] Complete diagnostics tab (IMU, servo state, ultrasonic, battery), incl graphs
 
 ### Robot Behavior
 [ ] Implement patrol mode (ultrasonic + head logic)
 [ ] LED control and feedback
+[ ] Dancing composite moves
 [ ] Dancing mode (beat detection + movement)
 [ ] LiDAR integration (future)
 
@@ -36,3 +37,7 @@
 [ ] Posture recovery using IMU
 [ ] Persistent logging via file or SQLite
 [ ] Battery graph and trend history
+
+### Maintenance
+[ ] Test scripts and testing; regression testing 
+[ ] Fresh install deployment
