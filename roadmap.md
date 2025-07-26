@@ -1,14 +1,38 @@
 ## Robot Roadmap
-[ ] turning!
+
+### Completed
+[x] Turning!
 [x] Remove auto servo relax logic
-[ ] Centralize status_flag management in robot_state.py
-[ ] Improve web UI responsiveness
-[ ] Implement patrol mode (ultrasonic sensor)
+[x] Logging and diagnostic tools - switchable to levels
+
+### Voice Control
+[ ] All voice commands as simple commands in dispatcher
+[ ] Revise voice commands to include all simple moves and routines
 [ ] Refactor voice integration to command dispatcher
-[ ] Complete sensor status and diagnostics page (show IMU, servo states, ultrasonic distance, battery, etc.)
-[ ] LiDAR integration
-[ ] Logging and diagnostic tools - switchable to levels
-[ ] Multilingual voice control
+[ ] Multilingual voice control (runtime switch)
+
+### Core Architecture
+[ ] Centralize status_flag management in robot_state.py
+[ ] Centralise all config into robot_config.py
+[ ] Standalone AP fallback mode
+
+### Web Interface
+[ ] Improve web UI responsiveness (mobile scaling, overlap fix)
+[ ] Complete diagnostics tab (IMU, servo state, ultrasonic, battery)
+
+### Robot Behavior
+[ ] Implement patrol mode (ultrasonic + head logic)
 [ ] LED control and feedback
-[ ] Dancing
-[ ] stand alone AP
+[ ] Dancing mode (beat detection + movement)
+[ ] LiDAR integration (future)
+
+### External Control & APIs
+[ ] REST API or WebSocket interface
+[ ] Git pull auto-updater in WebUI
+
+### Advanced Capabilities
+[ ] Routine recorder and editor via WebUI
+[ ] Local speech feedback (e.g., espeak)
+[ ] Posture recovery using IMU
+[ ] Persistent logging via file or SQLite
+[ ] Battery graph and trend history
