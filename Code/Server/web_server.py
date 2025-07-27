@@ -3,9 +3,10 @@ import logging
 from flask import Flask, request, jsonify, render_template
 from voice_manager import start_voice, stop_voice
 from command_dispatcher_logic import dispatch_command, init_command_dispatcher
-from robot_routines import shutdown_sequence  # other routines are handled by dispatcher
+from robot_routines import shutdown_sequence
 
 logger = logging.getLogger("web")
+
 
 def create_app(server_instance, robot_state):
     app = Flask(
@@ -14,19 +15,31 @@ def create_app(server_instance, robot_state):
         template_folder="web_interface/templates"
     )
 
-    # Enable Jinja template auto-reloading in development
     app.jinja_env.auto_reload = True
     app.config['TEMPLATES_AUTO_RELOAD'] = True
-
     app.robot_state = robot_state
 
-    # Initialize dispatcher with access to shared server instance
     init_command_dispatcher(server_instance)
+
+    used_channels = [
+        0, 1,
+        8, 9, 10, 11, 12, 13, 14, 15,
+        16, 17, 18, 19, 20, 21,
+        22, 23, 27, 31
+    ]
+    default_angles = {}
+    for ch in used_channels:
+        if ch in [10, 13, 31]:
+            default_angles[ch] = 10
+        elif ch in [18, 21, 27]:
+            default_angles[ch] = 170
+        else:
+            default_angles[ch] = 90
 
     @app.route("/")
     def index():
         try:
-            return render_template("index.html")
+            return render_template("index.html", default_angles=default_angles, used_channels=used_channels)
         except Exception as e:
             logger.error("Failed to render index.html: %s", e)
             return render_template("error.html"), 500
@@ -49,7 +62,6 @@ def create_app(server_instance, robot_state):
     def toggle_voice():
         action = request.json.get("action")
         logger.info("Voice action requested via web: %s", action)
-
         try:
             if action == "start":
                 start_voice(
@@ -141,7 +153,6 @@ def create_app(server_instance, robot_state):
                 logger.error("GET calibration_mode failed: %s", e)
                 return jsonify({"status": "error", "reason": "Failed to read flag"}), 500
 
-        # POST — Set calibration mode
         mode = request.get_json().get("calibration_mode")
         if isinstance(mode, bool):
             try:
@@ -165,7 +176,6 @@ def create_app(server_instance, robot_state):
             logger.error("Speed update failed: %s", e)
             return jsonify({"status": "error", "reason": "Invalid speed value"}), 400
 
-    # Fallback for internal server errors
     @app.errorhandler(500)
     def internal_error(e):
         logger.error("Unhandled 500 error: %s", e)

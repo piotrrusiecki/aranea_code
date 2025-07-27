@@ -441,4 +441,9 @@ function toggleServoTest(isOn) {
   runRoutine(isOn ? "sys_start_servo_test" : "sys_stop_servo_test");
 }
 
+function sendServoDiagnostic(channel) {
+  const angle = document.getElementById(`servo${channel}`).value;
+  sendCommand(`diag_set_servo#${channel}#${angle}`);
+}
+
 updateHeadDisplay();

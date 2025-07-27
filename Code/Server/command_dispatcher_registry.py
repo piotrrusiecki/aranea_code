@@ -31,6 +31,12 @@ from tests.test_servo import start_servo_test, stop_servo_test
 
 logger = logging.getLogger("dispatcher.registry")
 
+DIAG_SET_SERVO = "diag_set_servo"
+
+DIAG_COMMANDS = {
+    DIAG_SET_SERVO: "Set a single servo to a target angle (for diagnostics)",
+}
+
 # === Symbolic Command Definitions ===
 
 _symbolic_to_register = {

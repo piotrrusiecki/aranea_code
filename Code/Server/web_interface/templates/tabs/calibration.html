@@ -79,4 +79,151 @@
       </div>
     </div>
   </div>
+  <hr class="my-4">
+  <div class="row mb-3">
+    <div class="col text-center">
+      <h5 class="mb-3 fs-4">Manual Servo Diagnostics</h5>
+      <div class="container">
+
+        <!-- Head -->
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label for="servo0" class="form-label">H0 (0)</label>
+            <input type="number" id="servo0" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(0)">Set</button>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="servo1" class="form-label">H1 (1)</label>
+            <input type="number" id="servo1" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(1)">Set</button>
+          </div>
+        </div>
+
+        <!-- L1 -->
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label for="servo15" class="form-label">L1/S1 (15)</label>
+            <input type="number" id="servo15" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(15)">Set</button>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="servo14" class="form-label">L1/S2 (14)</label>
+            <input type="number" id="servo14" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(14)">Set</button>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="servo13" class="form-label">L1/S3 (13)</label>
+            <input type="number" id="servo13" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(13)">Set</button>
+          </div>
+        </div>
+
+        <!-- L2 -->
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label for="servo12" class="form-label">L2/S1 (12)</label>
+            <input type="number" id="servo12" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(12)">Set</button>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="servo11" class="form-label">L2/S2 (11)</label>
+            <input type="number" id="servo11" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(11)">Set</button>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="servo10" class="form-label">L2/S3 (10)</label>
+            <input type="number" id="servo10" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(10)">Set</button>
+          </div>
+        </div>
+
+        <!-- L3 -->
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label for="servo9" class="form-label">L3/S1 (9)</label>
+            <input type="number" id="servo9" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(9)">Set</button>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="servo8" class="form-label">L3/S2 (8)</label>
+            <input type="number" id="servo8" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(8)">Set</button>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="servo31" class="form-label">L3/S3 (31)</label>
+            <input type="number" id="servo31" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(31)">Set</button>
+          </div>
+        </div>
+
+        <!-- L4 -->
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label for="servo22" class="form-label">L4/S1 (22)</label>
+            <input type="number" id="servo22" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(22)">Set</button>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="servo23" class="form-label">L4/S2 (23)</label>
+            <input type="number" id="servo23" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(23)">Set</button>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="servo27" class="form-label">L4/S3 (27)</label>
+            <input type="number" id="servo27" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(27)">Set</button>
+          </div>
+        </div>
+
+        <!-- L5 -->
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label for="servo19" class="form-label">L5/S1 (19)</label>
+            <input type="number" id="servo19" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(19)">Set</button>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="servo20" class="form-label">L5/S2 (20)</label>
+            <input type="number" id="servo20" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(20)">Set</button>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="servo21" class="form-label">L5/S3 (21)</label>
+            <input type="number" id="servo21" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(21)">Set</button>
+          </div>
+        </div>
+        <!-- L6 -->
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label for="servo16" class="form-label">L6/S1 (16)</label>
+            <input type="number" id="servo16" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(16)">Set</button>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="servo17" class="form-label">L6/S2 (17)</label>
+            <input type="number" id="servo17" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(17)">Set</button>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="servo18" class="form-label">L6/S3 (18)</label>
+            <input type="number" id="servo18" class="form-control mb-1" min="0" max="180">
+            <button class="btn btn-sm btn-outline-primary w-100" onclick="sendServoDiagnostic(18)">Set</button>
+          </div>
+        </div>
+
+
+
+
+
+
+
+
+
+      </div>
+
+
+    </div>
+  </div>
+
 </div>

@@ -14,6 +14,7 @@ from robot_kinematics import coordinate_to_angle, angle_to_coordinate, restrict_
 from robot_pose import calculate_posture_balance, transform_coordinates
 from robot_gait import run_gait
 from robot_calibration import read_from_txt, save_to_txt, calibrate
+from config.robot_config import DEBUG_LEGS
 
 logger = logging.getLogger("robot.control")
 
@@ -40,11 +41,32 @@ class Control:
         self.command_queue = ['', '', '', '', '', '']
         calibrate(self.leg_positions, self.calibration_leg_positions, self.calibration_angles, self.current_angles)
         self.set_leg_angles()
+        self.debug_leg_pose_report()
         self.condition_thread = threading.Thread(target=self.condition_monitor)
         self.Thread_conditiona = threading.Condition()
         self.stop_event = threading.Event()
         self.condition_thread.start()
 
+    def debug_leg_pose_report(self):
+        if not DEBUG_LEGS or not logger.isEnabledFor(logging.DEBUG):
+            return  # Skip if debugging disabled or log level too low
+
+        logger.debug("Leg diagnostics (initial):")
+        for i in range(6):
+            raw = self.leg_positions[i]
+            try:
+                pre = coordinate_to_angle(-raw[2], raw[0], raw[1])
+            except Exception as e:
+                logger.warning("Leg %d | ERROR in coordinate_to_angle: %s", i+1, e)
+                pre = [0, 0, 0]
+            cal = self.calibration_angles[i]
+            post = self.current_angles[i]
+            logger.debug("Leg %d | pos: [%6.1f, %6.1f, %6.1f] | pre-angle: [%3d, %3d, %3d] | calib: [%3d, %3d, %3d] | final: [%3d, %3d, %3d]",
+                        i+1, raw[0], raw[1], raw[2],
+                        pre[0], pre[1], pre[2],
+                        cal[0], cal[1], cal[2],
+                        post[0], post[1], post[2])
+    
     def stop(self):
         self.stop_event.set()
         if self.condition_thread.is_alive():

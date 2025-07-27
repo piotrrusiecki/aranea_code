@@ -157,6 +157,21 @@ def dispatch_command(source, command):
             routine_commands[command]()  # or directly: stop_servo_test()
             return
 
+    if command.startswith("diag_"):
+        parts = command.split("#")
+        try:
+            from command_dispatcher_registry import DIAG_COMMANDS
+            from command_dispatcher_symbolic import handle_diag_set_servo
+
+            if parts[0] == "diag_set_servo":
+                handle_diag_set_servo(parts[1:], source)
+                return
+            else:
+                logger.warning("[%s] Unknown diag_ command: %s", source, command)
+        except Exception as e:
+            logger.error("[%s] Error handling diag command: %s", source, e)
+        return
+
     # CMD-style command fallback
     for prefix in known_simple_commands:
         if command.startswith(prefix):
@@ -166,6 +181,7 @@ def dispatch_command(source, command):
             logger.info("[%s] Direct command fallback matched: %s", source, command)
             send_str(command, server_instance.process_command)
             return
+
 
     # Special case: CMD_RELAX
     if command == cmd.CMD_RELAX:
@@ -186,6 +202,8 @@ def dispatch_command(source, command):
         except Exception as e:
             logger.error("[%s] Battery read failed: %s", source, e)
             return ["CMD_BATTERY", "ERROR"]
+        # Symbolic diagnostic commands
+
 
     # Unknown command fallback
     logger.warning("[%s] Unknown or unhandled command: %s", source, command)

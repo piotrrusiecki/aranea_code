@@ -5,7 +5,7 @@ VOICE_MODELS = {
     "en": "voice_models/vosk-model-small-en-us-0.15",
 }
 
-LOGGING_LEVEL = "INFO"
+LOGGING_LEVEL = "DEBUG"
 LOGGER_COLORS = {
     'main':           '\033[94m',    # Bright blue
     'voice':          '\033[35m',    # Magenta
@@ -28,3 +28,4 @@ VOICE_SAMPLERATE = 44100
 VOICE_BLOCKSIZE = 4000
 VOICE_INPUT_DEVICE = 1
 DRY_RUN = False
+DEBUG_LEGS = True
