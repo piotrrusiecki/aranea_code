@@ -7,6 +7,14 @@ from robot_routines import shutdown_sequence
 
 logger = logging.getLogger("web")
 
+LEG_TO_SERVO = {
+    (0, 0): 15, (0, 1): 14, (0, 2): 13,  # L1
+    (1, 0): 12, (1, 1): 11, (1, 2): 10,  # L2
+    (2, 0): 9,  (2, 1): 8,  (2, 2): 31,  # L3
+    (3, 0): 22, (3, 1): 23, (3, 2): 27,  # L4
+    (4, 0): 19, (4, 1): 20, (4, 2): 21,  # L5
+    (5, 0): 16, (5, 1): 17, (5, 2): 18,  # L6
+}
 
 def create_app(server_instance, robot_state):
     app = Flask(
@@ -175,6 +183,23 @@ def create_app(server_instance, robot_state):
         except Exception as e:
             logger.error("Speed update failed: %s", e)
             return jsonify({"status": "error", "reason": "Invalid speed value"}), 400
+    @app.route("/load_point_txt")
+    def load_point_txt():
+        servo_map = {}
+        try:
+            with open("point.txt", "r") as f:
+                for leg_idx, line in enumerate(f.readlines()):
+                    values = line.strip().split()
+                    if len(values) != 3:
+                        continue
+                    angles = list(map(int, values))
+                    for joint_idx, angle in enumerate(angles):
+                        servo = LEG_TO_SERVO.get((leg_idx, joint_idx))
+                        if servo is not None:
+                            servo_map[str(servo)] = angle
+            return jsonify(servo_map)
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
     @app.errorhandler(500)
     def internal_error(e):

@@ -445,5 +445,15 @@ function sendServoDiagnostic(channel) {
   const angle = document.getElementById(`servo${channel}`).value;
   sendCommand(`diag_set_servo#${channel}#${angle}`);
 }
-
+function loadPointTxt() {
+  fetch('/load_point_txt')
+    .then(response => response.json())
+    .then(data => {
+      for (const [channel, angle] of Object.entries(data)) {
+        const input = document.getElementById(`servo${channel}`);
+        if (input) input.value = angle;
+      }
+    })
+    .catch(err => console.error("Failed to load point.txt:", err));
+}
 updateHeadDisplay();
