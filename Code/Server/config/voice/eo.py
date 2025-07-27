@@ -1,62 +1,53 @@
 # voice_config.py
 
 command_map = {
-    "iru": "CMD_MOVE#1#0#35#8#0",
-    "iru reen": "CMD_MOVE#1#0#-35#8#0",
-    "iru maldekstren": "CMD_MOVE#1#-35#0#8#0",
-    "iru dekstren": "CMD_MOVE#1#35#0#8#0",
+    "iru": "task_step_forward",
+    "iru reen": "task_step_back",
+    "iru maldekstren": "task_step_left",
+    "iru dekstren": "task_step_right",
 
-    "turnu maldekstren": [
-        "CMD_MOVE#1#5#5#8#-10", "CMD_MOVE#1#-5#0#8#-10",
-        "CMD_MOVE#1#5#-5#8#-10", "CMD_MOVE#1#-5#-5#8#-10"
-    ],
-    "turnu dekstren": [
-        "CMD_MOVE#1#5#5#8#10", "CMD_MOVE#1#-5#0#8#10",
-        "CMD_MOVE#1#5#-5#8#10", "CMD_MOVE#1#-5#-5#8#10"
-    ],
-    "turnu iomete maldekstren": "CMD_MOVE#1#5#-5#8#-10",
-    "turnu iomete dekstren": "CMD_MOVE#1#5#-5#8#10",
+    "turnu maldekstren": "routine_turn_left",
+    "turnu dekstren": "routine_turn_right",
+    "turnu iomete maldekstren": "task_turn_small_left",
+    "turnu iomete dekstren": "task_turn_small_right",
 
-    "klinu fronte": "CMD_ATTITUDE#0#15#-2",
-    "klinu reen": "CMD_ATTITUDE#0#-15#-2",
-    "klinu maldekstren": "CMD_ATTITUDE#-15#0#-2",
-    "klinu dekstren": "CMD_ATTITUDE#15#0#-2",
+    "klinu fronte": "task_attitude_forward",
+    "klinu reen": "task_attitude_back",
+    "klinu maldekstren": "task_attitude_left",
+    "klinu dekstren": "task_attitude_right",
 
-    "rigardu fronte": ["CMD_HEAD#0#90", "CMD_HEAD#1#90"],
-    "rigardu maldekstren": "CMD_HEAD#1#135",
-    "rigardu dekstren": "CMD_HEAD#1#45",
-    "rigardu supren": "CMD_HEAD#0#180",
-    "rigardu malsupren": "CMD_HEAD#0#50",
+    "rigardu fronte": "sys_reset_head",
+    "rigardu maldekstren": "task_look_left",
+    "rigardu dekstren": "task_look_right",
+    "rigardu supren": "task_look_up",
+    "rigardu malsupren": "task_look_down",
 
-    "ripozu": "CMD_SERVOPOWER#0",
-    "veku": "CMD_SERVOPOWER#1",
+    "ripozu": "task_servo_off",
+    "veku": "task_servo_on",
 
-    "movu maldekstren": "CMD_POSITION#-40#0#0",
-    "movu dekstren": "CMD_POSITION#40#0#0",
-    "movu reen": "CMD_POSITION#0#-40#0",
-    "movu fronte": "CMD_POSITION#0#40#0",
+    "movu maldekstren": "task_shift_left",
+    "movu dekstren": "task_shift_right",
+    "movu reen": "task_shift_back",
+    "movu fronte": "task_shift_forward",
 
-    "lumigu ruĝe": "CMD_LED#255#0#0",
-    "lumigu verde": "CMD_LED#0#255#0",
-    "lumigu blue": "CMD_LED#0#0#255",
-    "malŝaltu lumo": "CMD_LED#0#0#0",
+    "lumigu ruĝe": "task_light_red",
+    "lumigu verde": "task_light_green",
+    "lumigu blue": "task_light_blue",
+    "malŝaltu lumo": "task_light_off",
 
-    "evitu": "START_SONIC_MODE",
-    "blinda": "STOP_SONIC_MODE",
+    "evitu": "sys_start_sonic",
+    "blinda": "sys_stop_sonic",
 
-    "marŝu": "START_MARCH",
-    "marŝu maldekstren": "START_MARCH_LEFT",
-    "marŝu dekstren": "START_MARCH_RIGHT",
-    "marŝu reen": "START_MARCH_BACK",
+    "marŝu": "routine_march_forward",
+    "marŝu maldekstren": "routine_march_left",
+    "marŝu dekstren": "routine_march_right",
+    "marŝu reen": "routine_march_back",
+    
+    "kuru": "routine_run_forward",
+    "kuru maldekstren": "routine_run_left",
+    "kuru dekstren": "routine_run_right",
+    "kuru reen": "routine_run_back",
 
-    "kuru": "START_RUN",
-    "kuru maldekstren": "START_RUN_LEFT",
-    "kuru dekstren": "START_RUN_RIGHT",
-    "kuru reen": "START_RUN_BACK",
-
-    "haltu": "STOP_MOTION_LOOP"
+    "haltu": "sys_stop_motion",
+    "patrolu": "routine_patrol"
 }
-
-model_path = "/home/piotr/Aranea_code/robot_voice_model"
-samplerate = 44100
-blocksize = 4000

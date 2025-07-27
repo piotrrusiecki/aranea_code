@@ -7,7 +7,7 @@ import logging
 from robot_kinematics import restrict_value, map_value
 from robot_pose import transform_coordinates
 
-logger = logging.getLogger("robot")
+logger = logging.getLogger("robot.gait")
 
 def run_gait(control, data, Z=40, F=64):
     """

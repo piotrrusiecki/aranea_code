@@ -140,12 +140,14 @@ class Control:
                 self.command_queue = ['', '', '', '', '', '']
 
             elif cmd.CMD_MOVE in self.command_queue and len(self.command_queue) == 6:
+                logger.debug("[control] CMD_MOVE triggered. queue = %s | motion_state = %s", self.command_queue, self.robot_state.get_flag("motion_state"))
                 if self.command_queue[2] == "0" and self.command_queue[3] == "0":
                     self.run_gait(self.command_queue)
                     self.command_queue = ['', '', '', '', '', '']
                 else:
                     self.run_gait(self.command_queue)
                     self.status_flag = 0x03
+                    self.command_queue = ['', '', '', '', '', '']
 
             elif cmd.CMD_BALANCE in self.command_queue and len(self.command_queue) == 2:
                 if self.command_queue[1] == "1":

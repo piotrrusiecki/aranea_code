@@ -72,7 +72,7 @@ function checkCalibrationMode() {
 
 // Request robot to enter calibration mode (neutral pose)
 function prepareForCalibration() {
-  runRoutine('prep_calibration');
+  runRoutine('sys_prep_calibration');
   // Poll every 200ms until calibration_mode is ON (max 2s)
   let tries = 0;
   function poll() {
@@ -94,7 +94,7 @@ function prepareForCalibration() {
 
 // Request robot to exit calibration mode (optional)
 function exitCalibration() {
-  runRoutine('exit_calibration');
+  runRoutine('sys_exit_calibration');
   let tries = 0;
   function poll() {
     fetch('/calibration_mode')
@@ -326,14 +326,14 @@ function toggleIMUPolling() {
 }
 
 function stopMotion() {
-  runRoutine('stop_motion');
+  runRoutine('sys_stop_motion');
 }
 
 function toggleSonic(isOn) {
   if (isOn) {
-    runRoutine('start_sonic');
+    runRoutine('sys_start_sonic');
   } else {
-    runRoutine('stop_sonic');
+    runRoutine('sys_stop_sonic');
   }
 }
 
@@ -375,9 +375,9 @@ function updateCalibrationModeStatus() {
 
 function sendTurn(direction) {
   if (direction === "left") {
-    runRoutine("turn_left");
+    runRoutine("routine_turn_left");
   } else if (direction === "right") {
-    runRoutine("turn_right");
+    runRoutine("routine_turn_right");
   } else {
     console.warn("Invalid turn direction:", direction);
   }
@@ -435,6 +435,10 @@ function updateVoltageBars(loadVoltage, raspiVoltage) {
   raspiBar.style.width = raspiPercent + '%';
   raspiBar.classList.add(getColor(raspiVoltage));
   raspiBar.textContent = raspiVoltage.toFixed(2) + ' V';
+}
+
+function toggleServoTest(isOn) {
+  runRoutine(isOn ? "sys_start_servo_test" : "sys_stop_servo_test");
 }
 
 updateHeadDisplay();

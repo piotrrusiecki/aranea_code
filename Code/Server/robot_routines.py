@@ -36,11 +36,7 @@ def motion_loop(
                 logger.warning("Obstacle detected before starting motion. Aborting.")
                 if robot_state is not None:
                     robot_state.set_flag("motion_state", False)
-                for _ in range(3):
-                    command_sender([cmd.CMD_LED, "255", "0", "0"])
-                    time.sleep(0.2)
-                    command_sender([cmd.CMD_LED, "0", "0", "0"])
-                    time.sleep(0.2)
+                flash_led_red(command_sender)
                 # Issue stop command for safety
                 command_sender([cmd.CMD_MOVE, "1", "0", "0", "8", "0"])
                 return  # Abort starting the loop
@@ -57,11 +53,7 @@ def motion_loop(
                     logger.info("SONIC distance: %.1f cm", distance)
                     if distance < 40:
                         logger.warning("Obstacle too close. Stopping.")
-                        for _ in range(3):
-                            command_sender([cmd.CMD_LED, "255", "0", "0"])
-                            time.sleep(0.2)
-                            command_sender([cmd.CMD_LED, "0", "0", "0"])
-                            time.sleep(0.2)
+                        flash_led_red(command_sender)
                         command_sender([cmd.CMD_MOVE, "1", "0", "0", "8", "0"])
                         break
                 # If not using sensor, just walk, no printout
@@ -83,16 +75,14 @@ def motion_loop(
             except Exception as e:
                 logger.error("Motion loop error: %s", e)
                 break
-
     finally:
-        # Always reset state and pose
         if robot_state is not None:
             robot_state.set_flag("motion_state", False)
-        time.sleep(0.2)  # Allow any outside resets or command race conditions to settle
+        time.sleep(0.2)
         command_sender([cmd.CMD_MOVE, "1", "0", "0", "8", "0"])
         command_sender([cmd.CMD_HEAD, "0", "90"])
-
-
+        command_sender([cmd.CMD_LED, "0", "0", "0"])
+        
 def sonic_monitor_loop(command_sender, ultrasonic_sensor, sonic_mode_flag):
     """
     Obstacle detection/monitoring only.
@@ -124,7 +114,7 @@ def shutdown_sequence(command_sender):
     command_sender([cmd.CMD_HEAD, "1", "90"])
     command_sender([cmd.CMD_HEAD, "0", "90"])
 
-def prepare_for_calibration(send, control_system, robot_state):
+def sys_prep_calibration(send, control_system, robot_state):
     logger.info("Preparing robot for calibration...")
 
     saved_positions = []
@@ -152,7 +142,7 @@ def prepare_for_calibration(send, control_system, robot_state):
     logger.info("Robot set to saved calibration pose. Calibration mode ON.")
 
 
-def exit_calibration(send, control_system, robot_state):
+def sys_exit_calibration(send, control_system, robot_state):
     logger.info("Exiting calibration mode...")
     robot_state.set_flag("calibration_mode", False)
     # Optionally: relax servos or move to safe pose
@@ -160,117 +150,32 @@ def exit_calibration(send, control_system, robot_state):
 
 # === High-level wrappers for routines ===
 
-def march_forward(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=True):
-    motion_loop(
-        command_sender,
-        ultrasonic_sensor,
-        gait=2,
-        x=0,
-        y=35,
-        speed=8,
-        head_angle=90,
-        motion_mode_flag=motion_mode_flag,
-        robot_state=robot_state,
-        use_sensor=use_sensor
-    )
+def make_motion_routine(gait, x, y, speed, head_angle, use_sensor_default=True):
+    def routine(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=None):
+        motion_loop(
+            command_sender,
+            ultrasonic_sensor,
+            gait=gait,
+            x=x,
+            y=y,
+            speed=speed,
+            head_angle=head_angle,
+            motion_mode_flag=motion_mode_flag,
+            robot_state=robot_state,
+            use_sensor=use_sensor_default if use_sensor is None else use_sensor
+        )
+    return routine
 
-def march_left(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=True):
-    motion_loop(
-        command_sender,
-        ultrasonic_sensor,
-        gait=2,
-        x=-35,
-        y=0,
-        speed=8,
-        head_angle=180,
-        motion_mode_flag=motion_mode_flag,
-        robot_state=robot_state,
-        use_sensor=use_sensor
-    )
+routine_march_forward = make_motion_routine(2, 0, 35, 8, 90)
+routine_march_back    = make_motion_routine(2, 0, -35, 8, 90, use_sensor_default=False)
+routine_march_left    = make_motion_routine(2, -35, 0, 8, 180)
+routine_march_right   = make_motion_routine(2, 35, 0, 8, 0)
 
-def march_right(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=True):
-    motion_loop(
-        command_sender,
-        ultrasonic_sensor,
-        gait=2,
-        x=35,
-        y=0,
-        speed=8,
-        head_angle=0,
-        motion_mode_flag=motion_mode_flag,
-        robot_state=robot_state,
-        use_sensor=use_sensor
-    )
+routine_run_forward = make_motion_routine(1, 0, 20, 10, 90)
+routine_run_back    = make_motion_routine(1, 0, -20, 10, 90, use_sensor_default=False)
+routine_run_left    = make_motion_routine(1, -20, 0, 10, 180)
+routine_run_right   = make_motion_routine(1, 20, 0, 10, 0)
 
-def march_back(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=False):
-    motion_loop(
-        command_sender,
-        ultrasonic_sensor,
-        gait=2,
-        x=0,
-        y=-35,
-        speed=8,
-        head_angle=90,
-        motion_mode_flag=motion_mode_flag,
-        robot_state=robot_state,
-        use_sensor=use_sensor
-    )
-
-def run_forward(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=True):
-    motion_loop(
-        command_sender,
-        ultrasonic_sensor,
-        gait=1,
-        x=0,
-        y=20,
-        speed=10,
-        head_angle=90,
-        motion_mode_flag=motion_mode_flag,
-        robot_state=robot_state,
-        use_sensor=use_sensor
-    )
-
-def run_left(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=True):
-    motion_loop(
-        command_sender,
-        ultrasonic_sensor,
-        gait=1,
-        x=-20,
-        y=0,
-        speed=10,
-        head_angle=180,
-        motion_mode_flag=motion_mode_flag,
-        robot_state=robot_state,
-        use_sensor=use_sensor
-    )
-
-def run_right(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=True):
-    motion_loop(
-        command_sender,
-        ultrasonic_sensor,
-        gait=1,
-        x=20,
-        y=0,
-        speed=10,
-        head_angle=0,
-        motion_mode_flag=motion_mode_flag,
-        robot_state=robot_state,
-        use_sensor=use_sensor
-    )
-
-def run_back(command_sender, ultrasonic_sensor, motion_mode_flag, robot_state=None, use_sensor=False):
-    motion_loop(
-        command_sender,
-        ultrasonic_sensor,
-        gait=1,
-        x=0,
-        y=-20,
-        speed=10,
-        head_angle=90,
-        motion_mode_flag=motion_mode_flag,
-        robot_state=robot_state,
-        use_sensor=use_sensor
-    )
 
 def compute_angle_for_speed(speed):
     # F = map_value(speed, 2, 10, 126, 22), 6 @ 80 → 22.5 deg
@@ -278,7 +183,7 @@ def compute_angle_for_speed(speed):
     # return max(1, round(7 * 80 / F))
     return 6
 
-def turn_left(command_sender, steps=1, speed=5, pause=1):
+def routine_turn_left(command_sender, steps=1, speed=5, pause=1):
     angle_per_step = compute_angle_for_speed(speed)
     logger.info("Executing turn_left routine... speed=%d, angle=%d", speed, angle_per_step)
     for _ in range(steps):
@@ -302,7 +207,7 @@ def turn_left(command_sender, steps=1, speed=5, pause=1):
         except Exception as e:
             logger.error("Failed to send reset step in turn_left: %s", e)
 
-def turn_right(command_sender, steps=1, speed=5, pause=1):
+def routine_turn_right(command_sender, steps=1, speed=5, pause=1):
     angle_per_step = compute_angle_for_speed(speed)
     logger.info("Executing turn_right routine... speed=%d, angle=%d", speed, angle_per_step)
     for _ in range(steps):
@@ -326,3 +231,10 @@ def turn_right(command_sender, steps=1, speed=5, pause=1):
         except Exception as e:
             logger.error("Failed to send reset step in turn_right: %s", e)
 
+def flash_led_red(sender, times=3, interval=0.2):
+    for _ in range(times):
+        sender([cmd.CMD_LED, "255", "0", "0"])
+        time.sleep(interval)
+        sender([cmd.CMD_LED, "0", "0", "0"])
+        time.sleep(interval)
+    

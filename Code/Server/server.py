@@ -128,6 +128,7 @@ class Server:
     def handle_move(self, parts):
         self.control_system.command_queue = parts
         self.control_system.timeout = time.time()
+        logger.debug("[server] handle_move: command_queue set to %s", parts)
 
     def handle_attitude(self, parts):
         logger.info("Handling attitude command")

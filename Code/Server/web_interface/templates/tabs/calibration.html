@@ -21,12 +21,18 @@
   <div class="row mb-3">
     <div class="col-12 text-center">
       <div class="btn-group" role="group" aria-label="Leg Selection">
-        <button type="button" class="btn btn-outline-primary" id="legBtn1" onclick="selectCalibrationLeg(0)">One</button>
-        <button type="button" class="btn btn-outline-primary" id="legBtn2" onclick="selectCalibrationLeg(1)">Two</button>
-        <button type="button" class="btn btn-outline-primary" id="legBtn3" onclick="selectCalibrationLeg(2)">Three</button>
-        <button type="button" class="btn btn-outline-primary" id="legBtn4" onclick="selectCalibrationLeg(3)">Four</button>
-        <button type="button" class="btn btn-outline-primary" id="legBtn5" onclick="selectCalibrationLeg(4)">Five</button>
-        <button type="button" class="btn btn-outline-primary" id="legBtn6" onclick="selectCalibrationLeg(5)">Six</button>
+        <button type="button" class="btn btn-outline-primary" id="legBtn1"
+          onclick="selectCalibrationLeg(0)">One</button>
+        <button type="button" class="btn btn-outline-primary" id="legBtn2"
+          onclick="selectCalibrationLeg(1)">Two</button>
+        <button type="button" class="btn btn-outline-primary" id="legBtn3"
+          onclick="selectCalibrationLeg(2)">Three</button>
+        <button type="button" class="btn btn-outline-primary" id="legBtn4"
+          onclick="selectCalibrationLeg(3)">Four</button>
+        <button type="button" class="btn btn-outline-primary" id="legBtn5"
+          onclick="selectCalibrationLeg(4)">Five</button>
+        <button type="button" class="btn btn-outline-primary" id="legBtn6"
+          onclick="selectCalibrationLeg(5)">Six</button>
       </div>
     </div>
   </div>
@@ -63,6 +69,14 @@
     <div class="col text-center">
       <button class="btn btn-success btn-lg px-5" onclick="saveCalibration()">Save to Robot</button>
       <span id="calibStatus" class="ms-3 text-success"></span>
+    </div>
+  </div>
+  <div class="row mb-3">
+    <div class="col text-center">
+      <div class="form-check form-switch d-inline-block">
+        <input class="form-check-input" type="checkbox" id="servoTestToggle" onchange="toggleServoTest(this.checked)">
+        <label class="form-check-label ms-2" for="servoTestToggle">Servo Test Loop</label>
+      </div>
     </div>
   </div>
 </div>

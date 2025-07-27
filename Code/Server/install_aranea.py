@@ -85,7 +85,7 @@ def main():
     run("sudo apt-get update")
 
     print("\nInstalling apt dependencies...")
-    apt_install("i2c-tools python3-smbus libportaudio2")
+    apt_install("i2c-tools python3-smbus libportaudio2 libcamera-apps")
 
     print("\nInstalling Python modules...")
     pip_install("sounddevice vosk numpy flask")

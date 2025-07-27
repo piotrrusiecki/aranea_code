@@ -11,6 +11,11 @@ LOGGER_COLORS = {
     'voice':          '\033[35m',    # Magenta
     'web':            '\033[36m',    # Cyan
     'dispatcher':     '\033[33m',    # Yellow
+    'dispatcher.core':     '\033[33m',    # Yellow
+    'dispatcher.logic':     '\033[33m',    # Yellow
+    'dispatcher.registry':     '\033[33m',    # Yellow
+    'dispatcher.symbolic':     '\033[33m',    # Yellow
+    'dispatcher.utils':     '\033[33m',    # Yellow
     # Robot and sub-loggers shades of green
     'robot':          '\033[32m',    # Green
     'robot.control':  '\033[92m',    # Bright green
@@ -21,4 +26,5 @@ LOGGER_COLORS = {
 }
 VOICE_SAMPLERATE = 44100
 VOICE_BLOCKSIZE = 4000
-VOICE_INPUT_DEVICE = 2
+VOICE_INPUT_DEVICE = 1
+DRY_RUN = False
