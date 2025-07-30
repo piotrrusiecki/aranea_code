@@ -9,6 +9,7 @@ import io
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
         """Initialize the StreamingOutput class."""
+        super().__init__()  # Properly initialize the parent BufferedIOBase class
         self.frame = None
         self.condition = Condition()  # Initialize the condition variable for thread synchronization
 
