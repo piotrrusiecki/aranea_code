@@ -38,6 +38,7 @@
 - [ ] Complete diagnostics tab (IMU, servo state, ultrasonic, battery)
 - [ ] Real-time performance metrics display
 - [ ] Configuration management via web UI
+- [ ] Real-time video streaming integration - Embedded camera feed in web interface
 
 ## Phase 4: Advanced Robot Behaviors (Priority: MEDIUM)
 ### Movement & Navigation
@@ -101,7 +102,6 @@
 - [x] **Web interface development** - Complete Flask-based control interface (original had none)
 - [x] **Voice control foundation** - Added Vosk-based voice recognition with Esperanto support (original had none)
 - [x] **Mobile-responsive web UI** - Touch-friendly interface for field operation
-- [x] **Real-time video streaming integration** - Embedded camera feed in web interface
 - [x] **Calibration web interface** - Visual servo calibration vs command-line only
 
 ### **System Architecture Enhancements**
