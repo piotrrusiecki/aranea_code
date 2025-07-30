@@ -1,5 +1,5 @@
 # test_servo.py
-from pca9685 import PCA9685
+from hardware_pca9685 import PCA9685
 import threading
 import time
 

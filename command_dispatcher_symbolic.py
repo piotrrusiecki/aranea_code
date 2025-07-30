@@ -8,7 +8,7 @@ without requiring direct access to dispatcher logic or risking circular imports.
 import logging
 from command_dispatcher_core import symbolic_commands, routine_commands, server_instance
 from command_dispatcher_utils import send_str
-from servo import Servo
+from actuator_servo import Servo
 
 logger = logging.getLogger("dispatcher.symbolic")
 

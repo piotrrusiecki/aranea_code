@@ -6,10 +6,10 @@ import threading
 import logging
 import numpy as np
 from gpiozero import OutputDevice
-from pid import Incremental_PID
-from command import COMMAND as cmd
-from imu import IMU
-from servo import Servo
+from robot_pid import Incremental_PID
+from constants_commands import COMMAND as cmd
+from sensor_imu import IMU
+from actuator_servo import Servo
 from robot_kinematics import coordinate_to_angle, angle_to_coordinate, restrict_value, map_value
 from robot_pose import calculate_posture_balance, transform_coordinates
 from robot_gait import run_gait

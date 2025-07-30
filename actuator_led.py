@@ -2,9 +2,9 @@
 import time
 import threading
 import logging
-from parameter import ParameterManager
-from rpi_ledpixel import Freenove_RPI_WS281X
-from spi_ledpixel import Freenove_SPI_LedPixel
+from config.parameter import ParameterManager
+from hardware_rpi_ledpixel import Freenove_RPI_WS281X
+from hardware_spi_ledpixel import Freenove_SPI_LedPixel
 
 logger = logging.getLogger("led")
 

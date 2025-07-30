@@ -1,5 +1,5 @@
 # coding:utf-8
-from pca9685 import PCA9685
+from hardware_pca9685 import PCA9685
 import time
 
 def map_value(value, from_low, from_high, to_low, to_high):

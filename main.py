@@ -6,7 +6,7 @@ import os
 import logging
 from datetime import datetime
 from flask import Flask
-from server import Server
+from hardware_server import Server
 from voice_manager import start_voice, stop_voice
 from command_dispatcher_logic import init_command_dispatcher, dispatch_command
 from web_server import create_app

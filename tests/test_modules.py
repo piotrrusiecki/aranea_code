@@ -1,7 +1,7 @@
 import time
 
 def test_Led():
-    from led import Led
+    from actuator_led import Led
     led = Led()
     try:
         #Red wipe
@@ -31,7 +31,7 @@ def test_Led():
         print ("\nEnd of program")
 
 def test_Ultrasonic():
-    from ultrasonic import Ultrasonic
+    from sensor_ultrasonic import Ultrasonic
     ultrasonic=Ultrasonic()
     try:
         while True:
@@ -42,7 +42,7 @@ def test_Ultrasonic():
         print ("\nEnd of program")
 
 def test_Servo():
-    from servo import Servo
+    from actuator_servo import Servo
     servo = Servo()
     try:
         for i in range(50):
@@ -76,7 +76,7 @@ def test_Servo():
         print ("\nEnd of program")
 
 def test_Adc():
-    from adc import ADC
+    from sensor_adc import ADC
     adc = ADC()
     try:
         while True:
@@ -87,7 +87,7 @@ def test_Adc():
         print ("\nEnd of program")
 
 def test_Buzzer():
-    from buzzer import Buzzer
+    from actuator_buzzer import Buzzer
     buzzer = Buzzer()
     try:
         buzzer.set_state(True)

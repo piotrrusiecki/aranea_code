@@ -34,23 +34,31 @@
 - `command_dispatcher_utils.py` - Utility functions for command processing
 
 #### **Hardware Interface Layer**
-- `server.py` - Hardware abstraction server (evolved from manufacturer code)
+- `hardware_server.py` - Hardware abstraction server (evolved from manufacturer code)
   - Command handlers for all hardware components
   - TCP socket management for legacy compatibility
   - Video streaming coordination
-- `servo.py` - 18-servo hexapod control via PCA9685 I2C controllers
-- `led.py` - RGB LED strip control with effects
-- `buzzer.py` - Simple buzzer control
-- `camera.py` - Pi camera streaming interface
-- `ultrasonic.py` - Distance sensor interface
-- `adc.py` - Battery voltage monitoring
-- `imu.py` - Inertial measurement unit with Kalman filtering
+- `hardware_pca9685.py` - PCA9685 I2C controller driver for servo management
+- `hardware_spi_ledpixel.py` - SPI-based LED strip driver (Freenove SPI LED pixels)
+- `hardware_rpi_ledpixel.py` - Raspberry Pi WS281X LED strip driver
+
+#### **Sensors**
+- `sensor_camera.py` - Pi camera streaming interface
+- `sensor_ultrasonic.py` - Distance sensor interface
+- `sensor_adc.py` - Battery voltage monitoring
+- `sensor_imu.py` - Inertial measurement unit with Kalman filtering
+
+#### **Actuators**
+- `actuator_servo.py` - 18-servo hexapod control via PCA9685 I2C controllers
+- `actuator_led.py` - RGB LED strip control with effects
+- `actuator_buzzer.py` - Simple buzzer control
 
 #### **Robot Control & Movement**
-- `control.py` - Main robot control system with condition monitoring thread
+- `robot_control.py` - Main robot control system with condition monitoring thread
   - Servo angle calculations and safety checks
   - Command queue processing
   - Auto-relax functionality
+- `robot_pid.py` - PID controller for robot balance and stability
 - `robot_kinematics.py` - Forward/inverse kinematics calculations
 - `robot_gait.py` - Gait pattern generation (walking algorithms)
 - `robot_pose.py` - Body posture and balance calculations
@@ -76,10 +84,14 @@
 - `config/voice/eo.py` - Esperanto command mappings
 - `config/voice/__init__.py` - Multi-language support framework
 
-#### **Configuration**
+#### **Configuration & Constants**
 - `config/robot_config.py` - Centralized configuration
   - Voice settings, logging colors, debug flags
   - Hardware-specific settings
+- `config/parameter.py` - Parameter management utility
+  - Hardware detection and validation
+  - Configuration file management
+- `constants_commands.py` - Command constants and definitions
 - `params.json` - Runtime parameters (PCB version, Pi version)
 
 ## 🔧 Key Technical Details
@@ -95,7 +107,7 @@
 ### **Command Flow**
 1. **Input** → Web UI, Voice, or TCP
 2. **Dispatcher** → Routes to symbolic or routine commands
-3. **Execution** → Hardware commands via server.py
+3. **Execution** → Hardware commands via hardware_server.py
 4. **State Update** → RobotState flags updated
 5. **Feedback** → LEDs, buzzer, or response data
 
@@ -151,9 +163,9 @@
 ## 🔍 Quick Navigation Tips
 
 ### **For Movement Issues**
-- Start with: `robot_gait.py`, `control.py`, `robot_routines.py`
+- Start with: `robot_gait.py`, `robot_control.py`, `robot_routines.py`
 - Check: `config/robot_config.py` for timing flags
-- Monitor: Servo communication in `servo.py`
+- Monitor: Servo communication in `actuator_servo.py`
 
 ### **For Voice Features**
 - Core: `voice_control.py`, `voice_manager.py`
@@ -166,13 +178,13 @@
 - API: `/command` endpoint for all robot control
 
 ### **For Hardware Issues**
-- Hardware layer: `server.py` (evolved manufacturer code)
-- Individual components: `servo.py`, `led.py`, `camera.py`, etc.
+- Hardware layer: `hardware_server.py` (evolved manufacturer code)
+- Individual components: `actuator_servo.py`, `actuator_led.py`, `sensor_camera.py`, etc.
 - Calibration: `robot_calibration.py`
 
 ### **For State Management**
 - Central state: `robot_state.py`
-- State monitoring: `control.py` condition_monitor()
+- State monitoring: `robot_control.py` condition_monitor()
 - Flag interactions: Check exclusivity logic
 
 ## 📝 Code Patterns & Conventions
@@ -198,9 +210,9 @@ if robot_state.get_flag("motion_state"):
 
 ### **Hardware Commands**
 ```python
-# Via server instance
-server.servo_controller.set_servo_angle(channel, angle)
-server.led_controller.process_light_command(parts)
+# Via hardware server instance
+hardware_server.servo_controller.set_servo_angle(channel, angle)
+hardware_server.led_controller.process_light_command(parts)
 ```
 
 ## 🐛 Known Issues & Workarounds

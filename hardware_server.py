@@ -7,14 +7,14 @@ import struct
 from threading import Condition
 import threading
 import logging
-from led import Led
-from servo import Servo
-from buzzer import Buzzer
-from control import Control
-from adc import ADC
-from ultrasonic import Ultrasonic
-from command import COMMAND as cmd
-from camera import Camera  
+from actuator_led import Led
+from actuator_servo import Servo
+from actuator_buzzer import Buzzer
+from robot_control import Control
+from sensor_adc import ADC
+from sensor_ultrasonic import Ultrasonic
+from constants_commands import COMMAND as cmd
+from sensor_camera import Camera  
 
 
 logger = logging.getLogger("robot.server")
