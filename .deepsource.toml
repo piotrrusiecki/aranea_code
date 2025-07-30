@@ -5,3 +5,14 @@ name = "python"
 
   [analyzers.meta]
   runtime_version = "3.x.x"
+
+  [analyzers.config]
+  root = "Code/Server"
+  exclude_patterns = [
+    "../../Application/**",
+    "../../Custom/**",
+    "../../Datasheet/**",
+    "../../Picture/**",
+    "../../Code/Client/**",
+    "../../Code/Libs/**"
+  ]
