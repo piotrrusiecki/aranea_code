@@ -180,7 +180,6 @@ routine_run_right   = make_motion_routine(1, 20, 0, 10, 0)
 def compute_angle_for_speed(speed):
     # F = map_value(speed, 2, 10, 126, 22), 6 @ 80 → 22.5 deg
     F = round(map_value(speed, 2, 10, 126, 22))
-    # return max(1, round(7 * 80 / F))
     return 6
 
 def routine_turn_left(command_sender, steps=1, speed=5, pause=1):

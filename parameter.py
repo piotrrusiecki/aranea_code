@@ -1,4 +1,3 @@
-# Import necessary modules
 import os
 import json
 import subprocess
@@ -55,7 +54,6 @@ class ParameterManager:
         params[param_name] = value
         with open(file_path, 'w') as file:
             json.dump(params, file, indent=4)
-        # print(f"{param_name} set to {value}")
 
     def delete_param_file(self, file_path=None):
         # Delete the specified parameter file
@@ -75,7 +73,6 @@ class ParameterManager:
         }
         with open(file_path, 'w') as file:
             json.dump(default_params, file, indent=4)
-        # print(f"Created {file_path} with default values")
 
     def get_raspberry_pi_version(self):
         # Get the version of the Raspberry Pi
