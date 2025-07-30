@@ -175,12 +175,43 @@ def dispatch_command(source, command):
     # CMD-style command fallback
     for prefix in known_simple_commands:
         if command.startswith(prefix):
-            if prefix == cmd.CMD_MOVE:
-                logger.debug("[%s] Detected direct CMD_MOVE. Forcing motion_state=False", source)
-                server_instance.robot_state.set_flag("motion_state", False)
-            logger.info("[%s] Direct command fallback matched: %s", source, command)
-            send_str(command, server_instance.process_command)
-            return
+            parts = command.split("#")
+            cmd_name = parts[0]
+            params = parts[1:]
+
+            if cmd_name == cmd.CMD_MOVE:
+                if server_instance.robot_state.get_flag("motion_state"):
+                    logger.debug("[%s] Detected CMD_MOVE during routine. Resetting motion_state.", source)
+                    server_instance.robot_state.set_flag("motion_state", False)
+                if len(params) == 5:
+                    server_instance.control_system.command_queue = [cmd_name] + params
+                    server_instance.control_system.timeout = time.time()
+                    logger.info("[%s] Queued CMD_MOVE into control_system.command_queue: %s", source, [cmd_name] + params)
+                    return
+                else:
+                    logger.warning("[%s] Invalid CMD_MOVE format: %s", source, command)
+                    return
+
+            elif cmd_name in {cmd.CMD_POSITION, cmd.CMD_ATTITUDE, cmd.CMD_BALANCE, cmd.CMD_CALIBRATION}:
+                server_instance.control_system.command_queue = [cmd_name] + params
+                server_instance.control_system.timeout = time.time()
+                logger.info("[%s] Queued %s into control_system.command_queue", source, command)
+                return
+
+            elif cmd_name == cmd.CMD_SERVOPOWER:
+                if params and params[0] in {"0", "1"}:
+                    server_instance.robot_state.set_flag("servo_off", params[0] == "0")
+                    logger.info("[%s] CMD_SERVOPOWER received. servo_off set to %s", source, params[0] == "0")
+                else:
+                    logger.warning("[%s] Invalid CMD_SERVOPOWER params: %s", source, params)
+                send_str(command, server_instance.process_command)
+                return
+
+            else:
+                send_str(command, server_instance.process_command)
+                return
+
+
 
 
     # Special case: CMD_RELAX

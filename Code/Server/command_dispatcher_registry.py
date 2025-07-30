@@ -74,10 +74,13 @@ _routines_to_register = {
     "routine_turn_left":     routine_turn_left,
     "routine_turn_right":    routine_turn_right,
     "routine_patrol":        routine_patrol,
-    "sys_prep_calibration": sys_prep_calibration,
-    "sys_exit_calibration": sys_exit_calibration,
-    "sys_start_servo_test": lambda *_: start_servo_test(),
-    "sys_stop_servo_test":  lambda *_: stop_servo_test(),
+    "sys_prep_calibration":  sys_prep_calibration,
+    "sys_exit_calibration":  sys_exit_calibration,
+    "sys_start_servo_test":  lambda *_: start_servo_test(),
+    "sys_stop_servo_test":   lambda *_: stop_servo_test(),
+    "sys_stop_motion":       lambda *_: None,
+    "sys_start_sonic":       lambda *_: None,
+    "sys_stop_sonic":        lambda *_: None,
 }
 
 for name, func in _routines_to_register.items():

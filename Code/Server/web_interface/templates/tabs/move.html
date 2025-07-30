@@ -38,17 +38,17 @@
   </div>
   <div class="row mb-3 mt-3">
     <div class="col-4"><button class="btn btn-warning btn-lg w-100 btn-xlarge" onclick="sendTurn('left')"><i class="bi bi-arrow-counterclockwise"></i></button></div>
-    <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(0,34)"><i class="bi bi-arrow-up"></i></button></div>
+    <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onmousedown="sendMove(0, 34)" onmouseup="sendMove(0, 0)" ontouchstart="sendMove(0, 34)" ontouchend="sendMove(0, 0)"><i class="bi bi-arrow-up"></i></button></div>
     <div class="col-4"><button class="btn btn-warning btn-lg w-100 btn-xlarge" onclick="sendTurn('right')"><i class="bi bi-arrow-clockwise"></i></button></div>
   </div>
   <div class="row mb-3 mt-3">
-    <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(-34,0)"><i class="bi bi-arrow-left"></i></button></div>
+    <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onmousedown="sendMove(-34, 0)" onmouseup="sendMove(0, 0)" ontouchstart="sendMove(-34, 0)" ontouchend="sendMove(0, 0)"><i class="bi bi-arrow-left"></i></button></div>
     <div class="col-4"><button class="btn btn-danger btn-lg w-100 btn-xlarge" onclick="sendMove(0,0)"><i class="bi bi-stop-fill"></i></button></div>
-    <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(34,0)"><i class="bi bi-arrow-right"></i></button></div>
+    <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onmousedown="sendMove(34, 0)" onmouseup="sendMove(0, 0)" ontouchstart="sendMove(34, 0)" ontouchend="sendMove(0, 0)""><i class="bi bi-arrow-right"></i></button></div>
   </div>
   <div class="row mb-3 mt-3">
     <div class="col-4"></div>
-    <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onclick="sendMove(0,-34)"><i class="bi bi-arrow-down"></i></button></div>
+    <div class="col-4"><button class="btn btn-success btn-lg w-100 btn-xlarge" onmousedown="sendMove(0, -34)" onmouseup="sendMove(0, 0)" ontouchstart="sendMove(0, -34)" ontouchend="sendMove(0, 0)""><i class="bi bi-arrow-down"></i></button></div>
     <div class="col-4"></div>
   </div>
 
