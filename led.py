@@ -22,7 +22,7 @@ class Led:
             self.strip = Freenove_RPI_WS281X(7, 255, 'RGB')
             self.is_support_led_function = True
 
-        elif self.pcb_version == 2 and (self.pi_version == 1 or self.pi_version == 2):
+        elif self.pcb_version == 2 and self.pi_version in (1, 2):
             self.strip = Freenove_SPI_LedPixel(7, 255, 'GRB')
             self.is_support_led_function = True
 
