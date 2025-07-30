@@ -1,5 +1,7 @@
 # Aranea Robot Development Roadmap
 
+*Last updated: December 2024 - Major file reorganization completed*
+
 ## Phase 1: Field Autonomy & Performance (Priority: HIGH)
 ### Network & Connectivity
 - [ ] Standalone AP fallback mode (AraneaRobot hotspot)
@@ -29,7 +31,7 @@
 ## Phase 3: Core System Refinement (Priority: MEDIUM)
 ### Architecture Improvements
 - [ ] Centralize status_flag management in robot_state.py
-- [ ] Centralize all configuration in robot_config.py
+- [ ] Centralize all configuration in config/ (parameter.py moved, robot_config.py exists, but config still scattered throughout codebase)
 - [ ] Enhanced error handling and recovery strategies
 - [ ] Thread safety audit and optimization
 
@@ -110,6 +112,7 @@
 - [x] **Error handling framework** - Structured exception handling vs basic try-catch
 - [x] **Service architecture** - Separated concerns vs monolithic server class
 - [x] **Command registry pattern** - Extensible command system vs hardcoded command parsing
+- [x] **File naming convention standardization** - Systematic renaming of 15 legacy files with functional prefixes (hardware_*, sensor_*, actuator_*, robot_*, config/) for clear architectural separation
 
 ### **Operational Improvements**
 - [x] **Headless operation capability** - No GUI dependency for server operation
@@ -123,3 +126,5 @@
 - [x] **Import organization** - Clean dependency management vs mixed imports
 - [x] **Documentation structure** - Added docstrings and code comments
 - [x] **Version control integration** - Git-ready structure vs standalone files
+- [x] **Codebase organization** - Implemented consistent naming convention with git history preservation: legacy files renamed to reflect function (server.py→hardware_server.py, control.py→robot_control.py, etc.)
+- [x] **Documentation maintenance** - Updated codebase guide and roadmap to reflect architectural changes and naming conventions
