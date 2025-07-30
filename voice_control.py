@@ -29,7 +29,7 @@ class VoiceControl:
         if not model_path:
             raise ValueError(f"No model path defined for language: {self.current_lang}")
 
-        logger.info(f"Loading Vosk model for '{self.current_lang}' from: {model_path}")
+        logger.info("Loading Vosk model for '%s' from: %s", self.current_lang, model_path)
         self.model = Model(model_path)
         self.recognizer = KaldiRecognizer(self.model, VOICE_SAMPLERATE)
 
