@@ -159,7 +159,6 @@ class Freenove_RPI_WS281X:
         return [r, g, b]
 
 if __name__ == '__main__':
-    import time
     import os
     led = Freenove_RPI_WS281X(4, 255, "RGB")
 
