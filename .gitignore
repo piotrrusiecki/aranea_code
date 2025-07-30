@@ -62,7 +62,11 @@ recordings/
 
 # === Original Manufacturer Code ===
 # Keep original code for comparison but don't track in git
-!original_code/
+# Note: folder name starts with ! so we need to escape it
+\!original_code/
+manufacturer_*.py
+original_*.py
+*.zip
 
 # === Git ===
 !.gitignore
