@@ -60,5 +60,9 @@ desktop.ini
 logs/
 recordings/
 
+# === Original Manufacturer Code ===
+# Keep original code for comparison but don't track in git
+!original_code/
+
 # === Git ===
 !.gitignore
