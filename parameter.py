@@ -9,7 +9,7 @@ class ParameterManager:
     def __init__(self):
         # Initialize the file path to the default parameter file
         self.file_path = self.PARAM_FILE
-        if self.file_exists() == False or self.validate_params() == False:
+        if not self.file_exists() or not self.validate_params():
             self.deal_with_param()
 
     def file_exists(self, file_path=None):
