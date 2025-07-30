@@ -2,7 +2,6 @@ version = 1
 
 [[analyzers]]
 name = "python"
-enabled = true
 
   [analyzers.meta]
-  python_version = "3.11"
+  runtime_version = "3.x.x"
