@@ -109,7 +109,7 @@ if __name__ == '__main__':
     import sys
     if len(sys.argv)<2:
         print ("Parameter error: Please assign the device")
-        exit() 
+        sys.exit() 
     if sys.argv[1] == 'Led':
         test_Led()
     elif sys.argv[1] == 'Ultrasonic':
