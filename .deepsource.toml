@@ -1,17 +1,5 @@
 version = 1
 
-exclude_patterns = [
-  "    \"Application/**\",",
-  "    \"Custom/**\",",
-  "    \"Datasheet/**\",",
-  "    \"Picture/**\",",
-  "    \"Code/Client/**\",",
-  "    \"Code/Libs/**\",",
-  "    \"*.md\",",
-  "    \"*.pdf\",",
-  "    \"*.exe\""
-]
-
 [[analyzers]]
 name = "python"
 
