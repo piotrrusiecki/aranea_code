@@ -1,9 +1,12 @@
 # -*-coding: utf-8 -*-
 import time
 import threading
+import logging
 from parameter import ParameterManager
 from rpi_ledpixel import Freenove_RPI_WS281X
 from spi_ledpixel import Freenove_SPI_LedPixel
+
+logger = logging.getLogger("led")
 
 class Led:
     def __init__(self):
@@ -27,8 +30,8 @@ class Led:
             self.is_support_led_function = True
 
         elif self.pcb_version == 1 and self.pi_version == 2:
-            # Print an error message and disable LED function if unsupported combination
-            print("PCB Version 1.0 is not supported on Raspberry PI 5.")
+            # Log an error message and disable LED function if unsupported combination
+            logger.error("PCB Version 1.0 is not supported on Raspberry PI 5.")
             self.is_support_led_function = False
 
         self.led_mode = '1'
@@ -163,19 +166,19 @@ class Led:
 
 # Main program logic follows:
 if __name__ == '__main__':
-    print('Program is starting ... ')
+    logger.info('Program is starting ... ')
     led = Led()
     try:
-        print("color_wipe animation")
+        logger.info("color_wipe animation")
         led.color_wipe([255, 0, 0])  # Red wipe
         led.color_wipe([0, 255, 0])  # Green wipe
         led.color_wipe([0, 0, 255])  # Blue wipe
-        print("rainbow animation")
+        logger.info("rainbow animation")
         led.rainbow(wait_ms=5)
-        print("rainbow_cycle animation")
+        logger.info("rainbow_cycle animation")
         led.rainbow_cycle(wait_ms=5)
         led.color_wipe([0, 0, 0], 10)
     except KeyboardInterrupt:  # When 'Ctrl+C' is pressed, the child program destroy() will be executed.
         led.color_wipe([0, 0, 0], 10)
     finally:
-        print("\nEnd of program")
+        logger.info("End of program")

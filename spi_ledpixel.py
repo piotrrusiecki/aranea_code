@@ -1,6 +1,9 @@
 # Import necessary modules
 import spidev
 import numpy
+import logging
+
+logger = logging.getLogger("led")
 
 # Define the Freenove_SPI_LedPixel class
 class Freenove_SPI_LedPixel(object):
@@ -29,12 +32,12 @@ class Freenove_SPI_LedPixel(object):
             self.led_init_state = 1
         except OSError:
             # Handle SPI initialization errors
-            print("Please check the configuration in /boot/firmware/config.txt.")
+            logger.error("SPI initialization failed. Please check the configuration in /boot/firmware/config.txt.")
             if self.bus == 0:
-                print("You can turn on the 'SPI' in 'Interface Options' by using 'sudo raspi-config'.")
-                print("Or make sure that 'dtparam=spi=on' is not commented, then reboot the Raspberry Pi. Otherwise spi0 will not be available.")
+                logger.error("You can turn on the 'SPI' in 'Interface Options' by using 'sudo raspi-config'.")
+                logger.error("Or make sure that 'dtparam=spi=on' is not commented, then reboot the Raspberry Pi. Otherwise spi0 will not be available.")
             else:
-                print("Please add 'dtoverlay=spi{}-2cs' at the bottom of the /boot/firmware/config.txt, then reboot the Raspberry Pi. Otherwise spi{} will not be available.".format(self.bus, self.bus))
+                logger.error("Please add 'dtoverlay=spi%s-2cs' at the bottom of the /boot/firmware/config.txt, then reboot the Raspberry Pi. Otherwise spi%s will not be available.", self.bus, self.bus)
             # Set initialization state to failure
             self.led_init_state = 0
             
@@ -43,21 +46,21 @@ class Freenove_SPI_LedPixel(object):
         return self.led_init_state
         
     def spi_gpio_info(self):
-        # Print the GPIO pin information for the specified SPI bus
+        # Log the GPIO pin information for the specified SPI bus
         if self.bus == 0:
-            print("SPI0-MOSI: GPIO10(WS2812-PIN)  SPI0-MISO: GPIO9  SPI0-SCLK: GPIO11  SPI0-CE0: GPIO8  SPI0-CE1: GPIO7")
+            logger.info("SPI0-MOSI: GPIO10(WS2812-PIN)  SPI0-MISO: GPIO9  SPI0-SCLK: GPIO11  SPI0-CE0: GPIO8  SPI0-CE1: GPIO7")
         elif self.bus == 1:
-            print("SPI1-MOSI: GPIO20(WS2812-PIN)   SPI1-MISO: GPIO19  SPI1-SCLK: GPIO21  SPI1-CE0: GPIO18  SPI1-CE1: GPIO17  SPI0-CE1: GPIO16")
+            logger.info("SPI1-MOSI: GPIO20(WS2812-PIN)   SPI1-MISO: GPIO19  SPI1-SCLK: GPIO21  SPI1-CE0: GPIO18  SPI1-CE1: GPIO17  SPI0-CE1: GPIO16")
         elif self.bus == 2:
-            print("SPI2-MOSI: GPIO41(WS2812-PIN)   SPI2-MISO: GPIO40  SPI2-SCLK: GPIO42  SPI2-CE0: GPIO43  SPI2-CE1: GPIO44  SPI2-CE1: GPIO45")
+            logger.info("SPI2-MOSI: GPIO41(WS2812-PIN)   SPI2-MISO: GPIO40  SPI2-SCLK: GPIO42  SPI2-CE0: GPIO43  SPI2-CE1: GPIO44  SPI2-CE1: GPIO45")
         elif self.bus == 3:
-            print("SPI3-MOSI: GPIO2(WS2812-PIN)  SPI3-MISO: GPIO1  SPI3-SCLK: GPIO3  SPI3-CE0: GPIO0  SPI3-CE1: GPIO24")
+            logger.info("SPI3-MOSI: GPIO2(WS2812-PIN)  SPI3-MISO: GPIO1  SPI3-SCLK: GPIO3  SPI3-CE0: GPIO0  SPI3-CE1: GPIO24")
         elif self.bus == 4:
-            print("SPI4-MOSI: GPIO6(WS2812-PIN)  SPI4-MISO: GPIO5  SPI4-SCLK: GPIO7  SPI4-CE0: GPIO4  SPI4-CE1: GPIO25")
+            logger.info("SPI4-MOSI: GPIO6(WS2812-PIN)  SPI4-MISO: GPIO5  SPI4-SCLK: GPIO7  SPI4-CE0: GPIO4  SPI4-CE1: GPIO25")
         elif self.bus == 5:
-            print("SPI5-MOSI: GPIO14(WS2812-PIN)  SPI5-MISO: GPIO13  SPI5-SCLK: GPIO15  SPI5-CE0: GPIO12  SPI5-CE1: GPIO26")
+            logger.info("SPI5-MOSI: GPIO14(WS2812-PIN)  SPI5-MISO: GPIO13  SPI5-SCLK: GPIO15  SPI5-CE0: GPIO12  SPI5-CE1: GPIO26")
         elif self.bus == 6:
-            print("SPI6-MOSI: GPIO20(WS2812-PIN)  SPI6-MISO: GPIO19  SPI6-SCLK: GPIO21  SPI6-CE0: GPIO18  SPI6-CE1: GPIO27")
+            logger.info("SPI6-MOSI: GPIO20(WS2812-PIN)  SPI6-MISO: GPIO19  SPI6-SCLK: GPIO21  SPI6-CE0: GPIO18  SPI6-CE1: GPIO27")
     
     def led_close(self):
         # Turn off all LEDs and close the SPI connection
@@ -229,10 +232,10 @@ class Freenove_SPI_LedPixel(object):
 if __name__ == '__main__':
     import time
     import os
-    # Print the version of the spidev module
-    print("spidev version is ", spidev.__version__)
-    # Print the available SPI devices
-    print("spidev device as show:")
+    # Log the version of the spidev module
+    logger.info("spidev version is %s", spidev.__version__)
+    # Log the available SPI devices
+    logger.info("spidev device as show:")
     os.system("ls /dev/spi*")
     
     # Create an instance of Freenove_SPI_LedPixel with 8 LEDs and maximum brightness
