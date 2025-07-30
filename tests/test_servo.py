@@ -43,7 +43,6 @@ _thread = None
 _servo = Servo()
 
 def _run_test_loop():
-    global _running
     printed = set()
     while _running:
         for i in USED_CHANNELS:

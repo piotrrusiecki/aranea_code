@@ -21,7 +21,7 @@ def start_voice(process_command, ultrasonic_sensor, robot_state):
             logger.error("Failed to start voice control: %s", e)
 
 def stop_voice():
-    global voice, voice_active
+    global voice_active
     if voice_active and voice:
         try:
             voice.stop()
