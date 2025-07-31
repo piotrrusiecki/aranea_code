@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 import threading
-import time
 import sys
 import os
 import logging
-from datetime import datetime
-from flask import Flask
 from hardware_server import Server
 from voice_manager import start_voice, stop_voice
 from command_dispatcher_logic import init_command_dispatcher, dispatch_command
@@ -13,8 +10,6 @@ from web_server import create_app
 from werkzeug.serving import make_server
 from robot_state import RobotState
 from config import robot_config
-import vosk  # still needed for model loading
-import command_dispatcher_registry
 
 # --- Logging setup with color by logger name ---
 class LoggerColorFormatter(logging.Formatter):

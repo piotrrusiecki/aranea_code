@@ -5,7 +5,6 @@ import fcntl
 import socket
 import struct
 from threading import Condition
-import threading
 import logging
 from actuator_led import Led
 from actuator_servo import Servo

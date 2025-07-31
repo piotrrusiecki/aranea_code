@@ -3,7 +3,6 @@ import logging
 from flask import Flask, request, jsonify, render_template
 from voice_manager import start_voice, stop_voice
 from command_dispatcher_logic import dispatch_command, init_command_dispatcher
-from robot_routines import shutdown_sequence
 
 logger = logging.getLogger("web")
 

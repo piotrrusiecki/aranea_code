@@ -1,10 +1,5 @@
-import threading
 import time
 import logging
-from robot_routines import (
-    sonic_monitor_loop, shutdown_sequence
-)
-from command_dispatcher_symbolic import execute_symbolic
 from command_dispatcher_logic import dispatch_command
 from constants_commands import COMMAND as cmd
 

@@ -8,8 +8,7 @@ It updates the registries defined in command_dispatcher_core.py.
 """
 
 import logging
-from command_dispatcher_core import symbolic_commands, routine_commands, server_instance
-from command_dispatcher_utils import send_str
+from command_dispatcher_core import symbolic_commands, routine_commands
 from constants_commands import COMMAND as cmd
 
 from robot_routines import (

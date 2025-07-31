@@ -1,7 +1,5 @@
 import queue
 import json
-import threading
-import time
 import difflib
 import sounddevice as sd
 from vosk import Model, KaldiRecognizer

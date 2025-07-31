@@ -1,5 +1,4 @@
 #coding:utf-8
-import time
 
 class Incremental_PID:
     ''' PID controller'''
