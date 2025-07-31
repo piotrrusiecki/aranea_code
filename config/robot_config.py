@@ -22,6 +22,8 @@ LOGGER_COLORS = {
     'robot.server':   '\033[32m',    # Regular green
     'robot.routines': '\033[32;1m',  # Bold green
     'picamera2.picamera2':         '\033[96m',    # Bright cyan (aqua) for camera subsystem
+    'sensor':         '\033[95m',    # Bright magenta for sensor subsystem
+    'sensor.camera':  '\033[96m',    # Bright cyan (aqua) for camera sensor
     'led':            '\033[91m',    # Bright red for LED subsystem
     'RESET':          '\033[0m'
 }

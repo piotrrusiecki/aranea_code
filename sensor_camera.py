@@ -1,10 +1,14 @@
 import time
+import logging
 from picamera2 import Picamera2, Preview
 from picamera2.encoders import H264Encoder, JpegEncoder
 from picamera2.outputs import FileOutput
 from libcamera import Transform
 from threading import Condition
 import io
+
+# Set up logger for camera sensor
+logger = logging.getLogger('sensor.camera')
 
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
@@ -26,7 +30,7 @@ class Camera:
         try:
             self.camera = Picamera2()  # Initialize the Picamera2 object
         except IndexError:
-            print("Error: No available camera device found.")
+            logger.error("No available camera device found")
             return
 
         self.transform = Transform(hflip=1 if hflip else 0, vflip=1 if vflip else 0)  # Set the transformation for flipping the image
@@ -48,9 +52,10 @@ class Camera:
         """Capture and save an image to the specified file."""
         try:
             metadata = self.camera.capture_file(filename)  # Capture an image and save it to the specified file
+            logger.info(f"Image captured and saved to {filename}")
             return metadata                              # Return the metadata of the captured image
         except Exception as e:
-            print(f"Error capturing image: {e}")         # Print error message if capturing fails
+            logger.error(f"Error capturing image: {e}")  # Log error message if capturing fails
             return None                                  # Return None if capturing fails
 
     def start_stream(self, filename: str = None) -> None:
@@ -68,6 +73,10 @@ class Camera:
                 output = FileOutput(self.streaming_output) # Set the streaming output object
             self.camera.start_recording(encoder, output)   # Start recording or streaming
             self.streaming = True                          # Set the streaming flag to True
+            if filename:
+                logger.info(f"Started recording video to {filename}")
+            else:
+                logger.info("Started video streaming")
 
     def stop_stream(self) -> None:
         """Stop the video stream or recording."""
@@ -75,8 +84,9 @@ class Camera:
             try:
                 self.camera.stop_recording()               # Stop the recording or streaming
                 self.streaming = False                     # Set the streaming flag to False
+                logger.info("Camera stream stopped")
             except Exception as e:
-                print(f"Error stopping stream: {e}")       # Print error message if stopping fails
+                logger.error(f"Error stopping stream: {e}")  # Log error message if stopping fails
 
     def get_frame(self) -> bytes:
         """Get the current frame from the streaming output."""
@@ -97,30 +107,32 @@ class Camera:
         self.camera.close()                                # Close the camera
 
 if __name__ == '__main__':
-    print('Program is starting ... ')                    # Print a message indicating the start of the program
+    # Set up basic logging for standalone execution
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s [%(name)s] %(message)s')
+    
+    logger.info('Camera sensor test program starting...')
     camera = Camera()                                    # Create a Camera instance
 
-    print("View image...")
+    logger.info("Starting image preview...")
     camera.start_image()                                 # Start the camera preview
     time.sleep(10)                                       # Wait for 10 seconds
     
-    print("Capture image...")
+    logger.info("Capturing image...")
     camera.save_image(filename="image.jpg")              # Capture and save an image
     time.sleep(1)                                        # Wait for 1 second
 
-    '''
-    print("Stream video...")
-    camera.start_stream()                                # Start the video stream
-    time.sleep(3)                                        # Stream for 3 seconds
-    
-    print("Stop video...")
-    camera.stop_stream()                                 # Stop the video stream
-    time.sleep(1)                                        # Wait for 1 second
-
-    print("Save video...")
-    camera.save_video("video.h264", duration=3)          # Save a video for 3 seconds
-    time.sleep(1)                                        # Wait for 1 second
-    
-    print("Close camera...")
-    camera.close()                                       # Close the camera
-    '''
+    # Uncomment the following lines to test video streaming and recording:
+    # logger.info("Starting video stream...")
+    # camera.start_stream()                                # Start the video stream
+    # time.sleep(3)                                        # Stream for 3 seconds
+    # 
+    # logger.info("Stopping video stream...")
+    # camera.stop_stream()                                 # Stop the video stream
+    # time.sleep(1)                                        # Wait for 1 second
+    #
+    # logger.info("Recording video...")
+    # camera.save_video("video.h264", duration=3)          # Save a video for 3 seconds
+    # time.sleep(1)                                        # Wait for 1 second
+    # 
+    # logger.info("Closing camera...")
+    # camera.close()                                       # Close the camera
