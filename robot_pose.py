@@ -44,7 +44,7 @@ def calculate_posture_balance(roll, pitch, yaw, body_height):
         foot_positions[i][2] = ab[2, i]
     return foot_positions
 
-def transform_coordinates(points, leg_positions, body_points):
+def transform_coordinates(points, leg_positions):
     """
     Transform 'points' and update the passed-in leg_positions.
     Operates in-place, returns the updated list for convenience.
@@ -82,4 +82,4 @@ if __name__ == '__main__':
     logger.info("calculate_posture_balance(0,0,0,%d): %s", body_height, result)
     leg_pos = [[0, 0, 0] for _ in range(6)]
     body_pts = [[0, 0, 0] for _ in range(6)]
-    logger.info("transform_coordinates: %s", transform_coordinates(result, leg_pos, body_pts))
+    logger.info("transform_coordinates: %s", transform_coordinates(result, leg_pos))

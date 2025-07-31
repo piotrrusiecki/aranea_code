@@ -1,6 +1,6 @@
 import time
 
-def routine_patrol(sender, sensor, mode, robot_state=None):
+def routine_patrol():
     from command_dispatcher_symbolic import execute_symbolic  # Delayed import
 
     def look_around():

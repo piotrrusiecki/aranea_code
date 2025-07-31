@@ -113,7 +113,7 @@ _routines_to_register = {
     "routine_run_back":      routine_run_back,
     "routine_turn_left":     routine_turn_left,
     "routine_turn_right":    routine_turn_right,
-    "routine_patrol":        routine_patrol,
+    "routine_patrol":        lambda *_: routine_patrol(),
     "sys_prep_calibration":  sys_prep_calibration,
     "sys_exit_calibration":  sys_exit_calibration,
     "sys_start_servo_test":  lambda *_: start_servo_test(),

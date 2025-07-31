@@ -114,7 +114,7 @@ def shutdown_sequence(command_sender):
     command_sender([cmd.CMD_HEAD, "1", "90"])
     command_sender([cmd.CMD_HEAD, "0", "90"])
 
-def sys_prep_calibration(send, control_system, robot_state):
+def sys_prep_calibration(_send, control_system, robot_state):
     logger.info("Preparing robot for calibration...")
 
     saved_positions = []
@@ -145,7 +145,21 @@ def sys_prep_calibration(send, control_system, robot_state):
 def sys_exit_calibration(send, control_system, robot_state):
     logger.info("Exiting calibration mode...")
     robot_state.set_flag("calibration_mode", False)
-    # Optionally: relax servos or move to safe pose
+    
+    # Move to safe neutral pose and relax servos
+    logger.info("Moving to neutral pose and relaxing servos...")
+    try:
+        # Set all legs to neutral standing position
+        for i in range(6):
+            control_system.leg_positions[i] = [140, 0, -25]  # Neutral standing pose
+        control_system.set_leg_angles()
+        
+        # Send servo relax command to release tension
+        send([cmd.CMD_RELAX])
+        logger.info("Servos relaxed after calibration exit")
+    except Exception as e:
+        logger.error("Failed to set neutral pose on calibration exit: %s", e)
+    
     logger.info("Calibration mode OFF.")
 
 # === High-level wrappers for routines ===

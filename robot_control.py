@@ -170,7 +170,7 @@ class Control:
                 pitch = restrict_value(int(self.command_queue[2]), -15, 15)
                 yaw = restrict_value(int(self.command_queue[3]), -15, 15)
                 points = calculate_posture_balance(roll, pitch, yaw, self.body_height)
-                transform_coordinates(points, self.leg_positions, self.body_points)
+                transform_coordinates(points, self.leg_positions)
                 self.set_leg_angles()
                 self.status_flag = 0x02
                 logger.info("[control] CMD_ATTITUDE executed: roll=%d, pitch=%d, yaw=%d", roll, pitch, yaw)
@@ -255,14 +255,14 @@ class Control:
             points[i][2] = -30 - z
             self.body_height = points[i][2]
             self.body_points[i][2] = points[i][2]
-        transform_coordinates(points, self.leg_positions, self.body_points)
+        transform_coordinates(points, self.leg_positions)
         self.set_leg_angles()
 
     def imu6050(self):
         old_roll = 0
         old_pitch = 0
         points = calculate_posture_balance(0, 0, 0, self.body_height)
-        transform_coordinates(points, self.leg_positions, self.body_points)
+        transform_coordinates(points, self.leg_positions)
         self.set_leg_angles()
         time.sleep(2)
         self.imu.Error_value_accel_data, self.imu.Error_value_gyro_data = self.imu.calculate_average_sensor_data()
@@ -275,7 +275,7 @@ class Control:
             roll = self.pid_controller.pid_calculate(roll)
             pitch = self.pid_controller.pid_calculate(pitch)
             points = calculate_posture_balance(roll, pitch, 0, self.body_height)
-            transform_coordinates(points, self.leg_positions, self.body_points)
+            transform_coordinates(points, self.leg_positions)
             self.set_leg_angles()
 
     def run_gait(self, data, Z=40, F=64):

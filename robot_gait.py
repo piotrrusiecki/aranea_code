@@ -37,7 +37,7 @@ def run_gait(control, data, Z=40, F=64):
             xy[i][0] = ((points[i][0] * math.cos(angle / 180 * math.pi) + points[i][1] * math.sin(angle / 180 * math.pi) - points[i][0]) + x) / F
             xy[i][1] = ((-points[i][0] * math.sin(angle / 180 * math.pi) + points[i][1] * math.cos(angle / 180 * math.pi) - points[i][1]) + y) / F
         if x == 0 and y == 0 and angle == 0:
-            transform_coordinates(points, control.leg_positions, control.body_points)
+            transform_coordinates(points, control.leg_positions)
             control.set_leg_angles()
         elif gait == "1":
             for j in range(F):
@@ -74,7 +74,7 @@ def run_gait(control, data, Z=40, F=64):
                         points[2 * i][1] -= 4 * xy[2 * i][1]
                         points[2 * i + 1][0] += 8 * xy[2 * i + 1][0]
                         points[2 * i + 1][1] += 8 * xy[2 * i + 1][1]
-                transform_coordinates(points, control.leg_positions, control.body_points)
+                transform_coordinates(points, control.leg_positions)
                 control.set_leg_angles()
                 time.sleep(delay)
         elif gait == "2":
@@ -93,7 +93,7 @@ def run_gait(control, data, Z=40, F=64):
                         else:
                             points[k][0] -= 2 * xy[k][0]
                             points[k][1] -= 2 * xy[k][1]
-                    transform_coordinates(points, control.leg_positions, control.body_points)
+                    transform_coordinates(points, control.leg_positions)
                     control.set_leg_angles()
                     time.sleep(delay)
         logger.info("run_gait completed successfully.")
