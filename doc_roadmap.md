@@ -9,7 +9,7 @@
 - [ ] Connection status indicators in web UI
 
 ### Performance Optimization
-- [ ] Investigate movement slowdown (check SendMove(0,0) in move.js)
+- [ ] Investigate movement slowdown (check SendMove(0,0) in move.js) 
 - [ ] Servo communication optimization (batch operations)
 - [ ] Memory pool for gait calculations
 - [ ] Performance monitoring dashboard
@@ -128,3 +128,4 @@
 - [x] **Version control integration** - Git-ready structure vs standalone files
 - [x] **Codebase organization** - Implemented consistent naming convention with git history preservation: legacy files renamed to reflect function (server.py→hardware_server.py, control.py→robot_control.py, etc.)
 - [x] **Documentation maintenance** - Updated codebase guide and roadmap to reflect architectural changes and naming conventions
+- [x] **Critical performance bug fix** - Resolved infinite recursion in robot_control.py run_gait method that was causing robot slowdown

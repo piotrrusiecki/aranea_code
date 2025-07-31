@@ -47,6 +47,9 @@ desktop.ini
 *.cfg
 *.env
 
+# === Private Documentation ===
+doc_skills.md
+
 # === Robot Project Specific (optional) ===
 # Comment out if you want to track test videos or frames
 *.h264

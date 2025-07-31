@@ -279,7 +279,7 @@ class Control:
             self.set_leg_angles()
 
     def run_gait(self, data, Z=40, F=64):
-        run_gait(self, data, Z, F)
+        from robot_gait import run_gait as gait_function
+        gait_function(self, data, Z, F)
 
-if __name__ == '__main__':
-    pass
+
