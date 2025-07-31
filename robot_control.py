@@ -137,109 +137,163 @@ class Control:
                 is_valid = False
         return is_valid
 
+    def _check_servo_off_condition(self):
+        """Check if servos are powered off and handle accordingly."""
+        if self.robot_state.get_flag("servo_off"):
+            time.sleep(0.1)
+            return True
+        return False
+
+    def _handle_auto_relax(self):
+        """Handle automatic relaxation after timeout if enabled."""
+        if (
+            robot_config.AUTO_RELAX
+            and (time.time() - self.timeout) > 10
+            and self.timeout != 0
+            and self.command_queue[0] == ''
+        ):
+            self.timeout = time.time()
+            self.relax(True)
+            self.status_flag = 0x00
+            logger.info("[control] Auto-relaxed due to inactivity.")
+
+    def _handle_position_command(self):
+        """Handle position movement commands."""
+        if cmd.CMD_POSITION in self.command_queue and len(self.command_queue) == 4:
+            x = restrict_value(int(self.command_queue[1]), -40, 40)
+            y = restrict_value(int(self.command_queue[2]), -40, 40)
+            z = restrict_value(int(self.command_queue[3]), -20, 20)
+            self.move_position(x, y, z)
+            self.status_flag = 0x01
+            logger.info("[control] CMD_POSITION executed: x=%d, y=%d, z=%d", x, y, z)
+            self.command_queue = ['', '', '', '', '', '']
+            return True
+        return False
+
+    def _handle_attitude_command(self):
+        """Handle attitude adjustment commands."""
+        if cmd.CMD_ATTITUDE in self.command_queue and len(self.command_queue) == 4:
+            roll = restrict_value(int(self.command_queue[1]), -15, 15)
+            pitch = restrict_value(int(self.command_queue[2]), -15, 15)
+            yaw = restrict_value(int(self.command_queue[3]), -15, 15)
+            points = calculate_posture_balance(roll, pitch, yaw, self.body_height)
+            transform_coordinates(points, self.leg_positions)
+            self.set_leg_angles()
+            self.status_flag = 0x02
+            logger.info("[control] CMD_ATTITUDE executed: roll=%d, pitch=%d, yaw=%d", roll, pitch, yaw)
+            self.command_queue = ['', '', '', '', '', '']
+            return True
+        return False
+
+    def _handle_move_command(self):
+        """Handle movement/gait commands."""
+        if cmd.CMD_MOVE in self.command_queue and len(self.command_queue) == 6:
+            logger.debug("[control] CMD_MOVE triggered. queue = %s | motion_state = %s",
+                        self.command_queue, self.robot_state.get_flag("motion_state"))
+            
+            if self.command_queue[2] == "0" and self.command_queue[3] == "0":
+                self.run_gait(self.command_queue)
+                logger.info("[control] CMD_MOVE (neutral) executed: robot stopped.")
+                self.command_queue = ['', '', '', '', '', '']
+            else:
+                self.run_gait(self.command_queue)
+                self.status_flag = 0x03
+                logger.info("[control] CMD_MOVE executed: gait=%s, x=%s, y=%s, speed=%s, angle=%s",
+                            self.command_queue[1],
+                            self.command_queue[2],
+                            self.command_queue[3],
+                            self.command_queue[4],
+                            self.command_queue[5])
+                if not robot_config.CLEAR_MOVE_QUEUE_AFTER_EXEC:
+                    logger.debug("[control] Retaining CMD_MOVE in queue for repeated gait.")
+                else:
+                    self.command_queue = ['', '', '', '', '', '']
+            return True
+        return False
+
+    def _handle_balance_command(self):
+        """Handle IMU balance commands."""
+        if cmd.CMD_BALANCE in self.command_queue and len(self.command_queue) == 2:
+            if self.command_queue[1] == "1":
+                self.command_queue = ['', '', '', '', '', '']
+                self.status_flag = 0x04
+                logger.info("[control] CMD_BALANCE initiated.")
+                self.imu6050()
+            return True
+        return False
+
+    def _handle_calibration_command(self):
+        """Handle calibration commands."""
+        if cmd.CMD_CALIBRATION not in self.command_queue:
+            return False
+
+        if not self.robot_state.get_flag("calibration_mode"):
+            logger.warning("[control] Ignoring calibration command: not in calibration mode.")
+            self.command_queue = ['', '', '', '', '', '']
+            return True
+
+        logger.debug("[control] Calibration block hit. Queue: %s", self.command_queue)
+        self.timeout = 0
+        calibrate(self.leg_positions, self.calibration_leg_positions, self.calibration_angles, self.current_angles)
+        logger.debug("[control] Calibration complete. Angles: %s", self.calibration_angles)
+        self.set_leg_angles()
+
+        if len(self.command_queue) >= 2:
+            self._process_calibration_subcommand()
+
+        self.command_queue = ['', '', '', '', '', '']
+        return True
+
+    def _process_calibration_subcommand(self):
+        """Process specific calibration subcommands (leg adjustments, save)."""
+        cmd_name = self.command_queue[1]
+        logger.debug("[control] Calibration command details: %s", self.command_queue[1:])
+        
+        leg_map = {"one": 0, "two": 1, "three": 2, "four": 3, "five": 4, "six": 5}
+        if cmd_name in leg_map:
+            self._calibrate_specific_leg(cmd_name, leg_map[cmd_name])
+        elif cmd_name == "save":
+            save_to_txt(self.calibration_leg_positions, 'point')
+            logger.info("[control] Calibration saved to disk.")
+
+    def _calibrate_specific_leg(self, leg_name, leg_idx):
+        """Calibrate a specific leg with new position values."""
+        try:
+            self.calibration_leg_positions[leg_idx] = [
+                int(self.command_queue[2]),
+                int(self.command_queue[3]),
+                int(self.command_queue[4])
+            ]
+            self.leg_positions[leg_idx] = self.calibration_leg_positions[leg_idx][:]
+            calibrate(self.leg_positions, self.calibration_leg_positions,
+                     self.calibration_angles, self.current_angles)
+            self.set_leg_angles()
+            logger.info("[control] Leg %s calibration updated: %s",
+                       leg_name, self.calibration_leg_positions[leg_idx])
+        except Exception as e:
+            logger.error("[control] Calibration failed for leg %s: %s", leg_name, e)
+
     def condition_monitor(self):
+        """Main control loop that monitors and processes command queue."""
         while not self.stop_event.is_set():
-            # Block all actions if servos are powered off
-            if self.robot_state.get_flag("servo_off"):
-                time.sleep(0.1)
+            # Check for servo power off condition
+            if self._check_servo_off_condition():
                 continue
 
-            # Auto-relax after timeout if enabled
-            if (
-                robot_config.AUTO_RELAX
-                and (time.time() - self.timeout) > 10
-                and self.timeout != 0
-                and self.command_queue[0] == ''
-            ):
-                self.timeout = time.time()
-                self.relax(True)
-                self.status_flag = 0x00
-                logger.info("[control] Auto-relaxed due to inactivity.")
+            # Handle auto-relax functionality
+            self._handle_auto_relax()
 
-            if cmd.CMD_POSITION in self.command_queue and len(self.command_queue) == 4:
-                x = restrict_value(int(self.command_queue[1]), -40, 40)
-                y = restrict_value(int(self.command_queue[2]), -40, 40)
-                z = restrict_value(int(self.command_queue[3]), -20, 20)
-                self.move_position(x, y, z)
-                self.status_flag = 0x01
-                logger.info("[control] CMD_POSITION executed: x=%d, y=%d, z=%d", x, y, z)
-                self.command_queue = ['', '', '', '', '', '']
-
-            elif cmd.CMD_ATTITUDE in self.command_queue and len(self.command_queue) == 4:
-                roll = restrict_value(int(self.command_queue[1]), -15, 15)
-                pitch = restrict_value(int(self.command_queue[2]), -15, 15)
-                yaw = restrict_value(int(self.command_queue[3]), -15, 15)
-                points = calculate_posture_balance(roll, pitch, yaw, self.body_height)
-                transform_coordinates(points, self.leg_positions)
-                self.set_leg_angles()
-                self.status_flag = 0x02
-                logger.info("[control] CMD_ATTITUDE executed: roll=%d, pitch=%d, yaw=%d", roll, pitch, yaw)
-                self.command_queue = ['', '', '', '', '', '']
-
-            elif cmd.CMD_MOVE in self.command_queue and len(self.command_queue) == 6:
-                logger.debug("[control] CMD_MOVE triggered. queue = %s | motion_state = %s",
-                            self.command_queue, self.robot_state.get_flag("motion_state"))
-                if self.command_queue[2] == "0" and self.command_queue[3] == "0":
-                    self.run_gait(self.command_queue)
-                    logger.info("[control] CMD_MOVE (neutral) executed: robot stopped.")
-                    self.command_queue = ['', '', '', '', '', '']
-                else:
-                    self.run_gait(self.command_queue)
-                    self.status_flag = 0x03
-                    logger.info("[control] CMD_MOVE executed: gait=%s, x=%s, y=%s, speed=%s, angle=%s",
-                                self.command_queue[1],
-                                self.command_queue[2],
-                                self.command_queue[3],
-                                self.command_queue[4],
-                                self.command_queue[5])
-                    if not robot_config.CLEAR_MOVE_QUEUE_AFTER_EXEC:
-                        logger.debug("[control] Retaining CMD_MOVE in queue for repeated gait.")
-                    else:
-                        self.command_queue = ['', '', '', '', '', '']
-
-            elif cmd.CMD_BALANCE in self.command_queue and len(self.command_queue) == 2:
-                if self.command_queue[1] == "1":
-                    self.command_queue = ['', '', '', '', '', '']
-                    self.status_flag = 0x04
-                    logger.info("[control] CMD_BALANCE initiated.")
-                    self.imu6050()
-
-            elif cmd.CMD_CALIBRATION in self.command_queue:
-                if not self.robot_state.get_flag("calibration_mode"):
-                    logger.warning("[control] Ignoring calibration command: not in calibration mode.")
-                    self.command_queue = ['', '', '', '', '', '']
-                    continue
-
-                logger.debug("[control] Calibration block hit. Queue: %s", self.command_queue)
-                self.timeout = 0
-                calibrate(self.leg_positions, self.calibration_leg_positions, self.calibration_angles, self.current_angles)
-                logger.debug("[control] Calibration complete. Angles: %s", self.calibration_angles)
-                self.set_leg_angles()
-
-                if len(self.command_queue) >= 2:
-                    cmd_name = self.command_queue[1]
-                    logger.debug("[control] Calibration command details: %s", self.command_queue[1:])
-                    leg_map = {"one": 0, "two": 1, "three": 2, "four": 3, "five": 4, "six": 5}
-                    if cmd_name in leg_map:
-                        idx = leg_map[cmd_name]
-                        try:
-                            self.calibration_leg_positions[idx] = [
-                                int(self.command_queue[2]),
-                                int(self.command_queue[3]),
-                                int(self.command_queue[4])
-                            ]
-                            self.leg_positions[idx] = self.calibration_leg_positions[idx][:]
-                            calibrate(self.leg_positions, self.calibration_leg_positions,
-                                    self.calibration_angles, self.current_angles)
-                            self.set_leg_angles()
-                            logger.info("[control] Leg %s calibration updated: %s",
-                                        cmd_name, self.calibration_leg_positions[idx])
-                        except Exception as e:
-                            logger.error("[control] Calibration failed for leg %s: %s", cmd_name, e)
-                    elif cmd_name == "save":
-                        save_to_txt(self.calibration_leg_positions, 'point')
-                        logger.info("[control] Calibration saved to disk.")
-                self.command_queue = ['', '', '', '', '', '']
+            # Process commands in priority order
+            if self._handle_position_command():
+                continue
+            elif self._handle_attitude_command():
+                continue
+            elif self._handle_move_command():
+                continue
+            elif self._handle_balance_command():
+                continue
+            elif self._handle_calibration_command():
+                continue
 
     def relax(self, flag):
         if flag:
