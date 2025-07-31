@@ -38,7 +38,10 @@
   - Command handlers for all hardware components
   - TCP socket management for legacy compatibility
   - Video streaming coordination
-- `hardware_pca9685.py` - PCA9685 I2C controller driver for servo management
+- `hardware_pca9685.py` - **PCA9685 I2C controller driver for servo management** ⚠️
+  - **CRITICAL**: Must maintain complete register map and PWM write sequences
+  - Controls 18 servos across two PCA9685 boards (0x40, 0x41)
+  - Any modifications require comparison with original working code
 - `hardware_spi_ledpixel.py` - SPI-based LED strip driver (Freenove SPI LED pixels)
 - `hardware_rpi_ledpixel.py` - Raspberry Pi WS281X LED strip driver
 
@@ -156,6 +159,19 @@
 - **Servo bottleneck**: 18 sequential I2C calls per movement frame
 - **Thread contention**: Condition monitor loop overhead
 
+### **Critical Hardware Driver Issues (RESOLVED)**
+- **Missing PWM register write**: `hardware_pca9685.py` was missing `self.write(self.__LED0_OFF_H + 4 * channel, off >> 8)` in `set_pwm()` method
+  - **Symptoms**: Erratic servo behavior, twitching, power interference affecting multiple servos
+  - **Root cause**: Incomplete PWM timing data sent to PCA9685 chips
+  - **Fix**: Restored missing register write line (Dec 2024)
+- **Missing register constants**: DeepSource cleanup removed essential PCA9685 constants
+  - **Removed**: `__SUBADR1/2/3`, `__ALLLED_ON_L/H`, `__ALLLED_OFF_L/H` register definitions
+  - **Impact**: Incomplete hardware register map, potential future compatibility issues
+  - **Fix**: Restored all register constants by comparing with original working code
+- **Hardware failure**: Servo on channel 8 (Leg 3, middle joint) failed due to long-term degradation
+  - **Accelerated by**: Software PWM bug creating additional stress on already-weak servo
+  - **Solution**: Servo replacement + software fix resolved all stability issues
+
 ### **Configuration Flags (Important)**
 - `CLEAR_MOVE_QUEUE_AFTER_EXEC = False` - **CRITICAL**: Legacy compatibility with factory firmware
   - `False` → Commands loop indefinitely (requires explicit reset commands)
@@ -165,6 +181,14 @@
 - `DEBUG_LEGS = True` - Enables detailed leg position logging
 - `DRY_RUN = False` - Set to True for testing without hardware
 - `VOICE_BLOCKSIZE = 8000` - Audio buffer size (increased from 4000 to reduce overflow)
+
+### **Hardware Driver Best Practices (CRITICAL)**
+- **⚠️ NEVER remove hardware register constants** based on automated tools (DeepSource, pylint, etc.)
+- **Complete register maps required**: Even "unused" constants are needed for hardware compatibility
+- **Hardware drivers need all registers**: Missing constants can cause subtle hardware failures
+- **When modifying hardware files**: Always compare with original working code before deployment
+- **PWM register writes must be complete**: All 4 registers (ON_L, ON_H, OFF_L, OFF_H) required per channel
+- **Test hardware changes immediately**: Hardware bugs can cause cumulative damage over time
 
 ## 🚀 Development Priorities (Reference roadmap.md)
 
