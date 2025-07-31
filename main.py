@@ -6,6 +6,7 @@ import logging
 from hardware_server import Server
 from voice_manager import start_voice, stop_voice
 from command_dispatcher_logic import init_command_dispatcher, dispatch_command
+import command_dispatcher_registry  # Trigger registration of symbolic/routine commands
 from web_server import create_app
 from werkzeug.serving import make_server
 from robot_state import RobotState

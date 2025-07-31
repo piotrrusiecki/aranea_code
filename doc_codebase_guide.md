@@ -261,6 +261,13 @@ hardware_server.led_controller.process_light_command(parts)
 
 4. **Legacy Compatibility**: Some manufacturer patterns retained intentionally for fallback compatibility
 
+5. **Logging Format Performance**: Some modules use inefficient logging formats
+   - **Issue**: Using f-strings/concatenation in logging calls (e.g., `sensor_camera.py`)
+   - **Bad**: `logger.info(f"Started recording video to {filename}")` 
+   - **Good**: `logger.info("Started recording video to %s", filename)`
+   - **Why**: Lazy % formatting avoids string construction when logging is disabled
+   - **Action**: Review and fix logging calls throughout codebase
+
 ---
 
 *This guide represents the codebase state after comprehensive refactoring from manufacturer PyQt5 desktop application to modern web-based robot control system. Reference roadmap.md for development priorities and completed features.*
