@@ -11,7 +11,7 @@ from sensor_imu import IMU
 from actuator_servo import Servo
 from robot_kinematics import coordinate_to_angle, restrict_value
 from robot_pose import calculate_posture_balance, transform_coordinates
-from robot_gait import run_gait
+from robot_gait import run_gait as gait_function
 from robot_calibration import read_from_txt, save_to_txt, calibrate
 from config import robot_config
 
@@ -279,7 +279,6 @@ class Control:
             self.set_leg_angles()
 
     def run_gait(self, data, Z=40, F=64):
-        from robot_gait import run_gait as gait_function
         gait_function(self, data, Z, F)
 
 
