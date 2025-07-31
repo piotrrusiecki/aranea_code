@@ -1,6 +1,6 @@
 import time
 import logging
-from command import COMMAND as cmd
+from constants_commands import COMMAND as cmd
 from robot_kinematics import map_value
 
 logger = logging.getLogger("robot.routines")

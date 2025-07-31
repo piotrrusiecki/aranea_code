@@ -1,7 +1,7 @@
 import threading
 import time
 import logging
-from command import COMMAND as cmd
+from constants_commands import COMMAND as cmd
 from config.robot_config import DRY_RUN
 from command_dispatcher_core import routine_commands, symbolic_commands, server_instance
 from command_dispatcher_utils import send_str
