@@ -111,6 +111,23 @@
 4. **State Update** → RobotState flags updated
 5. **Feedback** → LEDs, buzzer, or response data
 
+### **Command Execution Patterns** (Critical Architecture)
+
+#### **Single Action Commands** (`task_*` symbols)
+- **Purpose**: Execute once and stop (step forward, turn, look, lights)
+- **Pattern**: Movement command + Reset command (matches web interface)
+- **Example**: `task_step_forward` → `CMD_MOVE#1#0#35#8#0` + `CMD_MOVE#1#0#0#8#0`
+- **Web Interface**: Uses `onmousedown`/`onmouseup` with `sendMove(x,y)` + `sendMove(0,0)`
+- **Voice Commands**: Implemented with `_send_move_with_reset()` helper function
+- **Why**: `CLEAR_MOVE_QUEUE_AFTER_EXEC = False` means commands loop without explicit reset
+
+#### **Continuous Routines** (`routine_*` commands) 
+- **Purpose**: Run until stopped (march, run, patrol)
+- **Pattern**: Background threading with `motion_loop()` + `motion_state` flag
+- **Example**: `routine_march_forward` → Thread continuously sends individual `CMD_MOVE` commands
+- **State Management**: `motion_state = True` during execution, `False` to stop
+- **Voice Integration**: All voice commands route through `dispatch_command()` (no hardcoded bypasses)
+
 ### **Hardware Communication**
 - **Servos**: I2C via PCA9685 controllers (0x40, 0x41)
 - **LEDs**: SPI/GPIO depending on PCB version
@@ -140,9 +157,14 @@
 - **Thread contention**: Condition monitor loop overhead
 
 ### **Configuration Flags (Important)**
-- `CLEAR_MOVE_QUEUE_AFTER_EXEC = False` - Intentionally keeps legacy behavior
+- `CLEAR_MOVE_QUEUE_AFTER_EXEC = False` - **CRITICAL**: Legacy compatibility with factory firmware
+  - `False` → Commands loop indefinitely (requires explicit reset commands)
+  - `True` → Commands execute once and auto-clear (future enhancement)
+  - **Why False**: Maintains compatibility with original manufacturer client patterns
+  - **Impact**: Single commands need reset pattern (`CMD_MOVE` + `CMD_MOVE#0#0#0`)
 - `DEBUG_LEGS = True` - Enables detailed leg position logging
 - `DRY_RUN = False` - Set to True for testing without hardware
+- `VOICE_BLOCKSIZE = 8000` - Audio buffer size (increased from 4000 to reduce overflow)
 
 ## 🚀 Development Priorities (Reference roadmap.md)
 
@@ -169,8 +191,9 @@
 
 ### **For Voice Features**
 - Core: `voice_control.py`, `voice_manager.py`
-- Commands: `config/voice/eo.py` (template for other languages)
+- Commands: `config/voice/eo.py` (template for other languages)  
 - Integration: `command_dispatcher_logic.py`
+- **Command Registration**: `command_dispatcher_registry.py` (all voice commands route through dispatcher)
 
 ### **For Web Interface**
 - Backend: `web_server.py`
@@ -198,8 +221,15 @@ logger.info("Action completed: %s", result)
 ### **Command Registration**
 ```python
 # In command_dispatcher_registry.py
-symbolic_commands["command_name"] = lambda: send_str("CMD_...", server.process_command)
-routine_commands["routine_name"] = routine_function
+
+# Single action commands (with reset pattern)
+"task_step_forward": lambda send: _send_move_with_reset(send, [cmd.CMD_MOVE, "1", "0", "35", "8", "0"]),
+
+# Non-movement commands (no reset needed)
+"task_light_red": lambda send: send([cmd.CMD_LED, "255", "0", "0"]),
+
+# Routine commands (registered in routine_commands dict)
+routine_commands["routine_march_forward"] = make_motion_routine(2, 0, 35, 8, 90)
 ```
 
 ### **State Checking**
@@ -217,10 +247,19 @@ hardware_server.led_controller.process_light_command(parts)
 
 ## 🐛 Known Issues & Workarounds
 
-1. **Movement Slowdown**: Check `SendMove(0,0)` calls in web interface
-2. **Voice Model Loading**: Ensure sufficient RAM for multiple language models  
-3. **Servo Timing**: Consider batching servo updates for better performance
-4. **Legacy Compatibility**: Some manufacturer patterns retained intentionally
+1. **Command Looping**: Single movement commands loop infinitely without reset commands
+   - **Root Cause**: `CLEAR_MOVE_QUEUE_AFTER_EXEC = False` (maintained for legacy compatibility)
+   - **Solution**: Always send reset command (`CMD_MOVE#1#0#0#8#0`) after movement commands
+   - **Implementation**: Voice uses `_send_move_with_reset()`, Web uses `onmouseup="sendMove(0,0)"`
+
+2. **Voice Command Attribution Error**: `'NoneType' object has no attribute 'process_command'`
+   - **Root Cause**: Symbolic commands trying to access `server_instance` directly instead of using `send` parameter
+   - **Solution**: Use `lambda send: send([...])` pattern in command registration
+
+3. **Audio Input Overflow**: Voice control logs frequent "input overflow" messages
+   - **Mitigation**: Increased `VOICE_BLOCKSIZE` from 4000 to 8000, added log throttling at DEBUG level
+
+4. **Legacy Compatibility**: Some manufacturer patterns retained intentionally for fallback compatibility
 
 ---
 

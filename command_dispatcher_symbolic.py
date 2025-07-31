@@ -21,7 +21,11 @@ def execute_symbolic(symbolic_name, source="internal"):
     if symbolic_name in symbolic_commands:
         logger.info("[symbolic][%s] Executing symbolic command: %s", source, symbolic_name)
         try:
-            symbolic_commands[symbolic_name]()
+            # Create send function for symbolic commands
+            def send(parts):
+                send_str("#".join(parts), server_instance.process_command)
+            
+            symbolic_commands[symbolic_name](send)
         except Exception as e:
             logger.error("[symbolic][%s] Error executing symbolic '%s': %s", source, symbolic_name, e)
 
