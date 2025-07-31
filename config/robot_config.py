@@ -26,7 +26,7 @@ LOGGER_COLORS = {
     'RESET':          '\033[0m'
 }
 VOICE_SAMPLERATE = 44100
-VOICE_BLOCKSIZE = 4000
+VOICE_BLOCKSIZE = 8000  # Increased from 4000 to reduce audio buffer overflows
 VOICE_INPUT_DEVICE = 1
 DRY_RUN = False
 DEBUG_LEGS = True

@@ -40,48 +40,48 @@ DIAG_COMMANDS = {
 # === Symbolic Command Definitions ===
 
 _symbolic_to_register = {
-    # Movement commands
-    "task_step_forward": lambda: send_str(f"{cmd.CMD_MOVE}#1#0#35#8#0", server_instance.process_command),
-    "task_step_back":    lambda: send_str(f"{cmd.CMD_MOVE}#1#0#-35#8#0", server_instance.process_command),
-    "task_step_left":    lambda: send_str(f"{cmd.CMD_MOVE}#1#-35#0#8#0", server_instance.process_command),
-    "task_step_right":   lambda: send_str(f"{cmd.CMD_MOVE}#1#35#0#8#0", server_instance.process_command),
+    # Movement commands - compatible with both calling patterns
+    "task_step_forward": lambda *_: send_str(f"{cmd.CMD_MOVE}#1#0#35#8#0", server_instance.process_command),
+    "task_step_back":    lambda *_: send_str(f"{cmd.CMD_MOVE}#1#0#-35#8#0", server_instance.process_command),
+    "task_step_left":    lambda *_: send_str(f"{cmd.CMD_MOVE}#1#-35#0#8#0", server_instance.process_command),
+    "task_step_right":   lambda *_: send_str(f"{cmd.CMD_MOVE}#1#35#0#8#0", server_instance.process_command),
     
     # Small turn commands  
-    "task_turn_small_left":  lambda: send_str(f"{cmd.CMD_MOVE}#1#0#0#8#-5", server_instance.process_command),
-    "task_turn_small_right": lambda: send_str(f"{cmd.CMD_MOVE}#1#0#0#8#5", server_instance.process_command),
+    "task_turn_small_left":  lambda *_: send_str(f"{cmd.CMD_MOVE}#1#0#0#8#-5", server_instance.process_command),
+    "task_turn_small_right": lambda *_: send_str(f"{cmd.CMD_MOVE}#1#0#0#8#5", server_instance.process_command),
     
     # Attitude commands
-    "task_attitude_forward": lambda: send_str(f"{cmd.CMD_ATTITUDE}#0#15#0", server_instance.process_command),
-    "task_attitude_back":    lambda: send_str(f"{cmd.CMD_ATTITUDE}#0#-15#0", server_instance.process_command),
-    "task_attitude_left":    lambda: send_str(f"{cmd.CMD_ATTITUDE}#-10#0#0", server_instance.process_command),
-    "task_attitude_right":   lambda: send_str(f"{cmd.CMD_ATTITUDE}#10#0#0", server_instance.process_command),
+    "task_attitude_forward": lambda *_: send_str(f"{cmd.CMD_ATTITUDE}#0#15#0", server_instance.process_command),
+    "task_attitude_back":    lambda *_: send_str(f"{cmd.CMD_ATTITUDE}#0#-15#0", server_instance.process_command),
+    "task_attitude_left":    lambda *_: send_str(f"{cmd.CMD_ATTITUDE}#-10#0#0", server_instance.process_command),
+    "task_attitude_right":   lambda *_: send_str(f"{cmd.CMD_ATTITUDE}#10#0#0", server_instance.process_command),
     
     # Shift commands (body position)
-    "task_shift_forward": lambda: send_str(f"{cmd.CMD_POSITION}#0#10#0", server_instance.process_command),
-    "task_shift_back":    lambda: send_str(f"{cmd.CMD_POSITION}#0#-10#0", server_instance.process_command),
-    "task_shift_left":    lambda: send_str(f"{cmd.CMD_POSITION}#-10#0#0", server_instance.process_command),
-    "task_shift_right":   lambda: send_str(f"{cmd.CMD_POSITION}#10#0#0", server_instance.process_command),
+    "task_shift_forward": lambda *_: send_str(f"{cmd.CMD_POSITION}#0#10#0", server_instance.process_command),
+    "task_shift_back":    lambda *_: send_str(f"{cmd.CMD_POSITION}#0#-10#0", server_instance.process_command),
+    "task_shift_left":    lambda *_: send_str(f"{cmd.CMD_POSITION}#-10#0#0", server_instance.process_command),
+    "task_shift_right":   lambda *_: send_str(f"{cmd.CMD_POSITION}#10#0#0", server_instance.process_command),
 
     # Head/look commands
-    "task_look_left":  lambda: send_str(f"{cmd.CMD_HEAD}#1#180", server_instance.process_command),
-    "task_look_right": lambda: send_str(f"{cmd.CMD_HEAD}#1#0",   server_instance.process_command),
-    "task_look_up":    lambda: send_str(f"{cmd.CMD_HEAD}#0#180", server_instance.process_command),
-    "task_look_down":  lambda: send_str(f"{cmd.CMD_HEAD}#0#50",  server_instance.process_command),
-    "sys_reset_head":  lambda: send_str(f"{cmd.CMD_HEAD}#1#90", server_instance.process_command),
+    "task_look_left":  lambda *_: send_str(f"{cmd.CMD_HEAD}#1#180", server_instance.process_command),
+    "task_look_right": lambda *_: send_str(f"{cmd.CMD_HEAD}#1#0", server_instance.process_command),
+    "task_look_up":    lambda *_: send_str(f"{cmd.CMD_HEAD}#0#180", server_instance.process_command),
+    "task_look_down":  lambda *_: send_str(f"{cmd.CMD_HEAD}#0#50", server_instance.process_command),
+    "sys_reset_head":  lambda *_: send_str(f"{cmd.CMD_HEAD}#1#90", server_instance.process_command),
     
     # Servo power commands
-    "task_servo_off": lambda: send_str(f"{cmd.CMD_SERVOPOWER}#0", server_instance.process_command),
-    "task_servo_on":  lambda: send_str(f"{cmd.CMD_SERVOPOWER}#1", server_instance.process_command),
+    "task_servo_off": lambda *_: send_str(f"{cmd.CMD_SERVOPOWER}#0", server_instance.process_command),
+    "task_servo_on":  lambda *_: send_str(f"{cmd.CMD_SERVOPOWER}#1", server_instance.process_command),
     
     # Light commands
-    "task_light_red":   lambda: send_str(f"{cmd.CMD_LED}#255#0#0", server_instance.process_command),
-    "task_light_green": lambda: send_str(f"{cmd.CMD_LED}#0#255#0", server_instance.process_command),
-    "task_light_blue":  lambda: send_str(f"{cmd.CMD_LED}#0#0#255", server_instance.process_command),
-    "task_light_off":   lambda: send_str(f"{cmd.CMD_LED}#0#0#0", server_instance.process_command),
+    "task_light_red":   lambda *_: send_str(f"{cmd.CMD_LED}#255#0#0", server_instance.process_command),
+    "task_light_green": lambda *_: send_str(f"{cmd.CMD_LED}#0#255#0", server_instance.process_command),
+    "task_light_blue":  lambda *_: send_str(f"{cmd.CMD_LED}#0#0#255", server_instance.process_command),
+    "task_light_off":   lambda *_: send_str(f"{cmd.CMD_LED}#0#0#0", server_instance.process_command),
 
     # System commands
-    "sys_shutdown": lambda: send_str(f"{cmd.CMD_POWER}#0", server_instance.process_command),
-    "sys_led_off":  lambda: send_str(f"{cmd.CMD_LED}#0#0#0", server_instance.process_command),
+    "sys_shutdown": lambda *_: send_str(f"{cmd.CMD_POWER}#0", server_instance.process_command),
+    "sys_led_off":  lambda *_: send_str(f"{cmd.CMD_LED}#0#0#0", server_instance.process_command),
 }
 
 for name, func in _symbolic_to_register.items():

@@ -35,10 +35,17 @@ class VoiceControl:
 
     def _callback(self, indata, frames, time_info, status):
         if status:
-            # Filter out routine "input overflow" messages to reduce log spam
-            if "input overflow" not in str(status).lower():
-                logger.warning("Audio status: %s", status)
-            # Note: input overflow is common and usually not critical
+            # Throttle overflow messages to reduce debug spam (but keep them for diagnosis) 
+            if "input overflow" in str(status).lower():
+                # Only log every 10th overflow message
+                if not hasattr(self, '_overflow_count'):
+                    self._overflow_count = 0
+                self._overflow_count += 1
+                if self._overflow_count % 10 == 0:
+                    logger.debug("Audio status: %s (suppressed %d similar)", status, self._overflow_count - 1)
+            else:
+                # Log other audio issues immediately
+                logger.debug("Audio status: %s", status)
         self.queue.put(bytes(indata))
 
     def stop(self):
