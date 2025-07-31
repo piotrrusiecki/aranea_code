@@ -1,0 +1,11 @@
+{
+    "reportMissingImports": "none",
+    "reportMissingModuleSource": "none", 
+    "stubPath": "./stubs",
+    "executionEnvironments": [
+        {
+            "root": ".",
+            "extraPaths": ["./stubs"]
+        }
+    ]
+}

@@ -129,7 +129,7 @@ class Control:
 
     def check_point_validity(self):
         is_valid = True
-        leg_lengths = [0] * 6
+        leg_lengths = [0.0] * 6
         for i in range(6):
             leg_lengths[i] = math.sqrt(self.leg_positions[i][0] ** 2 + self.leg_positions[i][1] ** 2 + self.leg_positions[i][2] ** 2)
         for length in leg_lengths:
@@ -319,7 +319,7 @@ class Control:
         transform_coordinates(points, self.leg_positions)
         self.set_leg_angles()
         time.sleep(2)
-        self.imu.Error_value_accel_data, self.imu.Error_value_gyro_data = self.imu.calculate_average_sensor_data()
+        self.imu.error_accel_data, self.imu.error_gyro_data = self.imu.calculate_average_sensor_data()
         time.sleep(1)
         while True:
             if self.command_queue[0] != "":

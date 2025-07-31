@@ -58,12 +58,16 @@
 
 #### **Robot Control & Movement**
 - `robot_control.py` - Main robot control system with condition monitoring thread
+  - **Refactored Architecture**: Modular command handlers (`_handle_position_command`, `_handle_move_command`, etc.)
   - Servo angle calculations and safety checks
-  - Command queue processing
+  - Command queue processing with dedicated handler methods
   - Auto-relax functionality
 - `robot_pid.py` - PID controller for robot balance and stability
 - `robot_kinematics.py` - Forward/inverse kinematics calculations
 - `robot_gait.py` - Gait pattern generation (walking algorithms)
+  - **Refactored Architecture**: Separated tripod/wave gait implementations with phase-specific functions
+  - Clean parameter parsing and movement delta calculations
+  - Modular gait execution with `_execute_tripod_gait()` and `_execute_wave_gait()`
 - `robot_pose.py` - Body posture and balance calculations
 - `robot_routines.py` - High-level movement routines (march, run, patrol)
 - `robot_calibration.py` - Servo calibration utilities
@@ -76,6 +80,9 @@
 
 #### **Web Interface**
 - `web_server.py` - Flask application factory and routes
+  - **Refactored Architecture**: Modular route handlers extracted from monolithic `create_app()` function
+  - Handler factories with closures for dependency injection (`create_voice_handler`, `create_status_handler`, etc.)
+  - Clean separation of concerns for easier testing and maintenance
 - `web_interface/templates/` - Jinja2 HTML templates
 - `web_interface/static/` - CSS, JS, Bootstrap assets
 - Routes: `/` (main), `/command` (API), `/voice` (control), `/status`
@@ -291,6 +298,59 @@ hardware_server.led_controller.process_light_command(parts)
    - **Good**: `logger.info("Started recording video to %s", filename)`
    - **Why**: Lazy % formatting avoids string construction when logging is disabled
    - **Action**: Review and fix logging calls throughout codebase
+
+6. **Code Complexity (RESOLVED)**: Previously had high cyclomatic complexity functions
+   - **Fixed**: `create_app()` in web_server.py (complexity 30 → modular route handlers)
+   - **Fixed**: `run_gait()` in robot_gait.py (complexity 28 → structured gait patterns)
+   - **Fixed**: `condition_monitor()` in robot_control.py (complexity 25 → command handler methods)
+   - **Benefit**: Significantly improved maintainability and testability
+
+7. **IMU Attribute Access Error (FIXED)**: Critical runtime bug in robot_control.py
+   - **Issue**: Incorrect attribute names `Error_value_accel_data`/`Error_value_gyro_data` (Dec 2024)
+   - **Actual**: Should be `error_accel_data`/`error_gyro_data` per sensor_imu.py
+   - **Fix**: Corrected attribute names in line 322
+   - **Impact**: Robot would crash during IMU calibration without this fix
+
+8. **Type Safety Improvements (FIXED)**: Multiple type checker warnings resolved
+   - **Issue**: Float/int assignment warning in leg length calculations
+   - **Fix**: Initialize `leg_lengths = [0.0] * 6` instead of `[0] * 6`
+   - **Issue**: None-type access warnings in command_dispatcher_symbolic.py  
+   - **Fix**: Added proper None checks with early return and local variable assignment
+
+## 💻 Development Environment Setup
+
+### **Windows Development Configuration**
+For developing on Windows while deploying to Raspberry Pi hardware:
+
+#### **IDE Configuration (.vscode/settings.json)**
+```json
+{
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingImports": "none"
+    },
+    "python.analysis.ignore": [
+        "**/smbus", "**/gpiozero", "**/flask"
+    ],
+    "python.linting.pylintArgs": ["--disable=import-error"]
+}
+```
+
+#### **Type Stub Files (stubs/)**
+Created stub files for hardware-specific libraries:
+- `stubs/smbus.pyi` - I2C communication types
+- `stubs/gpiozero.pyi` - GPIO control types  
+- `stubs/flask.pyi` - Web framework types
+
+**⚠️ IMPORTANT**: Do not deploy stub files to robot! These are development-only tools.
+
+#### **Deployment Guidelines**
+```
+✅ Deploy to Robot:     ❌ Don't Deploy:
+- All .py files         - stubs/ directory
+- config/ directory     - .vscode/ directory  
+- web_interface/        - pyrightconfig.json
+- params.json           - __pycache__/
+```
 
 ---
 

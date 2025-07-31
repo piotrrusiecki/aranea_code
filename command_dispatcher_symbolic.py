@@ -18,12 +18,19 @@ def execute_symbolic(symbolic_name, source="internal"):
     Executes a symbolic command (task_*, routine_*, sys_*) using dispatcher mappings.
     Used internally by routines and voice to avoid circular dispatcher calls.
     """
+    if server_instance is None:
+        logger.error("[symbolic][%s] Server instance not initialized, cannot execute '%s'", source, symbolic_name)
+        return
+    
+    # Store reference for type checker
+    server = server_instance
+    
     if symbolic_name in symbolic_commands:
         logger.info("[symbolic][%s] Executing symbolic command: %s", source, symbolic_name)
         try:
             # Create send function for symbolic commands
             def send(parts):
-                send_str("#".join(parts), server_instance.process_command)
+                send_str("#".join(parts), server.process_command)
             
             symbolic_commands[symbolic_name](send)
         except Exception as e:
@@ -33,10 +40,10 @@ def execute_symbolic(symbolic_name, source="internal"):
         logger.info("[symbolic][%s] Executing routine command: %s", source, symbolic_name)
         try:
             routine_commands[symbolic_name](
-                server_instance.process_command,
-                server_instance.ultrasonic_sensor,
-                server_instance.robot_state.get_flag("motion_mode"),
-                robot_state=server_instance.robot_state
+                server.process_command,
+                server.ultrasonic_sensor,
+                server.robot_state.get_flag("motion_mode"),
+                robot_state=server.robot_state
             )
         except Exception as e:
             logger.error("[symbolic][%s] Error executing routine '%s': %s", source, symbolic_name, e)
