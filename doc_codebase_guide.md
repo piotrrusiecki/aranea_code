@@ -357,18 +357,18 @@ For developing on Windows while deploying to Raspberry Pi hardware:
 }
 ```
 
-#### **Type Stub Files (stubs/)**
+#### **Type Stub Files (.stubs/)**
 Created stub files for hardware-specific libraries:
-- `stubs/smbus.pyi` - I2C communication types
-- `stubs/gpiozero.pyi` - GPIO control types  
-- `stubs/flask.pyi` - Web framework types
+- `.stubs/smbus.pyi` - I2C communication types
+- `.stubs/gpiozero.pyi` - GPIO control types  
+- `.stubs/flask.pyi` - Web framework types
 
 **⚠️ IMPORTANT**: Do not deploy stub files to robot! These are development-only tools.
 
 #### **Deployment Guidelines**
 ```
 ✅ Deploy to Robot:     ❌ Don't Deploy:
-- All .py files         - stubs/ directory
+- All .py files         - .stubs/ directory
 - config/ directory     - .vscode/ directory  
 - web_interface/        - pyrightconfig.json
 - params.json           - __pycache__/
