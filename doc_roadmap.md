@@ -150,3 +150,10 @@
   - Eliminated unnecessary self parameter where not used, improving code clarity
   - Resolved PYL-R0201 pylint warnings for better code structure
   - Maintained backward compatibility while optimizing memory usage
+- [x] **Attribute initialization compliance** - Fixed PYL-W0201 warnings across codebase
+  - Resolved all "attribute defined outside __init__" warnings in hardware_server.py and voice_control.py
+  - Added proper type hints with Optional[Type] for socket-related attributes  
+  - Enhanced type safety with defensive None checks in socket operations
+  - Fixed return type annotations (StreamingOutput.write, ADC.read_battery_voltage)
+  - Maintained existing hasattr() defensive patterns while adding proper initialization
+  - Result: Zero PYL-W0201 warnings, improved IDE support, enhanced type checker compliance

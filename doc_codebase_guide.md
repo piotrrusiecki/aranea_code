@@ -374,6 +374,45 @@ Created stub files for hardware-specific libraries:
 - params.json           - __pycache__/
 ```
 
+### **Attribute Initialization Patterns**
+
+#### **Socket Management Best Practices**
+After comprehensive attribute initialization fixes (December 2024), established patterns for socket-related attributes:
+
+**Problem**: PYL-W0201 warnings for attributes defined outside `__init__` caused by socket assignments in runtime methods.
+
+**Solution Pattern**:
+```python
+class NetworkServer:
+    def __init__(self):
+        # Initialize all socket attributes as None with type hints
+        self.video_socket: Optional[socket.socket] = None
+        self.command_socket: Optional[socket.socket] = None
+        self.video_connection: Optional[io.BufferedWriter] = None
+        self.command_connection: Optional[socket.socket] = None
+        
+    def start_server(self):
+        # Set actual socket instances during runtime
+        self.video_socket = socket.socket()
+        
+    def stop_server(self):
+        # Defensive cleanup with None checks
+        if hasattr(self, 'video_connection') and self.video_connection is not None:
+            self.video_connection.close()
+```
+
+**Key Lessons**:
+- Always initialize socket attributes to None in `__init__` with proper type hints
+- Use `Optional[Type]` annotations for runtime-assigned attributes
+- Add defensive None checks before socket operations
+- Maintain existing `hasattr()` checks for backward compatibility
+- Risk assessment: Attribute initialization fixes are low-risk in controlled startup sequences
+
+#### **Type Safety Enhancements**
+- `StreamingOutput.write()` - Fixed return type to match `BufferedIOBase` interface
+- `ADC.read_battery_voltage()` - Corrected return type annotation to `tuple[float, float]`
+- Import pattern for utility functions: `from robot_kinematics import restrict_value`
+
 ---
 
 *This guide represents the codebase state after comprehensive refactoring from manufacturer PyQt5 desktop application to modern web-based robot control system. Reference roadmap.md for development priorities and completed features.*

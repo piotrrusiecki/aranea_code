@@ -6,6 +6,7 @@ import socket
 import struct
 from threading import Condition
 import logging
+from typing import Optional
 from actuator_led import Led
 from actuator_servo import Servo
 from actuator_buzzer import Buzzer
@@ -27,6 +28,7 @@ class StreamingOutput(io.BufferedIOBase):
         with self.condition:
             self.frame = buf
             self.condition.notify_all()
+        return len(buf)  # Return bytes written for BufferedIOBase compatibility
 
 class Server:
     def __init__(self, robot_state):
@@ -42,6 +44,15 @@ class Server:
         self.servo_controller.set_servo_angle(1, 90)  # Til
         self.ultrasonic_sensor = Ultrasonic()
         self.camera_device = Camera()  
+
+        # Initialize socket-related attributes (set during server operations)
+        self.video_socket: Optional[socket.socket] = None
+        self.command_socket: Optional[socket.socket] = None
+        self.video_connection: Optional[io.BufferedWriter] = None
+        self.command_connection: Optional[socket.socket] = None
+        self.video_raw_socket: Optional[socket.socket] = None
+        self.command_raw_socket: Optional[socket.socket] = None
+        self.command_client_address: Optional[tuple] = None
 
         self.command_handlers = {
             cmd.CMD_BUZZER: self.handle_buzzer,
@@ -76,13 +87,15 @@ class Server:
     def handle_imu_status(self, parts):
         pitch, roll, yaw = self.control_system.imu.update_imu_state()
         response = f"{cmd.CMD_IMU_STATUS}#{pitch:.2f}#{roll:.2f}#{yaw:.2f}\n"
-        self.send_data(self.command_connection, response)
+        if self.command_connection:
+            self.send_data(self.command_connection, response)
 
     def handle_power(self, parts):
         try:
             battery_voltage = self.adc_sensor.read_battery_voltage()
             response = f"{cmd.CMD_POWER}#{battery_voltage[0]}#{battery_voltage[1]}\n"
-            self.send_data(self.command_connection, response)
+            if self.command_connection:
+                self.send_data(self.command_connection, response)
             if battery_voltage[0] < 5.5 or battery_voltage[1] < 6:
                 for _ in range(3):
                     self.buzzer_controller.set_state(True)
@@ -98,7 +111,8 @@ class Server:
     def handle_sonic(self, parts):
         distance = self.ultrasonic_sensor.get_distance()
         response = f"{cmd.CMD_SONIC}#{distance}\n"
-        self.send_data(self.command_connection, response)
+        if self.command_connection:
+            self.send_data(self.command_connection, response)
 
     def handle_head(self, parts):
         if len(parts) == 3:
@@ -106,8 +120,10 @@ class Server:
 
     def handle_camera(self, parts):
         if len(parts) == 3:
-            x = self.control_system.restrict_value(int(parts[1]), 50, 180)
-            y = self.control_system.restrict_value(int(parts[2]), 0, 180)
+            # Import restrict_value as standalone function
+            from robot_kinematics import restrict_value
+            x = restrict_value(int(parts[1]), 50, 180)
+            y = restrict_value(int(parts[2]), 0, 180)
             self.servo_controller.set_servo_angle(0, x)
             self.servo_controller.set_servo_angle(1, y)
 
@@ -164,16 +180,16 @@ class Server:
 
     def stop_server(self):
         try:
-            if hasattr(self, 'video_connection'):
+            if hasattr(self, 'video_connection') and self.video_connection is not None:
                 self.video_connection.close()
                 self.video_connection = None
-            if hasattr(self, 'command_connection'):
+            if hasattr(self, 'command_connection') and self.command_connection is not None:
                 self.command_connection.close()
                 self.command_connection = None
-            if hasattr(self, 'video_raw_socket'):
+            if hasattr(self, 'video_raw_socket') and self.video_raw_socket is not None:
                 self.video_raw_socket.close()
                 self.video_raw_socket = None
-            if hasattr(self, 'command_raw_socket'):
+            if hasattr(self, 'command_raw_socket') and self.command_raw_socket is not None:
                 self.command_raw_socket.close()
                 self.command_raw_socket = None
             self.control_system.stop()
@@ -210,19 +226,22 @@ class Server:
         while not shutdown_event.is_set():
             try:
                 logger.info("Waiting for video connection...")
-                self.video_raw_socket, addr = self.video_socket.accept()
-                self.video_raw_socket.settimeout(1.0)
-                self.video_connection = self.video_raw_socket.makefile('wb')
+                if self.video_socket is not None:
+                    self.video_raw_socket, addr = self.video_socket.accept()
+                if self.video_raw_socket is not None:
+                    self.video_raw_socket.settimeout(1.0)
+                    self.video_connection = self.video_raw_socket.makefile('wb')
                 logger.info("Video socket connected ...")
 
                 self.camera_device.start_stream()
                 while not shutdown_event.is_set():
                     try:
                         frame = self.camera_device.get_frame()
-                        frame_length = len(frame)
-                        length_binary = struct.pack('<I', frame_length)
-                        self.video_connection.write(length_binary)
-                        self.video_connection.write(frame)
+                        if frame is not None and self.video_connection is not None:
+                            frame_length = len(frame)
+                            length_binary = struct.pack('<I', frame_length)
+                            self.video_connection.write(length_binary)
+                            self.video_connection.write(frame)
                     except Exception as e:
                         logger.error("Video transmission error: %s", e)
                         break
@@ -237,8 +256,10 @@ class Server:
         while not shutdown_event.is_set():
             try:
                 logger.info("Waiting for command connection...")
-                self.command_raw_socket, self.command_client_address = self.command_socket.accept()
-                self.command_raw_socket.settimeout(1.0)
+                if self.command_socket is not None:
+                    self.command_raw_socket, self.command_client_address = self.command_socket.accept()
+                if self.command_raw_socket is not None:
+                    self.command_raw_socket.settimeout(1.0)
                 self.command_connection = self.command_raw_socket  
                 logger.info("Client connection successful!")
             except Exception as e:
@@ -248,7 +269,10 @@ class Server:
 
             while not shutdown_event.is_set():
                 try:
-                    received_data = self.command_connection.recv(1024).decode('utf-8')
+                    if self.command_connection is not None:
+                        received_data = self.command_connection.recv(1024).decode('utf-8')
+                    else:
+                        continue
                 except socket.timeout:
                     continue
                 except Exception as e:

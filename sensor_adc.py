@@ -37,7 +37,7 @@ class ADC:
         voltage = value / 255.0 * 5 * self.adc_voltage_coefficient                # Convert the ADC value to voltage
         return round(voltage, 2)                                              # Return the voltage rounded to 2 decimal places
 
-    def read_battery_voltage(self) -> float:
+    def read_battery_voltage(self) -> tuple[float, float]:
         """Read the battery voltage using ADS7830."""
         battery1 = self.read_channel_voltage(0)                                   # Read the battery voltage from channel 0
         battery2 = self.read_channel_voltage(4)                                   # Read the battery voltage from channel 4

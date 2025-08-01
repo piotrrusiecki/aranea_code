@@ -19,6 +19,7 @@ class VoiceControl:
         self.queue = queue.Queue()
         self.running = False
         self.command_handler = VoiceCommandHandler(command_sender, ultrasonic_sensor, robot_state)
+        self._overflow_count = 0  # Counter for audio overflow message throttling
 
         # Load model from VOICE_MODELS based on VOICE_LANG
         self.current_lang = VOICE_LANG
@@ -36,8 +37,6 @@ class VoiceControl:
             # Throttle overflow messages to reduce debug spam (but keep them for diagnosis) 
             if "input overflow" in str(status).lower():
                 # Only log every 10th overflow message
-                if not hasattr(self, '_overflow_count'):
-                    self._overflow_count = 0
                 self._overflow_count += 1
                 if self._overflow_count % 10 == 0:
                     logger.debug("Audio status: %s (suppressed %d similar)", status, self._overflow_count - 1)
