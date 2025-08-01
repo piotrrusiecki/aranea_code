@@ -140,7 +140,8 @@ class Server:
         self.control_system.timeout = time.time()
 
 
-    def get_interface_ip(self):
+    @staticmethod
+    def get_interface_ip():
         # Get the IP address of the wlan0 interface
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         return socket.inet_ntoa(fcntl.ioctl(sock.fileno(),
@@ -196,7 +197,8 @@ class Server:
             self.control_system.timeout = time.time()
 
 
-    def send_data(self, connection, data):
+    @staticmethod
+    def send_data(connection, data):
         try:
             if data.strip():  # skip empty or whitespace-only strings
                 connection.send(data.encode('utf-8'))

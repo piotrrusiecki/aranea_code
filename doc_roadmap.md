@@ -145,3 +145,8 @@
   - Added proper Optional type annotations for nullable return values and parameters
   - Fixed method signature compatibility with parent classes
   - Improved type checker compliance and IDE support
+- [x] **Static method optimization** - Converted utility methods to @staticmethod in hardware_server.py
+  - Added @staticmethod decorators to get_interface_ip() and send_data() methods
+  - Eliminated unnecessary self parameter where not used, improving code clarity
+  - Resolved PYL-R0201 pylint warnings for better code structure
+  - Maintained backward compatibility while optimizing memory usage
