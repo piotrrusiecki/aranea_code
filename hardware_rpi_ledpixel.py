@@ -113,7 +113,8 @@ class Freenove_RPI_WS281X:
             self.strip.setPixelColor(led_idx, Color(self.led_color[led_idx * 3], self.led_color[led_idx * 3 + 1], self.led_color[led_idx * 3 + 2]))
         self.strip.show()
 
-    def wheel(self, pos):
+    @staticmethod
+    def wheel(pos):
         # Generate a color wheel value based on the position
         if pos < 85:
             return [(255 - pos * 3), (pos * 3), 0]
@@ -124,7 +125,8 @@ class Freenove_RPI_WS281X:
             pos = pos - 170
             return [(pos * 3), 0, (255 - pos * 3)]
 
-    def hsv2rgb(self, h, s, v):
+    @staticmethod
+    def hsv2rgb(h, s, v):
         # Convert HSV to RGB
         h = h % 360
         rgb_max = round(v * 2.55)
@@ -182,7 +184,7 @@ if __name__ == '__main__':
             while True:
                 for j in range(255):
                     for led_idx in range(led.led_count):
-                        led.set_led_rgb_data(led_idx, led.wheel((round(led_idx * 255 / led.led_count) + j) % 256))
+                        led.set_led_rgb_data(led_idx, Freenove_RPI_WS281X.wheel((round(led_idx * 255 / led.led_count) + j) % 256))
                     led.show()
                     time.sleep(0.002)
         else:

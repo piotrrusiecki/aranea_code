@@ -69,12 +69,13 @@ class ParameterManager:
         file_path = file_path or self.file_path
         default_params = {
             'Pcb_Version': 2,
-            'Pi_Version': self.get_raspberry_pi_version()
+            'Pi_Version': ParameterManager.get_raspberry_pi_version()
         }
         with open(file_path, 'w') as file:
             json.dump(default_params, file, indent=4)
 
-    def get_raspberry_pi_version(self):
+    @staticmethod
+    def get_raspberry_pi_version():
         # Get the version of the Raspberry Pi
         try:
             result = subprocess.run(['cat', '/sys/firmware/devicetree/base/model'], capture_output=True, text=True, check=False)
@@ -111,7 +112,7 @@ class ParameterManager:
                         print("Invalid PCB Version. Please enter 1 or 2.")
                 except ValueError:
                     print("Invalid input. Please enter a number.")
-            pi_version = self.get_raspberry_pi_version()
+            pi_version = ParameterManager.get_raspberry_pi_version()
             self.create_param_file()
             self.set_param('Pcb_Version', pcb_version)
             self.set_param('Pi_Version', pi_version)
@@ -133,5 +134,5 @@ if __name__ == '__main__':
     if manager.file_exists("params.json") and manager.validate_params("params.json"):
         pcb_version = manager.get_pcb_version()
         print(f"PCB Version: {pcb_version}.0")
-        pi_version = manager.get_raspberry_pi_version()
+        pi_version = ParameterManager.get_raspberry_pi_version()
         print(f"Raspberry PI version is {'less than 5' if pi_version == 1 else '5'}.")

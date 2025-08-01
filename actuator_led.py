@@ -18,7 +18,7 @@ class Led:
         # Get the PCB version from the parameter file
         self.pcb_version = self.param.get_pcb_version()
         # Get the Raspberry Pi version from the parameter file
-        self.pi_version = self.param.get_raspberry_pi_version()
+        self.pi_version = ParameterManager.get_raspberry_pi_version()
 
         # Set up the LED strip based on PCB and Raspberry Pi versions
         if self.pcb_version == 1 and self.pi_version == 1:
@@ -52,7 +52,8 @@ class Led:
             self.strip.show()
             time.sleep(wait_ms / 1000.0)
 
-    def wheel(self, pos):
+    @staticmethod
+    def wheel(pos):
         """Generate rainbow colors across 0-255 positions."""
         if pos < 0 or pos > 255:
             r = g = b = 0
@@ -78,7 +79,7 @@ class Led:
             return
         for j in range(256 * iterations):
             for led_idx in range(self.strip.get_led_count()):
-                self.strip.set_led_rgb_data(led_idx, self.wheel((led_idx + j) & 255))
+                self.strip.set_led_rgb_data(led_idx, LED.wheel((led_idx + j) & 255))
             self.strip.show()
             time.sleep(wait_ms / 1000.0)
 
@@ -92,7 +93,7 @@ class Led:
             for led_idx in range(self.strip.get_led_count()):
                 if self.stop_event.is_set():
                     break
-                self.strip.set_led_rgb_data(led_idx, self.wheel((int(led_idx * 256 / self.strip.get_led_count()) + j) & 255))
+                self.strip.set_led_rgb_data(led_idx, LED.wheel((int(led_idx * 256 / self.strip.get_led_count()) + j) & 255))
             self.strip.show()
             time.sleep(wait_ms / 1000.0)
 

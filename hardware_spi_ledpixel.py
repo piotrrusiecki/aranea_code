@@ -184,7 +184,8 @@ class Freenove_SPI_LedPixel(object):
             write_ws2812 = self.write_ws2812_numpy4
         write_ws2812()
         
-    def wheel(self, pos):
+    @staticmethod
+    def wheel(pos):
         # Generate a color based on the position in the color wheel
         if pos < 85:
             return [(255 - pos * 3), (pos * 3), 0]
@@ -195,7 +196,8 @@ class Freenove_SPI_LedPixel(object):
             pos = pos - 170
             return [(pos * 3), 0, (255 - pos * 3)]
     
-    def hsv2rgb(self, h, s, v):
+    @staticmethod
+    def hsv2rgb(h, s, v):
         # Convert HSV to RGB
         h = h % 360
         rgb_max = round(v * 2.55)
@@ -284,7 +286,7 @@ if __name__ == '__main__':
                 for j in range(255):
                     for i in range(led.led_count):
                         # Set the color of each LED based on the color wheel
-                        led.set_led_rgb_data(i, led.wheel((round(i * 255 / led.led_count) + j) % 256))
+                        led.set_led_rgb_data(i, Freenove_SPI_LedPixel.wheel((round(i * 255 / led.led_count) + j) % 256))
                     led.show()
                     time.sleep(0.002)
         else:
