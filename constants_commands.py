@@ -15,6 +15,3 @@ class COMMAND:
     CMD_SERVOPOWER = "CMD_SERVOPOWER"
     CMD_IMU_STATUS = "CMD_IMU_STATUS"
     CMD_BATTERY = "CMD_BATTERY"
-    
-    def __init__(self):
-        pass
