@@ -10,35 +10,35 @@ def calculate_posture_balance(roll, pitch, yaw, body_height):
     """
     Calculate new foot positions based on body roll, pitch, yaw and height.
     """
-    position = np.mat([0.0, 0.0, body_height]).T
+    position = np.array([[0.0], [0.0], [body_height]])
     rpy = np.array([roll, pitch, yaw]) * math.pi / 180
     roll_angle, pitch_angle, yaw_angle = rpy[0], rpy[1], rpy[2]
-    rotation_x = np.mat([[1, 0, 0],
-                         [0, math.cos(pitch_angle), -math.sin(pitch_angle)],
-                         [0, math.sin(pitch_angle), math.cos(pitch_angle)]])
-    rotation_y = np.mat([[math.cos(roll_angle), 0, -math.sin(roll_angle)],
-                         [0, 1, 0],
-                         [math.sin(roll_angle), 0, math.cos(roll_angle)]])
-    rotation_z = np.mat([[math.cos(yaw_angle), -math.sin(yaw_angle), 0],
-                         [math.sin(yaw_angle), math.cos(yaw_angle), 0],
-                         [0, 0, 1]])
-    rotation_matrix = rotation_x * rotation_y * rotation_z
-    body_structure = np.mat([[55, 76, 0],
-                            [85, 0, 0],
-                            [55, -76, 0],
-                            [-55, -76, 0],
-                            [-85, 0, 0],
-                            [-55, 76, 0]]).T
-    footpoint_structure = np.mat([[137.1, 189.4, 0],
-                                 [225, 0, 0],
-                                 [137.1, -189.4, 0],
-                                 [-137.1, -189.4, 0],
-                                 [-225, 0, 0],
-                                 [-137.1, 189.4, 0]]).T
-    ab = np.mat(np.zeros((3, 6)))
+    rotation_x = np.array([[1, 0, 0],
+                          [0, math.cos(pitch_angle), -math.sin(pitch_angle)],
+                          [0, math.sin(pitch_angle), math.cos(pitch_angle)]])
+    rotation_y = np.array([[math.cos(roll_angle), 0, -math.sin(roll_angle)],
+                          [0, 1, 0],
+                          [math.sin(roll_angle), 0, math.cos(roll_angle)]])
+    rotation_z = np.array([[math.cos(yaw_angle), -math.sin(yaw_angle), 0],
+                          [math.sin(yaw_angle), math.cos(yaw_angle), 0],
+                          [0, 0, 1]])
+    rotation_matrix = rotation_x @ rotation_y @ rotation_z
+    body_structure = np.array([[55, 76, 0],
+                              [85, 0, 0],
+                              [55, -76, 0],
+                              [-55, -76, 0],
+                              [-85, 0, 0],
+                              [-55, 76, 0]]).T
+    footpoint_structure = np.array([[137.1, 189.4, 0],
+                                   [225, 0, 0],
+                                   [137.1, -189.4, 0],
+                                   [-137.1, -189.4, 0],
+                                   [-225, 0, 0],
+                                   [-137.1, 189.4, 0]]).T
+    ab = np.zeros((3, 6))
     foot_positions = [[0, 0, 0] for _ in range(6)]
     for i in range(6):
-        ab[:, i] = position + rotation_matrix * footpoint_structure[:, i]
+        ab[:, i] = (position + rotation_matrix @ footpoint_structure[:, i:i+1]).flatten()
         foot_positions[i][0] = ab[0, i]
         foot_positions[i][1] = ab[1, i]
         foot_positions[i][2] = ab[2, i]
@@ -77,9 +77,9 @@ def transform_coordinates(points, leg_positions):
 
 if __name__ == '__main__':
     # Example usage/tests (dummy values)
-    body_height = -25
-    result = calculate_posture_balance(0, 0, 0, body_height)
-    logger.info("calculate_posture_balance(0,0,0,%d): %s", body_height, result)
+    test_body_height = -25
+    result = calculate_posture_balance(0, 0, 0, test_body_height)
+    logger.info("calculate_posture_balance(0,0,0,%d): %s", test_body_height, result)
     leg_pos = [[0, 0, 0] for _ in range(6)]
     body_pts = [[0, 0, 0] for _ in range(6)]
     logger.info("transform_coordinates: %s", transform_coordinates(result, leg_pos))

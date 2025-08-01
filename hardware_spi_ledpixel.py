@@ -97,7 +97,7 @@ class Freenove_SPI_LedPixel(object):
     def set_led_brightness(self, brightness):
         # Set the brightness of all LEDs
         self.led_brightness = brightness
-        for i in range(self.get_led_count()):
+        for led_idx in range(self.get_led_count()):
             self.set_led_rgb_data(i, self.led_original_color)
             
     def set_ledpixel(self, index, r, g, b):
@@ -132,24 +132,24 @@ class Freenove_SPI_LedPixel(object):
     
     def set_all_led_color_data(self, r, g, b):
         # Set the color data of all LEDs
-        for i in range(self.get_led_count()):
-            self.set_led_color_data(i, r, g, b)
+        for led_idx in range(self.get_led_count()):
+            self.set_led_color_data(led_idx, r, g, b)
             
     def set_all_led_rgb_data(self, color):
         # Set the RGB data of all LEDs
-        for i in range(self.get_led_count()):
-            self.set_led_rgb_data(i, color)   
+        for led_idx in range(self.get_led_count()):
+            self.set_led_rgb_data(led_idx, color)   
         
     def set_all_led_color(self, r, g, b):
         # Set the color of all LEDs and update the display
-        for i in range(self.get_led_count()):
-            self.set_led_color_data(i, r, g, b)
+        for led_idx in range(self.get_led_count()):
+            self.set_led_color_data(led_idx, r, g, b)
         self.show()
         
     def set_all_led_rgb(self, color):
         # Set the RGB color of all LEDs and update the display
-        for i in range(self.get_led_count()):
-            self.set_led_rgb_data(i, color) 
+        for led_idx in range(self.get_led_count()):
+            self.set_led_rgb_data(led_idx, color) 
         self.show()
     
     def write_ws2812_numpy8(self):

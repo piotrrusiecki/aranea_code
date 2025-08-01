@@ -35,10 +35,10 @@ class Servo:
 
     def relax(self):
         """Relax all servos by setting their PWM values to 4096."""
-        for i in range(8):
-            self.pwm_41.set_pwm(i + 8, 4096, 4096)
-            self.pwm_40.set_pwm(i, 4096, 4096)
-            self.pwm_40.set_pwm(i + 8, 4096, 4096)
+        for servo_idx in range(8):
+            self.pwm_41.set_pwm(servo_idx + 8, 4096, 4096)
+            self.pwm_40.set_pwm(servo_idx, 4096, 4096)
+            self.pwm_40.set_pwm(servo_idx + 8, 4096, 4096)
 
 
 # Main program logic follows:
@@ -49,13 +49,13 @@ if __name__ == '__main__':
     servo = Servo()
     while True:
         try:
-            for i in range(32):
-                if i in [10, 13, 31]:
-                    servo.set_servo_angle(i, 10)
-                elif i in [18, 21, 27]:
-                    servo.set_servo_angle(i, 170)
+            for servo_channel in range(32):
+                if servo_channel in [10, 13, 31]:
+                    servo.set_servo_angle(servo_channel, 10)
+                elif servo_channel in [18, 21, 27]:
+                    servo.set_servo_angle(servo_channel, 170)
                 else:
-                    servo.set_servo_angle(i, 90)
+                    servo.set_servo_angle(servo_channel, 90)
             time.sleep(3)
         except KeyboardInterrupt:
             print("\nEnd of program")

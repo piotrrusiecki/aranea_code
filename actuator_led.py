@@ -47,8 +47,8 @@ class Led:
     def color_wipe(self, color, wait_ms=50):
         if not self.is_support_led_function:
             return
-        for i in range(self.strip.get_led_count()):
-            self.strip.set_led_rgb_data(i, color)
+        for led_idx in range(self.strip.get_led_count()):
+            self.strip.set_led_rgb_data(led_idx, color)
             self.strip.show()
             time.sleep(wait_ms / 1000.0)
 
@@ -77,8 +77,8 @@ class Led:
         if not self.is_support_led_function:
             return
         for j in range(256 * iterations):
-            for i in range(self.strip.get_led_count()):
-                self.strip.set_led_rgb_data(i, self.wheel((i + j) & 255))
+            for led_idx in range(self.strip.get_led_count()):
+                self.strip.set_led_rgb_data(led_idx, self.wheel((led_idx + j) & 255))
             self.strip.show()
             time.sleep(wait_ms / 1000.0)
 
@@ -89,10 +89,10 @@ class Led:
         for j in range(256 * iterations):
             if self.stop_event.is_set():
                 return
-            for i in range(self.strip.get_led_count()):
+            for led_idx in range(self.strip.get_led_count()):
                 if self.stop_event.is_set():
                     break
-                self.strip.set_led_rgb_data(i, self.wheel((int(i * 256 / self.strip.get_led_count()) + j) & 255))
+                self.strip.set_led_rgb_data(led_idx, self.wheel((int(led_idx * 256 / self.strip.get_led_count()) + j) & 255))
             self.strip.show()
             time.sleep(wait_ms / 1000.0)
 

@@ -33,9 +33,9 @@ class Ultrasonic:
 
         def loop():
             while not self.stop_event.is_set():
-                distance = self.get_distance()
-                if distance is not None:
-                    print(f"[Ultrasonic] Distance: {distance}cm")
+                measured_distance = self.get_distance()
+                if measured_distance is not None:
+                    print(f"[Ultrasonic] Distance: {measured_distance}cm")
                 time.sleep(interval)
 
         self.thread = threading.Thread(target=loop, daemon=True)
@@ -57,8 +57,8 @@ class Ultrasonic:
         float: The distance measurement in centimeters, rounded to one decimal place.
         """
         try:
-            distance = self.sensor.distance * 100  # Get the distance in centimeters
-            return round(float(distance), 1)  # Return the distance rounded to one decimal place
+            sensor_distance = self.sensor.distance * 100  # Get the distance in centimeters
+            return round(float(sensor_distance), 1)  # Return the distance rounded to one decimal place
         except RuntimeWarning as e:
             print(f"Warning: {e}")
             return None
@@ -72,9 +72,9 @@ if __name__ == '__main__':
     with Ultrasonic() as ultrasonic:
         try:
             while True:
-                distance = ultrasonic.get_distance()  # Get the distance measurement in centimeters
-                if distance is not None:
-                    print(f"Ultrasonic distance: {distance}cm")  # Print the distance measurement
+                current_distance = ultrasonic.get_distance()  # Get the distance measurement in centimeters
+                if current_distance is not None:
+                    print(f"Ultrasonic distance: {current_distance}cm")  # Print the distance measurement
                 time.sleep(0.5)  # Wait for 0.5 seconds
         except KeyboardInterrupt:  # Handle keyboard interrupt (Ctrl+C)
             print("\nEnd of program")  # Print an end message
