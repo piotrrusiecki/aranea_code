@@ -295,7 +295,7 @@ def _handle_cmd_queue_commands(source, command, cmd_name, params):
     return True
 
 
-def _handle_cmd_servopower(source, command, cmd_name, params):
+def _handle_cmd_servopower(source, command, _cmd_name, params):
     """Handle CMD_SERVOPOWER commands specifically."""
     if params and params[0] in {"0", "1"}:
         _get_server().robot_state.set_flag("servo_off", params[0] == "0")
