@@ -52,10 +52,10 @@ class Camera:
         """Capture and save an image to the specified file."""
         try:
             metadata = self.camera.capture_file(filename)  # Capture an image and save it to the specified file
-            logger.info(f"Image captured and saved to {filename}")
+            logger.info("Image captured and saved to %s", filename)
             return metadata                              # Return the metadata of the captured image
         except Exception as e:
-            logger.error(f"Error capturing image: {e}")  # Log error message if capturing fails
+            logger.error("Error capturing image: %s", e)  # Log error message if capturing fails
             return None                                  # Return None if capturing fails
 
     def start_stream(self, filename: str = None) -> None:
@@ -74,7 +74,7 @@ class Camera:
             self.camera.start_recording(encoder, output)   # Start recording or streaming
             self.streaming = True                          # Set the streaming flag to True
             if filename:
-                logger.info(f"Started recording video to {filename}")
+                logger.info("Started recording video to %s", filename)
             else:
                 logger.info("Started video streaming")
 
@@ -86,7 +86,7 @@ class Camera:
                 self.streaming = False                     # Set the streaming flag to False
                 logger.info("Camera stream stopped")
             except Exception as e:
-                logger.error(f"Error stopping stream: {e}")  # Log error message if stopping fails
+                logger.error("Error stopping stream: %s", e)  # Log error message if stopping fails
 
     def get_frame(self) -> bytes:
         """Get the current frame from the streaming output."""
