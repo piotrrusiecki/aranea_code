@@ -79,7 +79,7 @@ class Led:
             return
         for j in range(256 * iterations):
             for led_idx in range(self.strip.get_led_count()):
-                self.strip.set_led_rgb_data(led_idx, LED.wheel((led_idx + j) & 255))
+                self.strip.set_led_rgb_data(led_idx, self.wheel((led_idx + j) & 255))
             self.strip.show()
             time.sleep(wait_ms / 1000.0)
 
@@ -93,7 +93,7 @@ class Led:
             for led_idx in range(self.strip.get_led_count()):
                 if self.stop_event.is_set():
                     break
-                self.strip.set_led_rgb_data(led_idx, LED.wheel((int(led_idx * 256 / self.strip.get_led_count()) + j) & 255))
+                self.strip.set_led_rgb_data(led_idx, self.wheel((int(led_idx * 256 / self.strip.get_led_count()) + j) & 255))
             self.strip.show()
             time.sleep(wait_ms / 1000.0)
 
