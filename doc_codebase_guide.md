@@ -49,7 +49,8 @@
 - `hardware_rpi_ledpixel.py` - Raspberry Pi WS281X LED strip driver
 
 #### **Sensors**
-- `sensor_camera.py` - Pi camera streaming interface
+- `sensor_camera.py` - Pi camera streaming interface with video recording and frame capture
+  - **Code Quality**: Optimized logging with lazy % formatting and proper Optional type annotations
 - `sensor_ultrasonic.py` - Distance sensor interface
 - `sensor_adc.py` - Battery voltage monitoring
 - `sensor_imu.py` - Inertial measurement unit with Kalman filtering
