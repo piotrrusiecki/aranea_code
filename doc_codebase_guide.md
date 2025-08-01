@@ -28,6 +28,9 @@
 
 #### **Command Dispatching** (Key Innovation)
 - `command_dispatcher_logic.py` - Main dispatcher logic and command routing
+  - **Refactored Architecture**: Eliminated global server instance usage with safe `_get_server()` helper
+  - Type-safe server access with proper None checking and runtime validation
+  - Clean separation of concerns with dependency injection patterns
 - `command_dispatcher_core.py` - Registry for symbolic and routine commands  
 - `command_dispatcher_registry.py` - Command registration (imports all routines)
 - `command_dispatcher_symbolic.py` - Simple symbolic command execution
@@ -89,6 +92,9 @@
 
 #### **Voice Control System**
 - `voice_manager.py` - Voice system lifecycle management
+  - **Refactored Architecture**: Class-based `VoiceManager` with instance state management  
+  - Eliminated global variables for thread-safe voice control lifecycle
+  - Backward-compatible wrapper functions maintain existing API
 - `voice_control.py` - Vosk speech recognition integration
 - `voice_command_handler.py` - Voice command processing and routing
 - `config/voice/eo.py` - Esperanto command mappings
@@ -160,6 +166,7 @@
 - ❌ Print statements → ✅ Comprehensive logging
 - ❌ Scattered state → ✅ Centralized RobotState
 - ❌ Monolithic server.py → ✅ Modular architecture
+- ❌ Global variables & state → ✅ Class-based architecture with proper encapsulation
 
 ### **Performance Issues Identified**
 - **Movement slowdown**: Related to command queue retention and SendMove(0,0) in move.js
@@ -178,6 +185,13 @@
 - **Hardware failure**: Servo on channel 8 (Leg 3, middle joint) failed due to long-term degradation
   - **Accelerated by**: Software PWM bug creating additional stress on already-weak servo
   - **Solution**: Servo replacement + software fix resolved all stability issues
+
+### **Code Quality Improvements (COMPLETED - Dec 2024)**
+- **Global variable elimination**: Removed all problematic global statements (PYL-W0603 warnings)
+  - **`voice_manager.py`**: Converted to class-based `VoiceManager` with instance state
+  - **`command_dispatcher_logic.py`**: Added safe server instance access with `_get_server()` helper
+  - **Impact**: Improved thread safety, better testability, cleaner architecture
+  - **Result**: Zero linting errors, enhanced IDE type checking, maintained backward compatibility
 
 ### **Configuration Flags (Important)**
 - `CLEAR_MOVE_QUEUE_AFTER_EXEC = False` - **CRITICAL**: Legacy compatibility with factory firmware
