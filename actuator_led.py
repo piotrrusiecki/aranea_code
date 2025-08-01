@@ -101,21 +101,21 @@ class Led:
         if not self.is_support_led_function:
             return 
         led_count = self.strip.get_led_count()
-        for i in range(led_count):
+        for led_index in range(led_count):
             for q in range(3):
-                self.strip.set_led_rgb_data((i + q * 4) % led_count, color)
+                self.strip.set_led_rgb_data((led_index + q * 4) % led_count, color)
             self.strip.show()
             time.sleep(wait_ms / 1000.0)
             for q in range(3):
-                self.strip.set_led_rgb_data((i + q * 4) % led_count, [0, 0, 0])
+                self.strip.set_led_rgb_data((led_index + q * 4) % led_count, [0, 0, 0])
 
     def led_index(self, index, r, g, b):
         if not self.is_support_led_function:
             return
         change_color = [r, g, b]
-        for i in range(8):
+        for bit_index in range(8):
             if index & 0x01 == 1:
-                self.strip.set_led_rgb_data(i, change_color)
+                self.strip.set_led_rgb_data(bit_index, change_color)
             index = index >> 1
         self.strip.show()
 
@@ -125,8 +125,8 @@ class Led:
         if len(data) < 4:
             self.led_mode = data[1]
         else:
-            for i in range(3):
-                self.received_color[i] = int(data[i + 1])
+            for color_channel in range(3):
+                self.received_color[color_channel] = int(data[color_channel + 1])
         if self.led_mode == '0':
             self.stop()
             self.color_wipe([0, 0, 0])

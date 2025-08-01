@@ -109,8 +109,8 @@ class Freenove_SPI_LedPixel(object):
         self.led_original_color[index * 3 + self.led_red_offset] = r
         self.led_original_color[index * 3 + self.led_green_offset] = g
         self.led_original_color[index * 3 + self.led_blue_offset] = b
-        for i in range(3):
-            self.led_color[index * 3 + i] = p[i]
+        for color_idx in range(3):
+            self.led_color[index * 3 + color_idx] = p[color_idx]
 
     def set_led_color_data(self, index, r, g, b):
         # Set the color data of a specific LED

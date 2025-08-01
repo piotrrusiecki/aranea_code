@@ -64,8 +64,8 @@ class Freenove_RPI_WS281X:
         self.led_original_color[index * 3 + self.led_red_offset] = r
         self.led_original_color[index * 3 + self.led_green_offset] = g
         self.led_original_color[index * 3 + self.led_blue_offset] = b
-        for i in range(3):
-            self.led_color[index * 3 + i] = p[i]
+        for color_idx in range(3):
+            self.led_color[index * 3 + color_idx] = p[color_idx]
 
     def set_led_color_data(self, index, r, g, b):
         # Set the color data of a specific LED
@@ -110,7 +110,7 @@ class Freenove_RPI_WS281X:
     def show(self):
         # Update the LED strip with the current color data
         for led_idx in range(self.get_led_count()):
-            self.strip.setPixelColor(i, Color(self.led_color[i * 3], self.led_color[i * 3 + 1], self.led_color[i * 3 + 2]))
+            self.strip.setPixelColor(led_idx, Color(self.led_color[led_idx * 3], self.led_color[led_idx * 3 + 1], self.led_color[led_idx * 3 + 2]))
         self.strip.show()
 
     def wheel(self, pos):
@@ -129,26 +129,26 @@ class Freenove_RPI_WS281X:
         h = h % 360
         rgb_max = round(v * 2.55)
         rgb_min = round(rgb_max * (100 - s) / 100)
-        i = round(h / 60)
+        sector = round(h / 60)
         diff = round(h % 60)
         rgb_adj = round((rgb_max - rgb_min) * diff / 60)
-        if i == 0:
+        if sector == 0:
             r = rgb_max
             g = rgb_min + rgb_adj
             b = rgb_min
-        elif i == 1:
+        elif sector == 1:
             r = rgb_max - rgb_adj
             g = rgb_max
             b = rgb_min
-        elif i == 2:
+        elif sector == 2:
             r = rgb_min
             g = rgb_max
             b = rgb_min + rgb_adj
-        elif i == 3:
+        elif sector == 3:
             r = rgb_min
             g = rgb_max - rgb_adj
             b = rgb_max
-        elif i == 4:
+        elif sector == 4:
             r = rgb_min + rgb_adj
             g = rgb_min
             b = rgb_max
