@@ -1,5 +1,6 @@
 import time
 import logging
+from typing import Optional
 from picamera2 import Picamera2, Preview
 from picamera2.encoders import H264Encoder, JpegEncoder
 from picamera2.outputs import FileOutput
@@ -14,10 +15,10 @@ class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
         """Initialize the StreamingOutput class."""
         super().__init__()  # Properly initialize the parent BufferedIOBase class
-        self.frame = None
+        self.frame: Optional[bytes] = None
         self.condition = Condition()  # Initialize the condition variable for thread synchronization
 
-    def write(self, buf: bytes) -> int:
+    def write(self, buf) -> int:
         """Write a buffer to the frame and notify all waiting threads."""
         with self.condition:
             self.frame = buf             # Update the frame buffer with new data
@@ -48,7 +49,7 @@ class Camera:
         self.camera.start_preview(Preview.QTGL)  # Start the camera preview using the QTGL backend
         self.camera.start()                      # Start the camera
 
-    def save_image(self, filename: str) -> dict:
+    def save_image(self, filename: str) -> Optional[dict]:
         """Capture and save an image to the specified file."""
         try:
             metadata = self.camera.capture_file(filename)  # Capture an image and save it to the specified file
@@ -58,7 +59,7 @@ class Camera:
             logger.error("Error capturing image: %s", e)  # Log error message if capturing fails
             return None                                  # Return None if capturing fails
 
-    def start_stream(self, filename: str = None) -> None:
+    def start_stream(self, filename: Optional[str] = None) -> None:
         """Start the video stream or recording."""
         if not self.streaming:
             if self.camera.started:
@@ -88,7 +89,7 @@ class Camera:
             except Exception as e:
                 logger.error("Error stopping stream: %s", e)  # Log error message if stopping fails
 
-    def get_frame(self) -> bytes:
+    def get_frame(self) -> Optional[bytes]:
         """Get the current frame from the streaming output."""
         with self.streaming_output.condition:
             self.streaming_output.condition.wait()         # Wait for a new frame to be available
