@@ -1,6 +1,6 @@
 # Aranea Robot Development Roadmap
 
-*Last updated: December 2024 - Major file reorganization completed*
+*Last updated: December 2024 - Global variable refactoring completed*
 
 ## Phase 1: Field Autonomy & Performance (Priority: HIGH)
 ### Network & Connectivity
@@ -86,8 +86,9 @@
 - [ ] Documentation and user guides
 
 ### Code Quality
+- [x] **Global variable elimination** - Removed all problematic global statements (PYL-W0603 warnings)
 - [ ] DeepSource issue resolution (ongoing)
-- [ ] Type hints addition to critical modules
+- [ ] Type hints addition to critical modules  
 - [ ] Performance profiling and optimization
 - [ ] Security audit and hardening
 
@@ -129,3 +130,11 @@
 - [x] **Codebase organization** - Implemented consistent naming convention with git history preservation: legacy files renamed to reflect function (server.py→hardware_server.py, control.py→robot_control.py, etc.)
 - [x] **Documentation maintenance** - Updated codebase guide and roadmap to reflect architectural changes and naming conventions
 - [x] **Critical performance bug fix** - Resolved infinite recursion in robot_control.py run_gait method that was causing robot slowdown
+
+### **Code Quality & Architecture Refinements (Dec 2024)**
+- [x] **Global variable elimination** - Refactored voice_manager.py and command_dispatcher_logic.py to eliminate all global statements
+  - Converted voice_manager.py to class-based VoiceManager with instance state management
+  - Added safe server instance access in command_dispatcher_logic.py with _get_server() helper
+  - Enhanced type safety with proper None checking and runtime validation
+  - Maintained backward compatibility while improving thread safety and testability
+  - Result: Zero PYL-W0603 linting errors, enhanced IDE support, cleaner architecture
