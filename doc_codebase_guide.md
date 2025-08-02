@@ -413,6 +413,22 @@ class NetworkServer:
 - `ADC.read_battery_voltage()` - Corrected return type annotation to `tuple[float, float]`
 - Import pattern for utility functions: `from robot_kinematics import restrict_value`
 
+## 🌐 Network & Remote Access
+
+### WiFi Configuration  
+- **Priority System**: NetworkManager-based with phone hotspot (100) > home network (50) > wired (-999)
+- **Remote Access**: Mobile hotspot enables field operations via web interface
+- **Documentation**: Complete setup guide in `doc_wifi.md`
+- **Auto-Failover**: Seamless switching between networks based on availability
+
+### Service Management
+- **Systemd Service**: `.services/aranea-server.service` for auto-start configuration
+- **Installation**: Copy to `/etc/systemd/system/` and enable for boot startup
+- **Monitoring**: Logs available via `journalctl -u aranea-server.service`
+- **Remote Control**: Full web interface accessible from any device on network
+
 ---
 
 *This guide represents the codebase state after comprehensive refactoring from manufacturer PyQt5 desktop application to modern web-based robot control system. Reference roadmap.md for development priorities and completed features.*
+
+*Last updated: August 2025 with mobile hotspot configuration and service management*

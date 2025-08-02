@@ -1,11 +1,10 @@
 # Aranea Robot Development Roadmap
 
-*Last updated: December 2024 - Global variable refactoring completed*
+*Last updated: August 2025 - Mobile hotspot remote access completed*
 
 ## Phase 1: Field Autonomy & Performance (Priority: HIGH)
 ### Network & Connectivity
-- [ ] Standalone AP fallback mode (AraneaRobot hotspot)
-- [ ] WiFi network manager with auto-failover
+- [x] Mobile hotspot remote access (NetworkManager priority configuration)
 - [ ] Connection status indicators in web UI
 
 ### Performance Optimization
@@ -40,6 +39,7 @@
 - [ ] Complete diagnostics tab (IMU, servo state, ultrasonic, battery)
 - [ ] Real-time performance metrics display
 - [ ] Configuration management via web UI
+- [ ] WiFi network configuration and management via web UI
 - [ ] Real-time video streaming integration - Embedded camera feed in web interface
 
 ## Phase 4: Advanced Robot Behaviors (Priority: MEDIUM)

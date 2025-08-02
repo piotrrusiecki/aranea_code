@@ -1,12 +1,12 @@
 [Unit]
-Description=Aranea Hexapod Server (Headless TCP Mode)
+Description=Aranea Hexapod Server (Web + Voice + TCP)
 After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/piotr/Aranea_code/Code/Server
+WorkingDirectory=/home/piotr/aranea_code
 ExecStartPre=/bin/sleep 5
-ExecStart=/usr/bin/python3 /home/piotr/Aranea_code/Code/Server/main.py
+ExecStart=/usr/bin/python3 /home/piotr/aranea_code/main.py
 Environment=PYTHONUNBUFFERED=1
 Restart=always
 RestartSec=5
