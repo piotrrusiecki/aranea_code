@@ -131,6 +131,11 @@ nmcli device wifi list
 sudo journalctl -u NetworkManager -f
 ```
 
+**4. Robot connects to hotspot but can't access web interface**
+- **Solution**: Change phone hotspot from "5GHz steering" to "Concurrent 2.4GHz + 5GHz"
+- **Reason**: Raspberry Pi WiFi adapters have better compatibility with dual-band concurrent mode
+- **Location**: Phone Settings → Mobile Hotspot → Advanced → Band Selection
+
 ### Reset WiFi Configuration
 ```bash
 # Remove problematic connection
@@ -175,9 +180,18 @@ ip addr show wlan0 | grep "inet " | awk '{print $2}' | cut -d/ -f1
 ## Network Security Notes
 
 - **WPA2-Personal**: Standard security for phone hotspots
-- **5GHz Preferred**: Better performance when available
+- **Dual-Band Operation**: Use concurrent 2.4GHz + 5GHz for best compatibility
 - **IPv6 Disabled**: Simplifies routing and connectivity
 - **Auto-DHCP**: Ensures proper IP assignment from any network
+
+## Field Testing Results ✅
+
+**Successful outdoor tests** with following configuration requirements:
+
+### Phone Hotspot Settings
+- **Band Selection**: **Concurrent 2.4GHz + 5GHz** (not 5GHz-only steering)
+- **Compatibility**: Raspberry Pi WiFi adapters work better with dual-band concurrent mode
+- **Performance**: Full remote web interface functionality confirmed in field conditions
 
 ## Usage Workflow
 
