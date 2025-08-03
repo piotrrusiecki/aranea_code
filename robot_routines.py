@@ -221,8 +221,8 @@ def routine_turn_left(command_sender, steps=1, speed=5, pause=1):
         time.sleep(pause)
 
         try:
-            logger.debug("Sending  left turn 3: CMD_MOVE#1#0#0#%d#0", speed)
-            command_sender([cmd.CMD_MOVE, "1", "0", "0", str(5), "0"])
+            logger.debug("Sending  left turn 3: CMD_MOVE#1#0#0#8#0", speed)
+            command_sender([cmd.CMD_MOVE, "1", "0", "0", "8", "0"])
         except Exception as e:
             logger.error("Failed to send reset step in turn_left: %s", e)
 
@@ -245,8 +245,8 @@ def routine_turn_right(command_sender, steps=1, speed=5, pause=1):
         time.sleep(pause)
 
         try:
-            logger.debug("Sending right turn 3: CMD_MOVE#1#0#0#%d#0", speed)
-            command_sender([cmd.CMD_MOVE, "1", "0", "0", str(5), "0"])
+            logger.debug("Sending right turn 3: CMD_MOVE#1#0#0#8#0", speed)
+            command_sender([cmd.CMD_MOVE, "1", "0", "0", "8", "0"])
         except Exception as e:
             logger.error("Failed to send reset step in turn_right: %s", e)
 
