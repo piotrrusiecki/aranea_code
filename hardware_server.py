@@ -128,8 +128,8 @@ class Server:
             self.servo_controller.set_servo_angle(1, y)
 
     def handle_relax(self, parts):
-        new_state = not self.robot_state.get_flag("servo_relaxed")
-        self.robot_state.set_flag("servo_relaxed", new_state)
+        new_state = not self.robot_state.get_flag("servo_off")
+        self.robot_state.set_flag("servo_off", new_state)
         self.control_system.relax(new_state)
         logger.info("Relax" if new_state else "Unrelax")
 

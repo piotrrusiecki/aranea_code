@@ -131,6 +131,15 @@ def sys_prep_calibration(_send, control_system, robot_state):
         logger.warning("point.txt not found; using default calibration positions.")
         saved_positions = [[140, 0, 0] for _ in range(6)]
 
+    # Create backup of current calibration data
+    try:
+        with open('point_backup.txt', 'w') as f:
+            for position in saved_positions:
+                f.write('\t'.join(map(str, position)) + '\n')
+        logger.info("Pre-calibration data backed up to point_backup.txt")
+    except Exception as e:
+        logger.error("Failed to create backup: %s", e)
+
     robot_state.set_flag("calibration_mode", True)
 
     for i in range(6):
@@ -146,21 +155,18 @@ def sys_exit_calibration(send, control_system, robot_state):
     logger.info("Exiting calibration mode...")
     robot_state.set_flag("calibration_mode", False)
     
-    # Move to safe neutral pose and relax servos
-    logger.info("Moving to neutral pose and relaxing servos...")
+    # Ensure calibration data is saved to point.txt
+    logger.info("Saving final calibration data to point.txt...")
     try:
-        # Set all legs to neutral standing position
-        for i in range(6):
-            control_system.leg_positions[i] = [140, 0, -25]  # Neutral standing pose
-        control_system.set_leg_angles()
-        
-        # Send servo relax command to release tension
-        send([cmd.CMD_RELAX])
-        logger.info("Servos relaxed after calibration exit")
+        with open('point.txt', 'w') as f:
+            for i in range(6):
+                position = control_system.calibration_leg_positions[i]
+                f.write('\t'.join(map(str, position)) + '\n')
+        logger.info("Calibration data saved to point.txt")
     except Exception as e:
-        logger.error("Failed to set neutral pose on calibration exit: %s", e)
+        logger.error("Failed to save calibration data: %s", e)
     
-    logger.info("Calibration mode OFF.")
+    logger.info("Calibration mode OFF. Robot remains in calibrated position.")
 
 # === High-level wrappers for routines ===
 
