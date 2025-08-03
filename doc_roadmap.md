@@ -1,11 +1,16 @@
 # Aranea Robot Development Roadmap
 
-*Last updated: August 2025 - Mobile hotspot remote access completed*
+*Last updated: December 2024 - Code quality improvements completed*
 
 ## Phase 1: Field Autonomy & Performance (Priority: HIGH)
 ### Network & Connectivity
 - [x] Mobile hotspot remote access (NetworkManager priority configuration)
 - [ ] Connection status indicators in web UI
+- [ ] LED functionality 
+- [ ] Indicate WiFi connection with LED / startup sequence / readiness
+- [ ] Camera feed
+- [ ] Optimise web-UI (toggles for gait and action mode instead of buttons, improve responsiveness, speed slider size swapped)
+- [ ] Add position height in move, likely slider
 
 ### Performance Optimization
 - [ ] Investigate movement slowdown (check SendMove(0,0) in move.js) 
@@ -15,17 +20,17 @@
 
 ## Phase 2: Multi-Language Voice System (Priority: HIGH)
 ### Language Support
-- [ ] German voice model and commands ("spinne deutsch")
-- [ ] Spanish voice model and commands ("araneo español") 
-- [ ] French voice model and commands ("araignée français")
-- [ ] Polish voice model and commands ("pająk polski")
-- [ ] English voice model and commands ("araneo english")
+- [ ] German voice model and commands ("spinne polnisch")
+- [ ] Spanish voice model and commands ("araneo alleman") 
+- [ ] French voice model and commands ("araignée anglais")
+- [ ] Polish voice model and commands ("pająk esperanto, etc")
+- [ ] English voice model and commands ("araneo german")
 
 ### Voice Architecture
 - [ ] Runtime language switching with source language commands
 - [ ] Dynamic model loading and unloading
 - [ ] Voice command fuzzy matching per language
-- [ ] All voice commands integrated to dispatcher
+- [x] All voice commands integrated to dispatcher
 
 ## Phase 3: Core System Refinement (Priority: MEDIUM)
 ### Architecture Improvements
@@ -86,9 +91,6 @@
 - [ ] Documentation and user guides
 
 ### Code Quality
-- [x] **Global variable elimination** - Removed all problematic global statements (PYL-W0603 warnings)
-- [x] **Logging format optimization** - Converted eager string formatting to lazy % formatting in sensor modules
-- [x] **Type annotation improvements** - Added Optional types and fixed method signature compatibility issues
 - [ ] DeepSource issue resolution (ongoing)
 - [ ] Type hints addition to critical modules (in progress - sensor_camera.py completed)
 - [ ] Performance profiling and optimization
@@ -157,3 +159,5 @@
   - Fixed return type annotations (StreamingOutput.write, ADC.read_battery_voltage)
   - Maintained existing hasattr() defensive patterns while adding proper initialization
   - Result: Zero PYL-W0201 warnings, improved IDE support, enhanced type checker compliance
+- [x] **Logging format optimization** - Converted eager string formatting to lazy % formatting in sensor modules
+- [x] **Type annotation improvements** - Added Optional types and fixed method signature compatibility issues
