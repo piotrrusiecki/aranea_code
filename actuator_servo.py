@@ -27,7 +27,7 @@ class Servo:
             duty_cycle = map_value(angle, 0, 180, 500, 2500)
             duty_cycle = map_value(duty_cycle, 0, 20000, 0, 4095)
             self.pwm_41.set_pwm(channel, 0, int(duty_cycle))
-        elif channel >= 16 and channel < 32:
+        elif 16 <= channel < 32:
             channel -= 16
             duty_cycle = map_value(angle, 0, 180, 500, 2500)
             duty_cycle = map_value(duty_cycle, 0, 20000, 0, 4095)
