@@ -51,7 +51,7 @@ class ParameterManager:
             with open(validated_path, 'r') as file:
                 params = json.load(file)
                 return isinstance(params, dict) and 'Pcb_Version' in params and 'Pi_Version' in params
-        except (ValueError, json.JSONDecodeError):
+        except ValueError:
             return False
 
     def get_param(self, param_name, file_path=None):
