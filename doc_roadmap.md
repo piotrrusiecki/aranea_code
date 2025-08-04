@@ -246,3 +246,10 @@
   - Updated VoiceManager to pass self.switch_language as callback
   - Maintains all functionality while eliminating circular dependency
   - All voice modules now import successfully without cyclic imports
+- [x] **Resolve cyclic import in web interface**
+  - Broke cyclic import: web_server → voice_manager → voice_control → voice_command_handler
+  - Replaced direct import of switch_language with callback pattern
+  - Updated create_language_handler to accept language_switcher callback
+  - Used _voice_manager.switch_language as callback in create_app
+  - Maintains all web interface functionality while eliminating circular dependency
+  - All modules now import successfully without cyclic imports

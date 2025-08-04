@@ -120,6 +120,12 @@
   - **NEW**: Handles `language_XX` commands for runtime language switching
   - Routes commands to appropriate dispatcher or language manager
   - **FIXED**: Replaced direct import with callback pattern to break cyclic dependency
+- `web_server.py` - Flask application factory and routes
+  - **Refactored Architecture**: Modular route handlers extracted from monolithic `create_app()` function
+  - Handler factories with closures for dependency injection (`create_voice_handler`, `create_status_handler`, etc.)
+  - Clean separation of concerns for easier testing and maintenance
+  - **NEW**: `/language` POST endpoint for web-based language switching
+  - **FIXED**: Resolved cyclic import by using callback pattern for language switching
 - `voice_language_commands.py` - Multi-language command map registry
   - **NEW**: Dynamic loading of language-specific command maps
   - Supports 8 languages: EN, EO, DE, FR, ES, HI, PL, PT
