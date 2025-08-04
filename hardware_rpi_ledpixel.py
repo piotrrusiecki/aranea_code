@@ -71,8 +71,8 @@ class Freenove_RPI_WS281X:
         # Set the brightness of the LEDs
         logger.debug("Setting LED brightness to %d", brightness)
         self.led_brightness = brightness
-        # Use list comprehension to avoid loop variable shadowing
-        [self.set_led_rgb_data(position, self.led_original_color) for position in range(self.get_led_count())]
+        # Use any() to make the side effects intentional
+        any(self.set_led_rgb_data(position, self.led_original_color) for position in range(self.get_led_count()))
 
     def set_ledpixel(self, index, r, g, b):
         # Set the color of a specific LED
@@ -109,27 +109,27 @@ class Freenove_RPI_WS281X:
     def set_all_led_color_data(self, r, g, b):
         # Set the color data of all LEDs
         logger.debug("Setting all LEDs to RGB(%d, %d, %d)", r, g, b)
-        # Use list comprehension to avoid loop variable shadowing
-        [self.set_led_color_data(position, r, g, b) for position in range(self.get_led_count())]
+        # Use any() to make the side effects intentional
+        any(self.set_led_color_data(position, r, g, b) for position in range(self.get_led_count()))
 
     def set_all_led_rgb_data(self, color):
         # Set the RGB data of all LEDs
         logger.debug("Setting all LEDs to RGB%s", color)
-        # Use list comprehension to avoid loop variable shadowing
-        [self.set_led_rgb_data(position, color) for position in range(self.get_led_count())]
+        # Use any() to make the side effects intentional
+        any(self.set_led_rgb_data(position, color) for position in range(self.get_led_count()))
 
     def set_all_led_color(self, r, g, b):
         # Set the color of all LEDs and update the display
         logger.info("Setting all LEDs to RGB(%d, %d, %d) and updating display", r, g, b)
-        # Use list comprehension to avoid loop variable shadowing
-        [self.set_led_color_data(position, r, g, b) for position in range(self.get_led_count())]
+        # Use any() to make the side effects intentional
+        any(self.set_led_color_data(position, r, g, b) for position in range(self.get_led_count()))
         self.show()
 
     def set_all_led_rgb(self, color):
         # Set the RGB color of all LEDs and update the display
         logger.info("Setting all LEDs to RGB%s and updating display", color)
-        # Use list comprehension to avoid loop variable shadowing
-        [self.set_led_rgb_data(position, color) for position in range(self.get_led_count())]
+        # Use any() to make the side effects intentional
+        any(self.set_led_rgb_data(position, color) for position in range(self.get_led_count()))
         self.show()
 
     def show(self):
