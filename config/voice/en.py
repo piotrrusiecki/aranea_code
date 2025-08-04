@@ -1,10 +1,10 @@
 # en.py
 
 command_map = {
-    "step": "task_step_forward",
-    "step back": "task_step_back",
-    "step left": "task_step_left",
-    "step right": "task_step_right",
+    "go": "task_step_forward",
+    "go back": "task_step_back",
+    "go left": "task_step_left",
+    "go right": "task_step_right",
 
     "march": "routine_march_forward",
     "march left": "routine_march_left",
