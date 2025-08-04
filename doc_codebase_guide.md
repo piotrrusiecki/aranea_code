@@ -20,9 +20,10 @@
 
 ### **Entry Points**
 - `main.py` - Main application entry, threading setup, Flask integration
-  - Initializes all subsystems (server, voice, web, command dispatcher)
+  - Initializes all subsystems (server, voice, web, command dispatcher, LED commands)
   - Handles graceful shutdown and resource cleanup
   - Uses colored logging system
+  - **NEW**: LED feedback system initialization and server ready flash
 
 ### **Core Systems**
 
@@ -60,6 +61,12 @@
 - `actuator_servo.py` - 18-servo hexapod control via PCA9685 I2C controllers
 - `actuator_led.py` - RGB LED strip control with effects
 - `actuator_buzzer.py` - Simple buzzer control
+- `actuator_led_commands.py` - **NEW**: Centralized LED feedback system
+  - **Thread-safe LED patterns** with proper cleanup and error handling
+  - **Flexible parameterized methods** for different LED patterns
+  - **Server ready flash** (green), **language switching glow** (red), **language ready flash** (blue)
+  - **Performance optimized** with lazy logging formatting
+  - **Global instance** for easy access across modules
 
 #### **Robot Control & Movement**
 - `robot_control.py` - Main robot control system with condition monitoring thread
@@ -90,23 +97,29 @@
   - **Refactored Architecture**: Modular route handlers extracted from monolithic `create_app()` function
   - Handler factories with closures for dependency injection (`create_voice_handler`, `create_status_handler`, etc.)
   - Clean separation of concerns for easier testing and maintenance
+  - **NEW**: `/language` POST endpoint for web-based language switching
 - `web_interface/templates/` - Jinja2 HTML templates
 - `web_interface/static/` - CSS, JS, Bootstrap assets
-- Routes: `/` (main), `/command` (API), `/voice` (control), `/status`
+- Routes: `/` (main), `/command` (API), `/voice` (control), `/status`, `/language` (NEW)
+- `web_interface/templates/tabs/voice.html` - **NEW**: Language selection buttons with flag icons
+- `web_interface/static/js/main.js` - **NEW**: `switchLanguage()` function with visual feedback
 
 #### **Multi-Language Voice Control System** 🌍
 - `voice_manager.py` - Voice system lifecycle management with language switching
   - **Refactored Architecture**: Class-based `VoiceManager` with instance state management  
   - Eliminated global variables for thread-safe voice control lifecycle
   - **NEW**: Language switching capability with `switch_language()` method
+  - **NEW**: LED feedback integration for language switching (red glow → blue flash)
 - `voice_control.py` - Core voice recognition and command processing
   - **NEW**: Multi-language support with runtime language switching
   - Uses Vosk speech recognition with language-specific models
   - Language-specific command maps loaded dynamically
   - Fuzzy matching for voice command recognition
+  - **FIXED**: Resolved cyclic import with callback pattern for language switching
 - `voice_command_handler.py` - Command routing and language switching logic
   - **NEW**: Handles `language_XX` commands for runtime language switching
   - Routes commands to appropriate dispatcher or language manager
+  - **FIXED**: Replaced direct import with callback pattern to break cyclic dependency
 - `voice_language_commands.py` - Multi-language command map registry
   - **NEW**: Dynamic loading of language-specific command maps
   - Supports 8 languages: EN, EO, DE, FR, ES, HI, PL, PT
@@ -122,6 +135,7 @@
 - Examples: "spider german", "araignée français", "pająk po angielsku"
 - All languages support switching to all other languages
 - Commands are translated appropriately for each language
+- **NEW**: Web interface buttons for one-click language switching
 
 #### **Configuration & Constants**
 - `config/robot_config.py` - Centralized configuration
@@ -143,6 +157,7 @@
 - **Voice Thread**: Speech recognition (daemon)
 - **Control Thread**: Robot condition monitoring
 - **Routine Threads**: Movement execution (created on-demand)
+- **LED Pattern Threads**: LED feedback patterns (daemon, created on-demand)
 
 ### **Command Flow**
 1. **Input** → Web UI, Voice, or TCP
@@ -150,6 +165,14 @@
 3. **Execution** → Hardware commands via hardware_server.py
 4. **State Update** → RobotState flags updated
 5. **Feedback** → LEDs, buzzer, or response data
+
+### **LED Feedback System** (NEW)
+- **Server Ready**: Green flash (2x 0.3s) when server starts
+- **Language Switching**: Red glow (pulsing fade) during language switching
+- **Language Ready**: Blue flash (0.4s) when switching completes
+- **Thread-safe**: All patterns run in separate daemon threads
+- **Error Handling**: Patterns stop automatically on errors
+- **Performance**: Lazy logging formatting for optimal performance
 
 ### **Command Execution Patterns** (Critical Architecture)
 
@@ -191,6 +214,9 @@
 - ❌ Scattered state → ✅ Centralized RobotState
 - ❌ Monolithic server.py → ✅ Modular architecture
 - ❌ Global variables & state → ✅ Class-based architecture with proper encapsulation
+- ❌ No LED feedback → ✅ Centralized LED feedback system
+- ❌ Single language → ✅ Multi-language voice system (8 languages)
+- ❌ Cyclic imports → ✅ Clean dependency management
 
 ### **Performance Issues Identified**
 - **Movement slowdown**: Related to command queue retention and SendMove(0,0) in move.js

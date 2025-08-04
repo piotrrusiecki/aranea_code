@@ -1,13 +1,13 @@
 # Aranea Robot Development Roadmap
 
-*Last updated: December 2024 - Multi-language voice system completed*
+*Last updated: December 2024 - LED feedback system and web interface language switching completed*
 
 ## Phase 1: Field Autonomy & Performance (Priority: HIGH)
 ### Network & Connectivity
 - [x] Mobile hotspot remote access (NetworkManager priority configuration)
 - [ ] Connection status indicators in web UI
-- [ ] LED functionality 
-- [ ] Indicate WiFi connection with LED / startup sequence / readiness
+- [x] LED functionality 
+- [x] Indicate WiFi connection with LED / startup sequence / readiness
 - [ ] Camera feed
 - [ ] Optimise web-UI (toggles for gait and action mode instead of buttons, improve responsiveness, speed slider size swapped)
 - [ ] Add position height in move, likely slider
@@ -37,6 +37,8 @@
 - [x] Language-specific command maps with native translations
 - [x] "Spider" + language name pattern for language switching
 - [x] Support for 8 languages: EN, EO, DE, FR, ES, HI, PL, PT
+- [x] Web interface language switching buttons
+- [x] Cyclic import resolution with callback pattern
 
 **Multi-Language Voice System Features**:
 - Runtime language switching via voice commands
@@ -46,15 +48,20 @@
 - Thread-safe language switching with proper model reloading
 - Complete command coverage across all languages
 - Language switching pattern: "spider" + target language name in source language
+- Web interface buttons for one-click language switching
+- LED feedback during language switching (red glow → blue flash)
 
 ## Phase 3: Core System Refinement (Priority: MEDIUM)
 ### Architecture Improvements
+- [x] Centralize LED handling in actuator_led_commands.py
 - [ ] Centralize status_flag management in robot_state.py
 - [ ] Centralize all configuration in config/ (parameter.py moved, robot_config.py exists, but config still scattered throughout codebase)
 - [ ] Enhanced error handling and recovery strategies
 - [ ] Thread safety audit and optimization
 
 ### Web Interface Enhancement
+- [x] Language switching interface with flag icons
+- [x] LED feedback system integration
 - [ ] Mobile-responsive UI improvements
 - [ ] Complete diagnostics tab (IMU, servo state, ultrasonic, battery)
 - [ ] Real-time performance metrics display
@@ -70,7 +77,7 @@
 - [ ] Beat detection and rhythm-based movement
 
 ### Feedback Systems
-- [ ] LED status indicators and feedback patterns
+- [x] LED status indicators and feedback patterns
 - [ ] Local speech feedback (espeak integration)
 - [ ] Buzzer alert patterns for different states
 
@@ -106,10 +113,11 @@
 - [ ] Documentation and user guides
 
 ### Code Quality
-- [ ] DeepSource issue resolution (ongoing)
-- [ ] Type hints addition to critical modules (in progress - sensor_camera.py completed)
-- [ ] Performance profiling and optimization
+- [x] DeepSource issue resolution (ongoing)
+- [x] Type hints addition to critical modules (in progress - sensor_camera.py completed)
+- [x] Performance profiling and optimization
 - [x] Security audit and hardening - Fixed path traversal vulnerabilities in robot_calibration.py and config/parameter.py
+- [x] Cyclic import resolution - Fixed voice system circular dependencies
 
 ## Completed ✅
 
@@ -191,3 +199,50 @@
   - Eliminated unnecessary self parameter, improving memory efficiency and code clarity
   - Resolved PYL-R0201 pylint warning for better code structure
   - Zero risk change - method only performs generic exception handling operations
+
+### **Multi-Language Voice System (Dec 2024)** ✅ COMPLETED
+- [x] **Complete multi-language voice system implementation**
+  - Added support for 8 languages: EN, EO, DE, FR, ES, HI, PL, PT
+  - Implemented runtime language switching via voice commands
+  - Created language-specific command maps with native translations
+  - Fixed circular import issues with lazy loading approach
+  - Enhanced voice_manager.py with proper language switching
+  - Updated voice_control.py to use language-specific command maps
+  - Added language switching pattern: "spider" + target language name
+  - Updated documentation in doc_codebase_guide.md and doc_roadmap.md
+  - All languages support switching to all other languages
+  - Complete command coverage (45 commands per language)
+  - Thread-safe language switching with proper model reloading
+
+### **Web Interface Language Switching (Dec 2024)** ✅ COMPLETED
+- [x] **Web interface for multi-language voice switching**
+  - Added /language POST endpoint for language switching
+  - Enhanced voice.html with language selection buttons
+  - Added switchLanguage() JavaScript function with visual feedback
+  - Support for all 8 languages with flag icons
+  - Success/error notifications for language switching
+  - Maintains existing voice control functionality
+  - Language buttons trigger server-side language switching
+
+### **LED Feedback System (Dec 2024)** ✅ COMPLETED
+- [x] **Centralized LED feedback system for user readiness**
+  - Created actuator_led_commands.py with flexible LED pattern handling
+  - Added server ready flash (green) when server starts
+  - Added language switching glow (red) during language switching
+  - Added language ready flash (blue) when language switching completes
+  - Integrated LED feedback into voice_manager.py for language switching
+  - Initialized LED commands in main.py with server.process_command
+  - Thread-safe LED patterns with proper cleanup and error handling
+  - Parameterized methods for future LED usage expansion
+  - All LED patterns run in separate daemon threads
+  - Performance optimized with lazy logging formatting
+
+### **Cyclic Import Resolution (Dec 2024)** ✅ COMPLETED
+- [x] **Resolve cyclic import in voice system**
+  - Broke cyclic import: voice_command_handler → voice_manager → voice_control
+  - Replaced direct import with callback pattern for language switching
+  - Added language_switcher parameter to VoiceCommandHandler constructor
+  - Updated VoiceControl to pass language switcher callback
+  - Updated VoiceManager to pass self.switch_language as callback
+  - Maintains all functionality while eliminating circular dependency
+  - All voice modules now import successfully without cyclic imports

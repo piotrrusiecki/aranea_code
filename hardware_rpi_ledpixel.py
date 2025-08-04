@@ -4,7 +4,7 @@ from rpi_ws281x import Adafruit_NeoPixel, Color
 from typing import List, Tuple, Optional
 
 # Configure LED logger
-logger = logging.getLogger('LED')
+logger = logging.getLogger('led.hardware')
 
 class Freenove_RPI_WS281X:
     def __init__(self, led_count=8, bright=255, sequence="RGB"):

@@ -3,7 +3,7 @@ import spidev
 import numpy
 import logging
 
-logger = logging.getLogger("led")
+logger = logging.getLogger("led.hw.spi")
 
 # Define the Freenove_SPI_LedPixel class
 class Freenove_SPI_LedPixel:
