@@ -1,7 +1,7 @@
 import os
 import logging
 from flask import Flask, request, jsonify, render_template, current_app
-from voice_manager import start_voice, stop_voice
+from voice_manager import start_voice, stop_voice, switch_language
 from command_dispatcher_logic import dispatch_command, init_command_dispatcher
 
 logger = logging.getLogger("web")
@@ -65,6 +65,24 @@ def create_voice_handler(server_instance, robot_state):
             logger.error("Voice control error [%s]: %s", action, e)
             return jsonify({"status": "error", "reason": "Voice control failed"}), 500
     return toggle_voice
+
+
+def create_language_handler():
+    """Create language switching handler."""
+    def switch_language_web():
+        lang_code = request.json.get("language")
+        logger.info("Language switch requested via web: %s", lang_code)
+        try:
+            if lang_code:
+                switch_language(lang_code)
+                return jsonify({"status": "switched", "language": lang_code})
+            else:
+                logger.warning("No language code provided")
+                return jsonify({"status": "error", "reason": "No language code provided"}), 400
+        except Exception as e:
+            logger.error("Language switch error [%s]: %s", lang_code, e)
+            return jsonify({"status": "error", "reason": "Language switch failed"}), 500
+    return switch_language_web
 
 
 def create_status_handler(server_instance, robot_state):
@@ -224,6 +242,7 @@ def create_app(server_instance, robot_state):
     app.add_url_rule("/", "index", create_index_handler(default_angles, used_channels))
     app.add_url_rule("/command", "send_command", send_command, methods=["POST"])
     app.add_url_rule("/voice", "toggle_voice", create_voice_handler(server_instance, robot_state), methods=["POST"])
+    app.add_url_rule("/language", "switch_language", create_language_handler(), methods=["POST"])
     app.add_url_rule("/status", "status", create_status_handler(server_instance, robot_state))
     app.add_url_rule("/imu", "imu_status", create_imu_handler(server_instance))
     app.add_url_rule("/routine", "trigger_routine", trigger_routine, methods=["POST"])

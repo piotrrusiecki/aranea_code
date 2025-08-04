@@ -246,6 +246,63 @@ function toggleVoice(action) {
   .catch(err => console.error("Voice control toggle failed:", err));
 }
 
+function switchLanguage(langCode) {
+  fetch('/language', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ language: langCode })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.status === "switched") {
+      console.log("Language switched to:", data.language);
+      // Show a brief success message
+      showLanguageSwitchMessage(data.language, true);
+    } else {
+      console.error("Language switch failed:", data.reason);
+      showLanguageSwitchMessage(data.language || langCode, false);
+    }
+  })
+  .catch(err => {
+    console.error("Language switch failed:", err);
+    showLanguageSwitchMessage(langCode, false);
+  });
+}
+
+function showLanguageSwitchMessage(langCode, success) {
+  // Create a temporary message element
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `alert alert-${success ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+  messageDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 250px;';
+  
+  const languageNames = {
+    'en': 'English',
+    'de': 'Deutsch', 
+    'fr': 'Français',
+    'es': 'Español',
+    'pl': 'Polski',
+    'pt': 'Português',
+    'hi': 'हिंदी',
+    'eo': 'Esperanto'
+  };
+  
+  const langName = languageNames[langCode] || langCode.toUpperCase();
+  messageDiv.innerHTML = `
+    <strong>${success ? '✓' : '✗'}</strong> 
+    ${success ? 'Language switched to' : 'Failed to switch to'} <strong>${langName}</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  
+  document.body.appendChild(messageDiv);
+  
+  // Auto-remove after 3 seconds
+  setTimeout(() => {
+    if (messageDiv.parentNode) {
+      messageDiv.remove();
+    }
+  }, 3000);
+}
+
 function computeAngle(x, y) {
   if (actionMode === 0 || (x === 0 && y === 0)) return 0;
   const radians = Math.atan2(x, y);  // x then y: forward is y+
