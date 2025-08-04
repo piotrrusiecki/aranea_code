@@ -102,6 +102,5 @@ class PCA9685:
         self.bus.close()
 
 
-if __name__=='__main__':
-    pass
+
 
