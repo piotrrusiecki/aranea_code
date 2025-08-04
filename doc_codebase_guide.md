@@ -76,6 +76,8 @@
 - `robot_pose.py` - Body posture and balance calculations
 - `robot_routines.py` - High-level movement routines (march, run, patrol)
 - `robot_calibration.py` - Servo calibration utilities
+  - **Security**: Added filename validation to prevent path traversal attacks
+  - Validates filenames before file operations to ensure safe file access
 
 #### **State Management**
 - `robot_state.py` - Thread-safe centralized state management
@@ -109,6 +111,7 @@
 - `config/parameter.py` - Parameter management utility
   - Hardware detection and validation
   - Configuration file management
+  - **Security**: Added file path validation to prevent path traversal attacks
 - `constants_commands.py` - Command constants and definitions
 - `params.json` - Runtime parameters (PCB version, Pi version)
 

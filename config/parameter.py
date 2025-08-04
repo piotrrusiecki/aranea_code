@@ -12,67 +12,102 @@ class ParameterManager:
         if not self.file_exists() or not self.validate_params():
             self.deal_with_param()
 
+    def _validate_file_path(self, file_path):
+        """Validate file path to prevent path traversal attacks."""
+        if not file_path or not isinstance(file_path, str):
+            raise ValueError("File path must be a non-empty string")
+        
+        # Normalize the path and check for dangerous patterns
+        normalized_path = os.path.normpath(file_path)
+        
+        # Check for path traversal attempts
+        if '..' in normalized_path:
+            raise ValueError("File path cannot contain '..'")
+        
+        # Ensure the path is within the current directory
+        current_dir = os.getcwd()
+        absolute_path = os.path.abspath(normalized_path)
+        if not absolute_path.startswith(current_dir):
+            raise ValueError("File path must be within the current directory")
+        
+        return normalized_path
+
     def file_exists(self, file_path=None):
         # Check if the specified file exists
         file_path = file_path or self.file_path
-        return os.path.exists(file_path)
+        try:
+            validated_path = self._validate_file_path(file_path)
+            return os.path.exists(validated_path)
+        except ValueError:
+            return False
 
     def validate_params(self, file_path=None):
         # Validate that the parameter file exists and contains valid parameters
         file_path = file_path or self.file_path
-        if not self.file_exists(file_path):
-            return False
         try:
-            with open(file_path, 'r') as file:
+            validated_path = self._validate_file_path(file_path)
+            if not os.path.exists(validated_path):
+                return False
+            with open(validated_path, 'r') as file:
                 params = json.load(file)
-                # Check if required parameters are present and valid
-                return ('Pcb_Version' in params and params['Pcb_Version'] in [1, 2]) and \
-                       ('Pi_Version' in params and params['Pi_Version'] in [1, 2])
-        except json.JSONDecodeError:
-            print("Error decoding JSON file.")
-            return False
-        except Exception as e:
-            print(f"Error reading file: {e}")
+                return isinstance(params, dict) and 'Pcb_Version' in params and 'Pi_Version' in params
+        except (ValueError, json.JSONDecodeError):
             return False
 
     def get_param(self, param_name, file_path=None):
         # Get the value of a specified parameter from the parameter file
         file_path = file_path or self.file_path
-        if self.validate_params(file_path):
-            with open(file_path, 'r') as file:
-                params = json.load(file)
-                return params.get(param_name)
+        try:
+            validated_path = self._validate_file_path(file_path)
+            if self.validate_params(validated_path):
+                with open(validated_path, 'r') as file:
+                    params = json.load(file)
+                    return params.get(param_name)
+        except ValueError:
+            pass
         return None
 
     def set_param(self, param_name, value, file_path=None):
         # Set the value of a specified parameter in the parameter file
         file_path = file_path or self.file_path
-        params = {}
-        if self.file_exists(file_path):
-            with open(file_path, 'r') as file:
-                params = json.load(file)
-        params[param_name] = value
-        with open(file_path, 'w') as file:
-            json.dump(params, file, indent=4)
+        try:
+            validated_path = self._validate_file_path(file_path)
+            params = {}
+            if self.file_exists(validated_path):
+                with open(validated_path, 'r') as file:
+                    params = json.load(file)
+            params[param_name] = value
+            with open(validated_path, 'w') as file:
+                json.dump(params, file, indent=4)
+        except ValueError as e:
+            print(f"Invalid file path: {e}")
 
     def delete_param_file(self, file_path=None):
         # Delete the specified parameter file
         file_path = file_path or self.file_path
-        if self.file_exists(file_path):
-            os.remove(file_path)
-            print(f"Deleted {file_path}")
-        else:
-            print(f"File {file_path} does not exist")
+        try:
+            validated_path = self._validate_file_path(file_path)
+            if self.file_exists(validated_path):
+                os.remove(validated_path)
+                print(f"Deleted {validated_path}")
+            else:
+                print(f"File {validated_path} does not exist")
+        except ValueError as e:
+            print(f"Invalid file path: {e}")
 
     def create_param_file(self, file_path=None):
         # Create a parameter file and set default parameters
         file_path = file_path or self.file_path
-        default_params = {
-            'Pcb_Version': 2,
-            'Pi_Version': ParameterManager.get_raspberry_pi_version()
-        }
-        with open(file_path, 'w') as file:
-            json.dump(default_params, file, indent=4)
+        try:
+            validated_path = self._validate_file_path(file_path)
+            default_params = {
+                'Pcb_Version': 2,
+                'Pi_Version': ParameterManager.get_raspberry_pi_version()
+            }
+            with open(validated_path, 'w') as file:
+                json.dump(default_params, file, indent=4)
+        except ValueError as e:
+            print(f"Invalid file path: {e}")
 
     @staticmethod
     def get_raspberry_pi_version():
