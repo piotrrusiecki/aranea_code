@@ -52,8 +52,8 @@ class Freenove_RPI_WS281X:
     def set_led_brightness(self, brightness):
         # Set the brightness of the LEDs
         self.led_brightness = brightness
-        for pixel_index in range(self.get_led_count()):
-            self.set_led_rgb_data(pixel_index, self.led_original_color)
+        for idx in range(self.get_led_count()):
+            self.set_led_rgb_data(idx, self.led_original_color)
 
     def set_ledpixel(self, index, r, g, b):
         # Set the color of a specific LED
@@ -87,30 +87,30 @@ class Freenove_RPI_WS281X:
 
     def set_all_led_color_data(self, r, g, b):
         # Set the color data of all LEDs
-        for pixel_index in range(self.get_led_count()):
-            self.set_led_color_data(pixel_index, r, g, b)
+        for idx in range(self.get_led_count()):
+            self.set_led_color_data(idx, r, g, b)
 
     def set_all_led_rgb_data(self, color):
         # Set the RGB data of all LEDs
-        for pixel_index in range(self.get_led_count()):
-            self.set_led_rgb_data(pixel_index, color)
+        for idx in range(self.get_led_count()):
+            self.set_led_rgb_data(idx, color)
 
     def set_all_led_color(self, r, g, b):
         # Set the color of all LEDs and update the display
-        for pixel_index in range(self.get_led_count()):
-            self.set_led_color_data(pixel_index, r, g, b)
+        for idx in range(self.get_led_count()):
+            self.set_led_color_data(idx, r, g, b)
         self.show()
 
     def set_all_led_rgb(self, color):
         # Set the RGB color of all LEDs and update the display
-        for pixel_index in range(self.get_led_count()):
-            self.set_led_rgb_data(pixel_index, color)
+        for idx in range(self.get_led_count()):
+            self.set_led_rgb_data(idx, color)
         self.show()
 
     def show(self):
         # Update the LED strip with the current color data
-        for pixel_index in range(self.get_led_count()):
-            self.strip.setPixelColor(pixel_index, Color(self.led_color[pixel_index * 3], self.led_color[pixel_index * 3 + 1], self.led_color[pixel_index * 3 + 2]))
+        for idx in range(self.get_led_count()):
+            self.strip.setPixelColor(idx, Color(self.led_color[idx * 3], self.led_color[idx * 3 + 1], self.led_color[idx * 3 + 2]))
         self.strip.show()
 
     @staticmethod
@@ -183,8 +183,8 @@ if __name__ == '__main__':
             led.set_led_brightness(20)
             while True:
                 for j in range(255):
-                    for pixel_index in range(led.led_count):
-                        led.set_led_rgb_data(pixel_index, Freenove_RPI_WS281X.wheel((round(pixel_index * 255 / led.led_count) + j) % 256))
+                    for idx in range(led.led_count):
+                        led.set_led_rgb_data(idx, Freenove_RPI_WS281X.wheel((round(idx * 255 / led.led_count) + j) % 256))
                     led.show()
                     time.sleep(0.002)
         else:
