@@ -50,7 +50,7 @@ python main.py
 
 ### Access the Web Interface
 1. Connect to the robot's WiFi network
-2. Open your browser to `http://[robot-ip]:5000`
+2. Open your browser to `http://[robot-ip]`
 3. Use the web interface to control the robot
 
 ## 🎮 Control Methods
