@@ -41,7 +41,7 @@ logging.getLogger('werkzeug').setLevel(logging.WARNING)
 class FlaskServerThread(threading.Thread):
     def __init__(self, app):
         super().__init__(daemon=True)
-        self.server = make_server('0.0.0.0', 80, app)
+        self.server = make_server('0.0.0.0', 80, app)  # skipcq: BAN-B104
         self.ctx = app.app_context()
         self.ctx.push()
     def run(self):
