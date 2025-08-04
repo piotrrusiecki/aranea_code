@@ -9,7 +9,10 @@ class Buzzer:
 
     def set_state(self, state: bool) -> None:
         """Set the state of the buzzer."""
-        self.buzzer_pin.on() if state else self.buzzer_pin.off() # Turn on or off the buzzer based on the state
+        if state:
+            self.buzzer_pin.on()
+        else:
+            self.buzzer_pin.off()
 
     def close(self) -> None:
         """Close the buzzer pin."""
