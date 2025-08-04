@@ -35,24 +35,6 @@
 - Python 3.7+
 - Network connection for web interface
 
-### Installation
-```bash
-# Clone the repository
-git clone https://github.com/piotrrusiecki/aranea_code.git
-cd aranea_code
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the robot
-python main.py
-```
-
-### Access the Web Interface
-1. Connect to the robot's WiFi network
-2. Open your browser to `http://[robot-ip]`
-3. Use the web interface to control the robot
-
 ## 🎮 Control Methods
 
 ### Web Interface
