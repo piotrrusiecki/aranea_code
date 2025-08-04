@@ -4,7 +4,7 @@ from rpi_ws281x import Adafruit_NeoPixel, Color
 from typing import List, Tuple, Optional
 
 # Configure LED logger
-logger = logging.getLogger('led.hardware')
+logger = logging.getLogger('led.hw.rpi')
 
 class Freenove_RPI_WS281X:
     def __init__(self, led_count=8, bright=255, sequence="RGB"):
@@ -76,7 +76,6 @@ class Freenove_RPI_WS281X:
 
     def set_ledpixel(self, index, r, g, b):
         # Set the color of a specific LED
-        logger.debug("Setting LED %d to RGB(%d, %d, %d)", index, r, g, b)
         p = [0, 0, 0]
         p[self.led_red_offset] = round(r * self.led_brightness / 255)
         p[self.led_green_offset] = round(g * self.led_brightness / 255)
@@ -120,21 +119,18 @@ class Freenove_RPI_WS281X:
 
     def set_all_led_color(self, r, g, b):
         # Set the color of all LEDs and update the display
-        logger.info("Setting all LEDs to RGB(%d, %d, %d) and updating display", r, g, b)
         # Use any() to make the side effects intentional
         any(self.set_led_color_data(position, r, g, b) for position in range(self.get_led_count()))
         self.show()
 
     def set_all_led_rgb(self, color):
         # Set the RGB color of all LEDs and update the display
-        logger.info("Setting all LEDs to RGB%s and updating display", color)
         # Use any() to make the side effects intentional
         any(self.set_led_rgb_data(position, color) for position in range(self.get_led_count()))
         self.show()
 
     def show(self):
         # Update the LED strip with the current color data
-        logger.debug("Updating LED strip display")
         # Use enumerate to avoid loop variable shadowing
         for position, _ in enumerate(range(self.get_led_count())):
             self.strip.setPixelColor(position, Color(

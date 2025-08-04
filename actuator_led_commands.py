@@ -10,7 +10,7 @@ import threading
 import logging
 from typing import Optional, Callable
 
-logger = logging.getLogger("led")
+logger = logging.getLogger("led.commands")
 
 class LEDCommands:
     """Centralized LED command handling with flexible patterns."""
@@ -45,12 +45,10 @@ class LEDCommands:
         """
         self._stop_current_pattern()
         self._send_led_command(r, g, b)
-        logger.debug("LED set to color [%d,%d,%d]", r, g, b)
     
     def turn_off(self):
         """Turn off LED."""
         self.set_color(0, 0, 0)
-        logger.debug("LED turned off")
     
     def flash_color(self, r: int, g: int, b: int, duration: float = 0.5, times: int = 1):
         """
@@ -76,7 +74,6 @@ class LEDCommands:
                     time.sleep(duration)
         
         self._run_pattern(flash_pattern, "flash_color(%d,%d,%d)" % (r, g, b))
-        logger.debug("LED flash pattern: [%d,%d,%d] for %.1fs, %d times", r, g, b, duration, times)
     
     def glow_color(self, r: int, g: int, b: int, fade_duration: float = 1.0):
         """
@@ -116,12 +113,10 @@ class LEDCommands:
                     time.sleep(fade_duration / 50)  # 50 steps per cycle
         
         self._run_pattern(glow_pattern, "glow_color(%d,%d,%d)" % (r, g, b))
-        logger.debug("LED glow pattern started: [%d,%d,%d] with %.1fs fade", r, g, b, fade_duration)
     
     def stop_pattern(self):
         """Stop any currently running LED pattern."""
         self._stop_current_pattern()
-        logger.debug("LED pattern stopped")
     
     def _run_pattern(self, pattern_func: Callable, pattern_name: str):
         """Run a LED pattern in a separate thread."""
@@ -130,7 +125,6 @@ class LEDCommands:
         self._stop_pattern = False
         self._pattern_thread = threading.Thread(target=pattern_func, daemon=True)
         self._pattern_thread.start()
-        logger.debug("Started LED pattern: %s", pattern_name)
     
     def _stop_current_pattern(self):
         """Stop the currently running LED pattern."""
