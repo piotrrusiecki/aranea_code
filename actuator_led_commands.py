@@ -73,7 +73,7 @@ class LEDCommands:
                 if _ < times - 1:  # Don't sleep after last flash
                     time.sleep(duration)
         
-        self._run_pattern(flash_pattern, "flash_color(%d,%d,%d)" % (r, g, b))
+        self._run_pattern(flash_pattern, f"flash_color({r},{g},{b})")
     
     def glow_color(self, r: int, g: int, b: int, fade_duration: float = 1.0):
         """
@@ -112,7 +112,7 @@ class LEDCommands:
                     )
                     time.sleep(fade_duration / 50)  # 50 steps per cycle
         
-        self._run_pattern(glow_pattern, "glow_color(%d,%d,%d)" % (r, g, b))
+        self._run_pattern(glow_pattern, f"glow_color({r},{g},{b})")
     
     def stop_pattern(self):
         """Stop any currently running LED pattern."""
