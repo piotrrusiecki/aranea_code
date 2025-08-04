@@ -157,7 +157,8 @@ class IMU:
         self.yaw_angle = current_yaw
         return self.pitch_angle, self.roll_angle, self.yaw_angle
 
-    def handle_exception(self, exception):
+    @staticmethod
+    def handle_exception(exception):
         print(exception)
         os.system("i2cdetect -y 1")
         raise exception
@@ -171,4 +172,4 @@ if __name__ == '__main__':
             roll_angle, pitch_angle, yaw_angle = imu_sensor.update_imu_state()
             print(roll_angle, pitch_angle, yaw_angle)
         except Exception as e:
-            imu_sensor.handle_exception(e)
+            IMU.handle_exception(e)

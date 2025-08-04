@@ -166,3 +166,9 @@
   - Result: Zero PYL-W0201 warnings, improved IDE support, enhanced type checker compliance
 - [x] **Logging format optimization** - Converted eager string formatting to lazy % formatting in sensor modules
 - [x] **Type annotation improvements** - Added Optional types and fixed method signature compatibility issues
+- [x] **Static method optimization** - Converted handle_exception method to @staticmethod in sensor_imu.py
+  - Added @staticmethod decorator to handle_exception method that doesn't use instance state
+  - Updated call site from instance method to class method call (IMU.handle_exception)
+  - Eliminated unnecessary self parameter, improving memory efficiency and code clarity
+  - Resolved PYL-R0201 pylint warning for better code structure
+  - Zero risk change - method only performs generic exception handling operations
