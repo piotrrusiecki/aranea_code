@@ -11,6 +11,7 @@ from web_server import create_app
 from werkzeug.serving import make_server
 from robot_state import RobotState
 from config import robot_config
+from actuator_led_commands import init_led_commands, get_led_commands, server_ready_flash
 
 # --- Logging setup with color by logger name ---
 class LoggerColorFormatter(logging.Formatter):
@@ -66,6 +67,9 @@ if __name__ == '__main__':
         server.start_server()
         server.is_tcp_active = True
 
+        # Initialize LED commands
+        init_led_commands(server.process_command)
+
         threading.Thread(target=server.transmit_video, args=(shutdown_event,), daemon=True).start()
         threading.Thread(target=server.receive_commands, args=(shutdown_event,), daemon=True).start()
 
@@ -75,6 +79,11 @@ if __name__ == '__main__':
         flask_app = create_app(server, robot_state)
         web_thread = FlaskServerThread(flask_app)
         web_thread.start()
+
+        # Server ready flash
+        led_commands = get_led_commands()
+        if led_commands:
+            server_ready_flash(led_commands)
 
         logger.info("Server started. Press Ctrl+C to stop.")
         shutdown_event.wait()
