@@ -111,15 +111,15 @@ aranea_code/
 └── tests/                # Test modules
 ```
 
-## 🎯 Major Improvements Over Original
+## 🎯 Enhancements Over Original
 
-### **Architecture Transformation**
-- ❌ PyQt5 desktop GUI → ✅ Web interface
-- ❌ No voice control → ✅ 8-language voice recognition
-- ❌ Direct command parsing → ✅ Command dispatcher pattern
-- ❌ Print statements → ✅ Comprehensive logging
-- ❌ Scattered state → ✅ Centralized RobotState
-- ❌ Monolithic server.py → ✅ Modular architecture
+### **Architecture Evolution**
+- **Original**: PyQt5 desktop GUI → **Enhanced**: Web interface
+- **Original**: No voice control → **Enhanced**: 8-language voice recognition
+- **Original**: Direct command parsing → **Enhanced**: Command dispatcher pattern
+- **Original**: Print statements → **Enhanced**: Comprehensive logging
+- **Original**: Scattered state → **Enhanced**: Centralized RobotState
+- **Original**: Monolithic server.py → **Enhanced**: Modular architecture
 
 ### **Enhanced Features**
 - **Multi-Language Voice**: Runtime language switching with native translations
@@ -135,12 +135,20 @@ aranea_code/
 - **[Installation Guide](doc_install.md)**: Detailed setup instructions
 - **[WiFi Configuration](doc_wifi.md)**: Network setup for remote access
 
-## 🤝 Contributing
+## 🤝 Acknowledgments
 
-This project has evolved significantly from the original Freenove kit. Key improvements include:
+This project builds upon the excellent **Freenove Hexapod Robot Kit**. We're grateful to Freenove for:
+
+- **Open Source Code**: Providing their complete robot control system as open source
+- **Fantastic Support**: Sending replacement STL files and parts when needed
+- **Quality Hardware**: Well-designed hexapod platform with reliable components
+- **Educational Focus**: Making robotics accessible to enthusiasts and learners
+
+### Key Enhancements Made
+While maintaining compatibility with the original Freenove system, we've added:
 
 - **Better Threading**: Improved thread safety and resource management
-- **Simplified Structure**: Removed unnecessary files and server GUI
+- **Simplified Structure**: Streamlined codebase while preserving core functionality
 - **Modern Architecture**: Command dispatcher pattern and hardware abstraction
 - **Enhanced Features**: Voice control, web interface, LED feedback
 
@@ -163,4 +171,4 @@ For issues, questions, or contributions:
 
 ---
 
-**Built with ❤️ on Raspberry Pi** | **Forked from Freenove Hexapod Kit** | **Enhanced with modern web and voice technologies**
+**Built with ❤️ on Raspberry Pi** | **Based on the excellent Freenove Hexapod Kit** | **Enhanced with modern web and voice technologies**
