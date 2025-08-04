@@ -157,6 +157,11 @@
   - Added proper type hints with Optional[Type] for socket-related attributes  
   - Enhanced type safety with defensive None checks in socket operations
   - Fixed return type annotations (StreamingOutput.write, ADC.read_battery_voltage)
+- [x] **Anti-pattern resolution** - Fixed PTC-W0052 naming conflict in sensor_camera.py
+  - Renamed `self.camera` attribute to `self._picamera` to avoid class name duplication
+  - Improved code readability by making the underlying Picamera2 device relationship explicit
+  - Zero risk change - attribute only used internally within Camera class
+  - Enhanced code clarity and eliminated DeepSource anti-pattern warning
   - Maintained existing hasattr() defensive patterns while adding proper initialization
   - Result: Zero PYL-W0201 warnings, improved IDE support, enhanced type checker compliance
 - [x] **Logging format optimization** - Converted eager string formatting to lazy % formatting in sensor modules

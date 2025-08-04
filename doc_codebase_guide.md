@@ -51,6 +51,7 @@
 #### **Sensors**
 - `sensor_camera.py` - Pi camera streaming interface with video recording and frame capture
   - **Code Quality**: Optimized logging with lazy % formatting and proper Optional type annotations
+  - **Fixed**: Resolved PTC-W0052 anti-pattern by renaming `self.camera` to `self._picamera` for clarity
 - `sensor_ultrasonic.py` - Distance sensor interface
 - `sensor_adc.py` - Battery voltage monitoring
 - `sensor_imu.py` - Inertial measurement unit with Kalman filtering

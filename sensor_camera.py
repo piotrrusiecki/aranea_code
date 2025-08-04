@@ -29,30 +29,30 @@ class Camera:
     def __init__(self, preview_size: tuple = (640, 480), hflip: bool = False, vflip: bool = False, stream_size: tuple = (400, 300)):
         """Initialize the Camera class."""
         try:
-            self.camera = Picamera2()  # Initialize the Picamera2 object
+            self._picamera = Picamera2()  # Initialize the Picamera2 object
         except IndexError:
             logger.error("No available camera device found")
             return
 
         self.transform = Transform(hflip=1 if hflip else 0, vflip=1 if vflip else 0)  # Set the transformation for flipping the image
-        preview_config = self.camera.create_preview_configuration(main={"size": preview_size}, transform=self.transform)  # Create the preview configuration
-        self.camera.configure(preview_config)  # Configure the camera with the preview settings
+        preview_config = self._picamera.create_preview_configuration(main={"size": preview_size}, transform=self.transform)  # Create the preview configuration
+        self._picamera.configure(preview_config)  # Configure the camera with the preview settings
         
         # Configure video stream
         self.stream_size = stream_size  # Set the size of the video stream
-        self.stream_config = self.camera.create_video_configuration(main={"size": stream_size}, transform=self.transform)  # Create the video configuration
+        self.stream_config = self._picamera.create_video_configuration(main={"size": stream_size}, transform=self.transform)  # Create the video configuration
         self.streaming_output = StreamingOutput()  # Initialize the streaming output object
         self.streaming = False  # Initialize the streaming flag
 
     def start_image(self) -> None:
         """Start the camera preview and capture."""
-        self.camera.start_preview(Preview.QTGL)  # Start the camera preview using the QTGL backend
-        self.camera.start()                      # Start the camera
+        self._picamera.start_preview(Preview.QTGL)  # Start the camera preview using the QTGL backend
+        self._picamera.start()                      # Start the camera
 
     def save_image(self, filename: str) -> Optional[dict]:
         """Capture and save an image to the specified file."""
         try:
-            metadata = self.camera.capture_file(filename)  # Capture an image and save it to the specified file
+            metadata = self._picamera.capture_file(filename)  # Capture an image and save it to the specified file
             logger.info("Image captured and saved to %s", filename)
             return metadata                              # Return the metadata of the captured image
         except Exception as e:
@@ -62,17 +62,17 @@ class Camera:
     def start_stream(self, filename: Optional[str] = None) -> None:
         """Start the video stream or recording."""
         if not self.streaming:
-            if self.camera.started:
-                self.camera.stop()                         # Stop the camera if it is currently running
+            if self._picamera.started:
+                self._picamera.stop()                         # Stop the camera if it is currently running
             
-            self.camera.configure(self.stream_config)      # Configure the camera with the video stream settings
+            self._picamera.configure(self.stream_config)      # Configure the camera with the video stream settings
             if filename:
                 encoder = H264Encoder()                    # Use H264 encoder for video recording
                 output = FileOutput(filename)              # Set the output file for the recorded video
             else:
                 encoder = JpegEncoder()                    # Use Jpeg encoder for streaming
                 output = FileOutput(self.streaming_output) # Set the streaming output object
-            self.camera.start_recording(encoder, output)   # Start recording or streaming
+            self._picamera.start_recording(encoder, output)   # Start recording or streaming
             self.streaming = True                          # Set the streaming flag to True
             if filename:
                 logger.info("Started recording video to %s", filename)
@@ -83,7 +83,7 @@ class Camera:
         """Stop the video stream or recording."""
         if self.streaming:
             try:
-                self.camera.stop_recording()               # Stop the recording or streaming
+                self._picamera.stop_recording()               # Stop the recording or streaming
                 self.streaming = False                     # Set the streaming flag to False
                 logger.info("Camera stream stopped")
             except Exception as e:
@@ -105,7 +105,7 @@ class Camera:
         """Close the camera."""
         if self.streaming:
             self.stop_stream()                             # Stop the streaming if it is active
-        self.camera.close()                                # Close the camera
+        self._picamera.close()                                # Close the camera
 
 if __name__ == '__main__':
     # Set up basic logging for standalone execution
