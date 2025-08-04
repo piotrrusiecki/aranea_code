@@ -1,8 +1,14 @@
 # config/robot_config.py
-VOICE_LANG = "eo"  # default language code, e.g. "eo", "en", etc.
+VOICE_LANG = "en"  # default language code, e.g. "eo", "en", etc.
 VOICE_MODELS = {
     "eo": "voice_models/vosk-model-small-eo-0.22",
     "en": "voice_models/vosk-model-small-en-us-0.15",
+    "de": "voice_models/vosk-model-small-de-0.15",
+    "fr": "voice_models/vosk-model-small-fr-0.22",
+    "es": "voice_models/vosk-model-small-es-0.42",
+    "hi": "voice_models/vosk-model-small-hi-0.22",
+    "pl": "voice_models/vosk-model-small-pl-0.22",
+    "pt": "voice_models/vosk-model-small-pt-0.3"
 }
 
 LOGGING_LEVEL = "DEBUG"

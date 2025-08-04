@@ -5,9 +5,9 @@ import sounddevice as sd
 from vosk import Model, KaldiRecognizer
 import logging
 
-from config.voice import command_map
 from config.robot_config import VOICE_LANG, VOICE_MODELS, VOICE_SAMPLERATE, VOICE_BLOCKSIZE, VOICE_INPUT_DEVICE
 from voice_command_handler import VoiceCommandHandler
+from voice_language_commands import language_command_maps
 
 logger = logging.getLogger("voice")
 
@@ -31,6 +31,19 @@ class VoiceControl:
         logger.info("Loading Vosk model for '%s' from: %s", self.current_lang, model_path)
         self.model = Model(model_path)
         self.recognizer = KaldiRecognizer(self.model, VOICE_SAMPLERATE)
+        
+        # Initialize command map for current language
+        self.command_map = language_command_maps.get(self.current_lang, {})
+
+    def set_language(self, lang_code):
+        model_path = VOICE_MODELS.get(lang_code)
+        if not model_path:
+            raise ValueError(f"No model path for language '{lang_code}'")
+        self.model = Model(model_path)
+        self.recognizer = KaldiRecognizer(self.model, VOICE_SAMPLERATE)
+        self.command_map = language_command_maps.get(lang_code, {})
+        self.current_lang = lang_code
+        logger.info("Voice language set to '%s'", lang_code)
 
     def _callback(self, indata, frames, time_info, status):
         if status:
@@ -44,7 +57,7 @@ class VoiceControl:
                 # Log other audio issues immediately
                 logger.debug("Audio status: %s", status)
         self.queue.put(bytes(indata))
-
+        
     def stop(self):
         self.running = False
 
@@ -68,14 +81,14 @@ class VoiceControl:
                         if not spoken:
                             continue
 
-                        if spoken in command_map:
-                            command = command_map[spoken]
+                        if spoken in self.command_map:
+                            command = self.command_map[spoken]
                             logger.info("Exact match: '%s' -> %s", spoken, command)
                         else:
-                            match = difflib.get_close_matches(spoken, command_map.keys(), n=1, cutoff=0.6)
+                            match = difflib.get_close_matches(spoken, self.command_map.keys(), n=1, cutoff=0.6)
                             if match:
                                 spoken = match[0]
-                                command = command_map[spoken]
+                                command = self.command_map[spoken]
                                 logger.info("Fuzzy match: '%s' -> %s", spoken, command)
                             else:
                                 logger.info("No match for: '%s'", spoken)

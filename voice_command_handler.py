@@ -15,7 +15,14 @@ class VoiceCommandHandler:
 
     def handle_command(self, spoken, command):
 
-        # Multi-command routines (e.g., compound raw CMD_ strings)
+        # Handle language switching
+        if isinstance(command, str) and command.startswith("language_"):
+            lang_code = command.split("_")[1].lower()  # Convert to lowercase
+            from voice_manager import _voice_manager
+            _voice_manager.switch_language(lang_code)
+            return
+
+        # Multi-command routines
         if isinstance(command, list):
             logger.info("Executing multi-command sequence: %s", command)
             for c in command:
@@ -24,6 +31,6 @@ class VoiceCommandHandler:
             self.command_sender([cmd.CMD_MOVE, "1", "0", "0", "8", "0"])
             return
 
-        # Route all other commands through the command dispatcher
+        # Route other commands
         logger.info("Routing command through dispatcher: %s", command)
         dispatch_command("voice", command)

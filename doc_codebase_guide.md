@@ -94,15 +94,34 @@
 - `web_interface/static/` - CSS, JS, Bootstrap assets
 - Routes: `/` (main), `/command` (API), `/voice` (control), `/status`
 
-#### **Voice Control System**
-- `voice_manager.py` - Voice system lifecycle management
+#### **Multi-Language Voice Control System** 🌍
+- `voice_manager.py` - Voice system lifecycle management with language switching
   - **Refactored Architecture**: Class-based `VoiceManager` with instance state management  
   - Eliminated global variables for thread-safe voice control lifecycle
-  - Backward-compatible wrapper functions maintain existing API
-- `voice_control.py` - Vosk speech recognition integration
-- `voice_command_handler.py` - Voice command processing and routing
-- `config/voice/eo.py` - Esperanto command mappings
-- `config/voice/__init__.py` - Multi-language support framework
+  - **NEW**: Language switching capability with `switch_language()` method
+- `voice_control.py` - Core voice recognition and command processing
+  - **NEW**: Multi-language support with runtime language switching
+  - Uses Vosk speech recognition with language-specific models
+  - Language-specific command maps loaded dynamically
+  - Fuzzy matching for voice command recognition
+- `voice_command_handler.py` - Command routing and language switching logic
+  - **NEW**: Handles `language_XX` commands for runtime language switching
+  - Routes commands to appropriate dispatcher or language manager
+- `voice_language_commands.py` - Multi-language command map registry
+  - **NEW**: Dynamic loading of language-specific command maps
+  - Supports 8 languages: EN, EO, DE, FR, ES, HI, PL, PT
+  - Lazy loading to avoid circular import issues
+- `config/voice/` - Language-specific command definitions
+  - **NEW**: Individual language files (en.py, de.py, fr.py, etc.)
+  - Each language has complete command set with native translations
+  - Language switching commands use "spider" + language name pattern
+  - Example: "spider german" → switches to German, "araignée français" → switches to French
+
+**Voice Language Switching Pattern**:
+- Use the word for "spider" in the current language + target language name
+- Examples: "spider german", "araignée français", "pająk po angielsku"
+- All languages support switching to all other languages
+- Commands are translated appropriately for each language
 
 #### **Configuration & Constants**
 - `config/robot_config.py` - Centralized configuration
