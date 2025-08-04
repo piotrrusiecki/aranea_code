@@ -1,11 +1,11 @@
 # Aranea Robot Development Roadmap
 
-*Last updated: December 2024 - LED feedback system and web interface language switching completed*
+*Last updated: August 2025 - LED feedback system and web interface language switching completed*
 
 ## Phase 1: Field Autonomy & Performance (Priority: HIGH)
 ### Network & Connectivity
 - [x] Mobile hotspot remote access (NetworkManager priority configuration)
-- [ ] Connection status indicators in web UI
+- [ ] Connection status indicators in web UI / LED
 - [x] LED functionality 
 - [x] Indicate WiFi connection with LED / startup sequence / readiness
 - [ ] Camera feed
@@ -20,36 +20,21 @@
 
 ## Phase 2: Multi-Language Voice System (Priority: HIGH) ✅ COMPLETED
 ### Language Support
-- [x] German voice model and commands ("spinne polnisch")
-- [x] Spanish voice model and commands ("araneo alleman") 
-- [x] French voice model and commands ("araignée anglais")
-- [x] Polish voice model and commands ("pająk esperanto, etc")
-- [x] English voice model and commands ("araneo german")
-- [x] Portuguese voice model and commands ("aranha alemão")
-- [x] Hindi voice model and commands ("makhi hindi")
-- [x] Esperanto voice model and commands ("araneo germane")
+- [x] Support for 8 languages: EN, EO, DE, FR, ES, HI, PL, PT
+- [x] Runtime language switching via voice commands ("spider" + target language name)
+- [x] Language-specific Vosk models for accurate recognition
+- [x] Native command translations for all supported languages
+- [x] Fuzzy matching for voice command recognition
+- [x] Web interface language switching buttons with flag icons
+- [x] LED feedback during language switching (red glow → blue flash)
 
 ### Voice Architecture
-- [x] Runtime language switching with source language commands
 - [x] Dynamic model loading and unloading
-- [x] Voice command fuzzy matching per language
+- [x] Thread-safe language switching with proper model reloading
 - [x] All voice commands integrated to dispatcher
 - [x] Language-specific command maps with native translations
-- [x] "Spider" + language name pattern for language switching
-- [x] Support for 8 languages: EN, EO, DE, FR, ES, HI, PL, PT
-- [x] Web interface language switching buttons
+- [x] Complete command coverage (45 commands per language)
 - [x] Cyclic import resolution with callback pattern
-
-**Multi-Language Voice System Features**:
-- Runtime language switching via voice commands
-- Language-specific Vosk models for accurate recognition
-- Native command translations for all supported languages
-- Fuzzy matching for voice command recognition
-- Thread-safe language switching with proper model reloading
-- Complete command coverage across all languages
-- Language switching pattern: "spider" + target language name in source language
-- Web interface buttons for one-click language switching
-- LED feedback during language switching (red glow → blue flash)
 
 ## Phase 3: Core System Refinement (Priority: MEDIUM)
 ### Architecture Improvements
@@ -58,6 +43,7 @@
 - [ ] Centralize all configuration in config/ (parameter.py moved, robot_config.py exists, but config still scattered throughout codebase)
 - [ ] Enhanced error handling and recovery strategies
 - [ ] Thread safety audit and optimization
+- [ ] Logging visibility in webUI
 
 ### Web Interface Enhancement
 - [x] Language switching interface with flag icons
@@ -158,7 +144,7 @@
 - [x] **Documentation maintenance** - Updated codebase guide and roadmap to reflect architectural changes and naming conventions
 - [x] **Critical performance bug fix** - Resolved infinite recursion in robot_control.py run_gait method that was causing robot slowdown
 
-### **Code Quality & Architecture Refinements (Dec 2024)**
+### **Code Quality & Architecture Refinements (Aug 2025)**
 - [x] **Global variable elimination** - Refactored voice_manager.py and command_dispatcher_logic.py to eliminate all global statements
   - Converted voice_manager.py to class-based VoiceManager with instance state management
   - Added safe server instance access in command_dispatcher_logic.py with _get_server() helper
@@ -200,7 +186,7 @@
   - Resolved PYL-R0201 pylint warning for better code structure
   - Zero risk change - method only performs generic exception handling operations
 
-### **Multi-Language Voice System (Dec 2024)** ✅ COMPLETED
+### **Multi-Language Voice System & LED Feedback (Aug 2025)** ✅ COMPLETED
 - [x] **Complete multi-language voice system implementation**
   - Added support for 8 languages: EN, EO, DE, FR, ES, HI, PL, PT
   - Implemented runtime language switching via voice commands
@@ -213,8 +199,6 @@
   - All languages support switching to all other languages
   - Complete command coverage (45 commands per language)
   - Thread-safe language switching with proper model reloading
-
-### **Web Interface Language Switching (Dec 2024)** ✅ COMPLETED
 - [x] **Web interface for multi-language voice switching**
   - Added /language POST endpoint for language switching
   - Enhanced voice.html with language selection buttons
@@ -223,8 +207,6 @@
   - Success/error notifications for language switching
   - Maintains existing voice control functionality
   - Language buttons trigger server-side language switching
-
-### **LED Feedback System (Dec 2024)** ✅ COMPLETED
 - [x] **Centralized LED feedback system for user readiness**
   - Created actuator_led_commands.py with flexible LED pattern handling
   - Added server ready flash (green) when server starts
@@ -236,9 +218,7 @@
   - Parameterized methods for future LED usage expansion
   - All LED patterns run in separate daemon threads
   - Performance optimized with lazy logging formatting
-
-### **Cyclic Import Resolution (Dec 2024)** ✅ COMPLETED
-- [x] **Resolve cyclic import in voice system**
+- [x] **Cyclic import resolution**
   - Broke cyclic import: voice_command_handler → voice_manager → voice_control
   - Replaced direct import with callback pattern for language switching
   - Added language_switcher parameter to VoiceCommandHandler constructor
@@ -246,7 +226,6 @@
   - Updated VoiceManager to pass self.switch_language as callback
   - Maintains all functionality while eliminating circular dependency
   - All voice modules now import successfully without cyclic imports
-- [x] **Resolve cyclic import in web interface**
   - Broke cyclic import: web_server → voice_manager → voice_control → voice_command_handler
   - Replaced direct import of switch_language with callback pattern
   - Updated create_language_handler to accept language_switcher callback
