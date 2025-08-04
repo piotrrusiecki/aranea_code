@@ -38,39 +38,48 @@ class Servo:
                 self.pwm_40.set_pwm(i - 16, 4096, 4096)
 
 # --- Test Mode Thread Control ---
-_running = False
-_thread = None
-_servo = Servo()
+class ServoTestController:
+    def __init__(self):
+        self.running = False
+        self.thread = None
+        self.servo = Servo()
+    
+    def _run_test_loop(self):
+        printed = set()
+        while self.running:
+            for i in USED_CHANNELS:
+                if i in [10, 13, 31]:
+                    angle = 10
+                elif i in [18, 21, 27]:
+                    angle = 170
+                else:
+                    angle = 90
 
-def _run_test_loop():
-    printed = set()
-    while _running:
-        for i in USED_CHANNELS:
-            if i in [10, 13, 31]:
-                angle = 10
-            elif i in [18, 21, 27]:
-                angle = 170
-            else:
-                angle = 90
+                if i not in printed:
+                    print(f"Servo {i:2d} | angle: {angle:3d}")
+                    printed.add(i)
 
-            if i not in printed:
-                print(f"Servo {i:2d} | angle: {angle:3d}")
-                printed.add(i)
+                self.servo.set_servo_angle(i, angle)
+            time.sleep(3)
+    
+    def start_test(self):
+        if not self.running:
+            self.running = True
+            self.thread = threading.Thread(target=self._run_test_loop, daemon=True)
+            self.thread.start()
+    
+    def stop_test(self):
+        self.running = False
+        self.servo.relax()
 
-            _servo.set_servo_angle(i, angle)
-        time.sleep(3)
+# Create singleton instance
+servo_test_controller = ServoTestController()
 
 def start_servo_test():
-    global _running, _thread
-    if not _running:
-        _running = True
-        _thread = threading.Thread(target=_run_test_loop, daemon=True)
-        _thread.start()
+    servo_test_controller.start_test()
 
 def stop_servo_test():
-    global _running
-    _running = False
-    _servo.relax()
+    servo_test_controller.stop_test()
 
 # Optional for CLI testing
 if __name__ == '__main__':
