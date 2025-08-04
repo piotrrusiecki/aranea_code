@@ -1,90 +1,98 @@
-# Aranea Robot Codebase Navigation Guide
+# Aranea Robot Codebase Guide
 
-*Generated from comprehensive analysis - Use this to quickly understand the codebase structure and key components*
+*Your comprehensive guide to understanding and navigating the Aranea hexapod robot codebase*
+
+## 🎯 Quick Start
+
+**What is this?** A hexapod robot control system that evolved from a PyQt5 desktop app into a modern web-based multi-interface system.
+
+**Key Innovation:** Command dispatcher pattern that unifies web, voice, and TCP interfaces through a centralized routing system.
+
+**Current State:** Fully functional robot with 8-language voice control, LED feedback system, and web interface.
+
+---
 
 ## 🏗️ Architecture Overview
 
-**Type**: Hexapod Robot Control System  
-**Transformation**: PyQt5 Desktop App → Web-based Multi-interface System  
-**Key Pattern**: Command Dispatcher with Multi-interface Support  
-
-### Core Architecture Flow
+### System Flow
 ```
 [Web Interface] ──┐
-[Voice Control] ──┼─→ [Command Dispatcher] ──→ [Server/Hardware Layer] ──→ [Physical Hardware]
+[Voice Control] ──┼─→ [Command Dispatcher] ──→ [Hardware Layer] ──→ [Physical Robot]
 [TCP Interface] ──┘                            ↕
                                         [Robot State Manager]
 ```
 
-## 📁 File Structure & Responsibilities
+### Key Design Patterns
+- **Command Dispatcher**: Routes commands from multiple interfaces to hardware
+- **Hardware Abstraction**: Clean separation between business logic and hardware
+- **State Management**: Centralized, thread-safe robot state
+- **Multi-Interface**: Web, voice, and TCP all use the same command system
 
-### **Entry Points**
-- `main.py` - Main application entry, threading setup, Flask integration
-  - Initializes all subsystems (server, voice, web, command dispatcher, LED commands)
+---
+
+## 📁 File Structure & Purpose
+
+### **Entry Point**
+- `main.py` - Application startup, threading setup, Flask integration
+  - Initializes all subsystems (server, voice, web, LED feedback)
   - Handles graceful shutdown and resource cleanup
   - Uses colored logging system
-  - **NEW**: LED feedback system initialization and server ready flash
 
 ### **Core Systems**
 
-#### **Command Dispatching** (Key Innovation)
-- `command_dispatcher_logic.py` - Main dispatcher logic and command routing
-  - **Refactored Architecture**: Eliminated global server instance usage with safe `_get_server()` helper
-  - Type-safe server access with proper None checking and runtime validation
-  - Clean separation of concerns with dependency injection patterns
-- `command_dispatcher_core.py` - Registry for symbolic and routine commands  
-- `command_dispatcher_registry.py` - Command registration (imports all routines)
-- `command_dispatcher_symbolic.py` - Simple symbolic command execution
-- `command_dispatcher_utils.py` - Utility functions for command processing
+#### **Command Dispatching** (The Heart of the System)
+- `command_dispatcher_logic.py` - Main dispatcher and command routing
+  - Routes commands to symbolic or routine handlers
+  - Safe server instance access with `_get_server()` helper
+  - Type-safe with proper None checking
+- `command_dispatcher_core.py` - Registry for symbolic commands
+- `command_dispatcher_registry.py` - Command registration and routine imports
+- `command_dispatcher_symbolic.py` - Simple command execution
+- `command_dispatcher_utils.py` - Utility functions
 
 #### **Hardware Interface Layer**
-- `hardware_server.py` - Hardware abstraction server (evolved from manufacturer code)
+- `hardware_server.py` - Hardware abstraction server
   - Command handlers for all hardware components
   - TCP socket management for legacy compatibility
   - Video streaming coordination
-- `hardware_pca9685.py` - **PCA9685 I2C controller driver for servo management** ⚠️
-  - **CRITICAL**: Must maintain complete register map and PWM write sequences
+- `hardware_pca9685.py` - **PCA9685 I2C controller for servo management** ⚠️
   - Controls 18 servos across two PCA9685 boards (0x40, 0x41)
+  - **CRITICAL**: Must maintain complete register map and PWM write sequences
   - Any modifications require comparison with original working code
-- `hardware_spi_ledpixel.py` - SPI-based LED strip driver (Freenove SPI LED pixels)
+- `hardware_spi_ledpixel.py` - SPI-based LED strip driver
 - `hardware_rpi_ledpixel.py` - Raspberry Pi WS281X LED strip driver
 
-#### **Sensors**
-- `sensor_camera.py` - Pi camera streaming interface with video recording and frame capture
-  - **Code Quality**: Optimized logging with lazy % formatting and proper Optional type annotations
-  - **Fixed**: Resolved PTC-W0052 anti-pattern by renaming `self.camera` to `self._picamera` for clarity
+#### **Sensors** (Input Devices)
+- `sensor_camera.py` - Pi camera streaming with video recording
+  - Optimized logging with lazy % formatting
+  - Proper Optional type annotations
 - `sensor_ultrasonic.py` - Distance sensor interface
 - `sensor_adc.py` - Battery voltage monitoring
 - `sensor_imu.py` - Inertial measurement unit with Kalman filtering
 
-#### **Actuators**
-- `actuator_servo.py` - 18-servo hexapod control via PCA9685 I2C controllers
+#### **Actuators** (Output Devices)
+- `actuator_servo.py` - 18-servo hexapod control via PCA9685
 - `actuator_led.py` - RGB LED strip control with effects
 - `actuator_buzzer.py` - Simple buzzer control
-- `actuator_led_commands.py` - **NEW**: Centralized LED feedback system
-  - **Thread-safe LED patterns** with proper cleanup and error handling
-  - **Flexible parameterized methods** for different LED patterns
-  - **Server ready flash** (green), **language switching glow** (red), **language ready flash** (blue)
-  - **Performance optimized** with lazy logging formatting
-  - **Global instance** for easy access across modules
+- `actuator_led_commands.py` - **Centralized LED feedback system**
+  - Thread-safe LED patterns with proper cleanup
+  - Server ready flash (green), language switching glow (red), language ready flash (blue)
+  - Performance optimized with lazy logging
 
 #### **Robot Control & Movement**
-- `robot_control.py` - Main robot control system with condition monitoring thread
-  - **Refactored Architecture**: Modular command handlers (`_handle_position_command`, `_handle_move_command`, etc.)
+- `robot_control.py` - Main robot control with condition monitoring
+  - Modular command handlers (`_handle_position_command`, `_handle_move_command`)
   - Servo angle calculations and safety checks
-  - Command queue processing with dedicated handler methods
-  - Auto-relax functionality
-- `robot_pid.py` - PID controller for robot balance and stability
+  - Command queue processing
+- `robot_pid.py` - PID controller for balance and stability
 - `robot_kinematics.py` - Forward/inverse kinematics calculations
 - `robot_gait.py` - Gait pattern generation (walking algorithms)
-  - **Refactored Architecture**: Separated tripod/wave gait implementations with phase-specific functions
-  - Clean parameter parsing and movement delta calculations
+  - Tripod/wave gait implementations with phase-specific functions
   - Modular gait execution with `_execute_tripod_gait()` and `_execute_wave_gait()`
 - `robot_pose.py` - Body posture and balance calculations
 - `robot_routines.py` - High-level movement routines (march, run, patrol)
 - `robot_calibration.py` - Servo calibration utilities
-  - **Security**: Added filename validation to prevent path traversal attacks
-  - Validates filenames before file operations to ensure safe file access
+  - Security: Added filename validation to prevent path traversal attacks
 
 #### **State Management**
 - `robot_state.py` - Thread-safe centralized state management
@@ -94,54 +102,38 @@
 
 #### **Web Interface**
 - `web_server.py` - Flask application factory and routes
-  - **Refactored Architecture**: Modular route handlers extracted from monolithic `create_app()` function
-  - Handler factories with closures for dependency injection (`create_voice_handler`, `create_status_handler`, etc.)
-  - Clean separation of concerns for easier testing and maintenance
-  - **NEW**: `/language` POST endpoint for web-based language switching
+  - Modular route handlers with dependency injection
+  - `/language` POST endpoint for web-based language switching
 - `web_interface/templates/` - Jinja2 HTML templates
 - `web_interface/static/` - CSS, JS, Bootstrap assets
-- Routes: `/` (main), `/command` (API), `/voice` (control), `/status`, `/language` (NEW)
-- `web_interface/templates/tabs/voice.html` - **NEW**: Language selection buttons with flag icons
-- `web_interface/static/js/main.js` - **NEW**: `switchLanguage()` function with visual feedback
+- Routes: `/` (main), `/command` (API), `/voice` (control), `/status`, `/language`
 
 #### **Multi-Language Voice Control System** 🌍
-- `voice_manager.py` - Voice system lifecycle management with language switching
-  - **Refactored Architecture**: Class-based `VoiceManager` with instance state management  
-  - Eliminated global variables for thread-safe voice control lifecycle
-  - **NEW**: Language switching capability with `switch_language()` method
-  - **NEW**: LED feedback integration for language switching (red glow → blue flash)
+- `voice_manager.py` - Voice system lifecycle management
+  - Class-based `VoiceManager` with instance state management
+  - Language switching capability with `switch_language()` method
+  - LED feedback integration for language switching
 - `voice_control.py` - Core voice recognition and command processing
-  - **NEW**: Multi-language support with runtime language switching
+  - Multi-language support with runtime language switching
   - Uses Vosk speech recognition with language-specific models
   - Language-specific command maps loaded dynamically
   - Fuzzy matching for voice command recognition
-  - **FIXED**: Resolved cyclic import with callback pattern for language switching
 - `voice_command_handler.py` - Command routing and language switching logic
-  - **NEW**: Handles `language_XX` commands for runtime language switching
+  - Handles `language_XX` commands for runtime language switching
   - Routes commands to appropriate dispatcher or language manager
-  - **FIXED**: Replaced direct import with callback pattern to break cyclic dependency
-- `web_server.py` - Flask application factory and routes
-  - **Refactored Architecture**: Modular route handlers extracted from monolithic `create_app()` function
-  - Handler factories with closures for dependency injection (`create_voice_handler`, `create_status_handler`, etc.)
-  - Clean separation of concerns for easier testing and maintenance
-  - **NEW**: `/language` POST endpoint for web-based language switching
-  - **FIXED**: Resolved cyclic import by using callback pattern for language switching
 - `voice_language_commands.py` - Multi-language command map registry
-  - **NEW**: Dynamic loading of language-specific command maps
+  - Dynamic loading of language-specific command maps
   - Supports 8 languages: EN, EO, DE, FR, ES, HI, PL, PT
-  - Lazy loading to avoid circular import issues
 - `config/voice/` - Language-specific command definitions
-  - **NEW**: Individual language files (en.py, de.py, fr.py, etc.)
+  - Individual language files (en.py, de.py, fr.py, etc.)
   - Each language has complete command set with native translations
   - Language switching commands use "spider" + language name pattern
-  - Example: "spider german" → switches to German, "araignée français" → switches to French
 
-**Voice Language Switching Pattern**:
+**Voice Language Switching Pattern:**
 - Use the word for "spider" in the current language + target language name
 - Examples: "spider german", "araignée français", "pająk po angielsku"
 - All languages support switching to all other languages
-- Commands are translated appropriately for each language
-- **NEW**: Web interface buttons for one-click language switching
+- Web interface buttons for one-click language switching
 
 #### **Configuration & Constants**
 - `config/robot_config.py` - Centralized configuration
@@ -150,11 +142,13 @@
 - `config/parameter.py` - Parameter management utility
   - Hardware detection and validation
   - Configuration file management
-  - **Security**: Added file path validation to prevent path traversal attacks
+  - Security: Added file path validation
 - `constants_commands.py` - Command constants and definitions
 - `params.json` - Runtime parameters (PCB version, Pi version)
 
-## 🔧 Key Technical Details
+---
+
+## 🔧 Technical Details
 
 ### **Threading Model**
 - **Main Thread**: Flask web server
@@ -172,15 +166,14 @@
 4. **State Update** → RobotState flags updated
 5. **Feedback** → LEDs, buzzer, or response data
 
-### **LED Feedback System** (NEW)
+### **LED Feedback System**
 - **Server Ready**: Green flash (2x 0.3s) when server starts
 - **Language Switching**: Red glow (pulsing fade) during language switching
 - **Language Ready**: Blue flash (0.4s) when switching completes
 - **Thread-safe**: All patterns run in separate daemon threads
 - **Error Handling**: Patterns stop automatically on errors
-- **Performance**: Lazy logging formatting for optimal performance
 
-### **Command Execution Patterns** (Critical Architecture)
+### **Command Execution Patterns**
 
 #### **Single Action Commands** (`task_*` symbols)
 - **Purpose**: Execute once and stop (step forward, turn, look, lights)
@@ -188,14 +181,12 @@
 - **Example**: `task_step_forward` → `CMD_MOVE#1#0#35#8#0` + `CMD_MOVE#1#0#0#8#0`
 - **Web Interface**: Uses `onmousedown`/`onmouseup` with `sendMove(x,y)` + `sendMove(0,0)`
 - **Voice Commands**: Implemented with `_send_move_with_reset()` helper function
-- **Why**: `CLEAR_MOVE_QUEUE_AFTER_EXEC = False` means commands loop without explicit reset
 
 #### **Continuous Routines** (`routine_*` commands) 
 - **Purpose**: Run until stopped (march, run, patrol)
 - **Pattern**: Background threading with `motion_loop()` + `motion_state` flag
 - **Example**: `routine_march_forward` → Thread continuously sends individual `CMD_MOVE` commands
 - **State Management**: `motion_state = True` during execution, `False` to stop
-- **Voice Integration**: All voice commands route through `dispatch_command()` (no hardcoded bypasses)
 
 ### **Hardware Communication**
 - **Servos**: I2C via PCA9685 controllers (0x40, 0x41)
@@ -210,80 +201,33 @@
 - Auto-stop on sensor detection during forward motion
 - Battery voltage monitoring with alerts
 
-## 🎯 Current State (vs Original Manufacturer Code)
+---
+
+## 🎯 Current State vs Original
 
 ### **Major Transformations Completed**
 - ❌ PyQt5 desktop GUI → ✅ Web interface
-- ❌ No voice control → ✅ Vosk-based voice recognition  
+- ❌ No voice control → ✅ Vosk-based voice recognition (8 languages)
 - ❌ Direct command parsing → ✅ Command dispatcher pattern
 - ❌ Print statements → ✅ Comprehensive logging
 - ❌ Scattered state → ✅ Centralized RobotState
 - ❌ Monolithic server.py → ✅ Modular architecture
-- ❌ Global variables & state → ✅ Class-based architecture with proper encapsulation
+- ❌ Global variables & state → ✅ Class-based architecture
 - ❌ No LED feedback → ✅ Centralized LED feedback system
-- ❌ Single language → ✅ Multi-language voice system (8 languages)
+- ❌ Single language → ✅ Multi-language voice system
 - ❌ Cyclic imports → ✅ Clean dependency management
 
-### **Performance Issues Identified**
-- **Movement slowdown**: Related to command queue retention and SendMove(0,0) in move.js
-- **Servo bottleneck**: 18 sequential I2C calls per movement frame
-- **Thread contention**: Condition monitor loop overhead
-
-### **Critical Hardware Driver Issues (RESOLVED)**
-- **Missing PWM register write**: `hardware_pca9685.py` was missing `self.write(self.__LED0_OFF_H + 4 * channel, off >> 8)` in `set_pwm()` method
-  - **Symptoms**: Erratic servo behavior, twitching, power interference affecting multiple servos
-  - **Root cause**: Incomplete PWM timing data sent to PCA9685 chips
-  - **Fix**: Restored missing register write line (Dec 2024)
-- **Missing register constants**: DeepSource cleanup removed essential PCA9685 constants
-  - **Removed**: `__SUBADR1/2/3`, `__ALLLED_ON_L/H`, `__ALLLED_OFF_L/H` register definitions
-  - **Impact**: Incomplete hardware register map, potential future compatibility issues
-  - **Fix**: Restored all register constants by comparing with original working code
-- **Hardware failure**: Servo on channel 8 (Leg 3, middle joint) failed due to long-term degradation
-  - **Accelerated by**: Software PWM bug creating additional stress on already-weak servo
-  - **Solution**: Servo replacement + software fix resolved all stability issues
-
-### **Code Quality Improvements (COMPLETED - Dec 2024)**
-- **Global variable elimination**: Removed all problematic global statements (PYL-W0603 warnings)
-  - **`voice_manager.py`**: Converted to class-based `VoiceManager` with instance state
-  - **`command_dispatcher_logic.py`**: Added safe server instance access with `_get_server()` helper
-  - **Impact**: Improved thread safety, better testability, cleaner architecture
-  - **Result**: Zero linting errors, enhanced IDE type checking, maintained backward compatibility
-
 ### **Configuration Flags (Important)**
-- `CLEAR_MOVE_QUEUE_AFTER_EXEC = False` - **CRITICAL**: Legacy compatibility with factory firmware
+- `CLEAR_MOVE_QUEUE_AFTER_EXEC = False` - **CRITICAL**: Legacy compatibility
   - `False` → Commands loop indefinitely (requires explicit reset commands)
   - `True` → Commands execute once and auto-clear (future enhancement)
-  - **Why False**: Maintains compatibility with original manufacturer client patterns
-  - **Impact**: Single commands need reset pattern (`CMD_MOVE` + `CMD_MOVE#0#0#0`)
 - `DEBUG_LEGS = True` - Enables detailed leg position logging
 - `DRY_RUN = False` - Set to True for testing without hardware
-- `VOICE_BLOCKSIZE = 8000` - Audio buffer size (increased from 4000 to reduce overflow)
+- `VOICE_BLOCKSIZE = 8000` - Audio buffer size (increased from 4000)
 
-### **Hardware Driver Best Practices (CRITICAL)**
-- **⚠️ NEVER remove hardware register constants** based on automated tools (DeepSource, pylint, etc.)
-- **Complete register maps required**: Even "unused" constants are needed for hardware compatibility
-- **Hardware drivers need all registers**: Missing constants can cause subtle hardware failures
-- **When modifying hardware files**: Always compare with original working code before deployment
-- **PWM register writes must be complete**: All 4 registers (ON_L, ON_H, OFF_L, OFF_H) required per channel
-- **Test hardware changes immediately**: Hardware bugs can cause cumulative damage over time
+---
 
-## 🚀 Development Priorities (Reference roadmap.md)
-
-### **Phase 1: Field Autonomy** (HIGH)
-- AP fallback mode for standalone operation
-- Performance optimization (movement slowdown fix)
-
-### **Phase 2: Multi-Language Voice** (HIGH)  
-- German, Spanish, French, Polish voice models
-- Runtime language switching with source language commands
-- Pattern: "[spider in source] [target language in source]"
-
-### **Phase 3: System Refinement** (MEDIUM)
-- Enhanced error handling
-- Mobile UI improvements  
-- Performance monitoring dashboard
-
-## 🔍 Quick Navigation Tips
+## 🔍 Quick Navigation
 
 ### **For Movement Issues**
 - Start with: `robot_gait.py`, `robot_control.py`, `robot_routines.py`
@@ -294,7 +238,7 @@
 - Core: `voice_control.py`, `voice_manager.py`
 - Commands: `config/voice/eo.py` (template for other languages)  
 - Integration: `command_dispatcher_logic.py`
-- **Command Registration**: `command_dispatcher_registry.py` (all voice commands route through dispatcher)
+- Registration: `command_dispatcher_registry.py`
 
 ### **For Web Interface**
 - Backend: `web_server.py`
@@ -302,8 +246,8 @@
 - API: `/command` endpoint for all robot control
 
 ### **For Hardware Issues**
-- Hardware layer: `hardware_server.py` (evolved manufacturer code)
-- Individual components: `actuator_servo.py`, `actuator_led.py`, `sensor_camera.py`, etc.
+- Hardware layer: `hardware_server.py`
+- Individual components: `actuator_servo.py`, `actuator_led.py`, `sensor_camera.py`
 - Calibration: `robot_calibration.py`
 
 ### **For State Management**
@@ -311,18 +255,18 @@
 - State monitoring: `robot_control.py` condition_monitor()
 - Flag interactions: Check exclusivity logic
 
+---
+
 ## 📝 Code Patterns & Conventions
 
 ### **Logging**
 ```python
 logger = logging.getLogger("module.submodule")
-logger.info("Action completed: %s", result)
+logger.info("Action completed: %s", result)  # Lazy formatting
 ```
 
 ### **Command Registration**
 ```python
-# In command_dispatcher_registry.py
-
 # Single action commands (with reset pattern)
 "task_step_forward": lambda send: _send_move_with_reset(send, [cmd.CMD_MOVE, "1", "0", "35", "8", "0"]),
 
@@ -346,58 +290,37 @@ hardware_server.servo_controller.set_servo_angle(channel, angle)
 hardware_server.led_controller.process_light_command(parts)
 ```
 
+---
+
 ## 🐛 Known Issues & Workarounds
 
-1. **Command Looping**: Single movement commands loop infinitely without reset commands
-   - **Root Cause**: `CLEAR_MOVE_QUEUE_AFTER_EXEC = False` (maintained for legacy compatibility)
-   - **Solution**: Always send reset command (`CMD_MOVE#1#0#0#8#0`) after movement commands
-   - **Implementation**: Voice uses `_send_move_with_reset()`, Web uses `onmouseup="sendMove(0,0)"`
+### **1. Command Looping**
+- **Issue**: Single movement commands loop infinitely without reset commands
+- **Root Cause**: `CLEAR_MOVE_QUEUE_AFTER_EXEC = False` (legacy compatibility)
+- **Solution**: Always send reset command (`CMD_MOVE#1#0#0#8#0`) after movement commands
+- **Implementation**: Voice uses `_send_move_with_reset()`, Web uses `onmouseup="sendMove(0,0)"`
 
-2. **Voice Command Attribution Error**: `'NoneType' object has no attribute 'process_command'`
-   - **Root Cause**: Symbolic commands trying to access `server_instance` directly instead of using `send` parameter
-   - **Solution**: Use `lambda send: send([...])` pattern in command registration
+### **2. Voice Command Attribution Error**
+- **Issue**: `'NoneType' object has no attribute 'process_command'`
+- **Root Cause**: Symbolic commands trying to access `server_instance` directly
+- **Solution**: Use `lambda send: send([...])` pattern in command registration
 
-3. **Audio Input Overflow**: Voice control logs frequent "input overflow" messages
-   - **Mitigation**: Increased `VOICE_BLOCKSIZE` from 4000 to 8000, added log throttling at DEBUG level
+### **3. Audio Input Overflow**
+- **Issue**: Voice control logs frequent "input overflow" messages
+- **Mitigation**: Increased `VOICE_BLOCKSIZE` from 4000 to 8000, added log throttling
 
-4. **Legacy Compatibility**: Some manufacturer patterns retained intentionally for fallback compatibility
+### **4. Hardware Driver Best Practices** ⚠️
+- **NEVER remove hardware register constants** based on automated tools
+- **Complete register maps required**: Even "unused" constants are needed for hardware compatibility
+- **When modifying hardware files**: Always compare with original working code before deployment
+- **PWM register writes must be complete**: All 4 registers (ON_L, ON_H, OFF_L, OFF_H) required per channel
 
-5. **Logging Format Performance**: Some modules use inefficient logging formats
-   - **Issue**: Using f-strings/concatenation in logging calls (e.g., `sensor_camera.py`)
-   - **Bad**: `logger.info(f"Started recording video to {filename}")` 
-   - **Good**: `logger.info("Started recording video to %s", filename)`
-   - **Why**: Lazy % formatting avoids string construction when logging is disabled
-   - **Action**: Review and fix logging calls throughout codebase
+---
 
-6. **Code Complexity (RESOLVED)**: Previously had high cyclomatic complexity functions
-   - **Fixed**: `create_app()` in web_server.py (complexity 30 → modular route handlers)
-   - **Fixed**: `run_gait()` in robot_gait.py (complexity 28 → structured gait patterns)
-   - **Fixed**: `condition_monitor()` in robot_control.py (complexity 25 → command handler methods)
-   - **Benefit**: Significantly improved maintainability and testability
-
-7. **IMU Attribute Access Error (FIXED)**: Critical runtime bug in robot_control.py
-   - **Issue**: Incorrect attribute names `Error_value_accel_data`/`Error_value_gyro_data` (Dec 2024)
-   - **Actual**: Should be `error_accel_data`/`error_gyro_data` per sensor_imu.py
-   - **Fix**: Corrected attribute names in line 322
-   - **Impact**: Robot would crash during IMU calibration without this fix
-
-8. **Type Safety Improvements (FIXED)**: Multiple type checker warnings resolved
-   - **Issue**: Float/int assignment warning in leg length calculations
-   - **Fix**: Initialize `leg_lengths = [0.0] * 6` instead of `[0] * 6`
-   - **Issue**: None-type access warnings in command_dispatcher_symbolic.py  
-   - **Fix**: Added proper None checks with early return and local variable assignment
-
-9. **Camera Sensor Code Quality (FIXED)**: Logging and type annotation improvements
-   - **Issue**: Eager string formatting in logging calls (performance impact)
-   - **Fix**: Converted f-string logging to lazy % formatting for better performance
-   - **Issue**: Incorrect type annotations causing compatibility and None-type warnings
-   - **Fix**: Added `Optional` types and improved method signatures for proper type safety
-   - **Files**: sensor_camera.py improvements following Python logging best practices
-
-## 💻 Development Environment Setup
+## 💻 Development Environment
 
 ### **Windows Development Configuration**
-For developing on Windows while deploying to Raspberry Pi hardware:
+For developing on Windows while deploying to Raspberry Pi:
 
 #### **IDE Configuration (.vscode/settings.json)**
 ```json
@@ -420,31 +343,15 @@ Created stub files for hardware-specific libraries:
 
 **⚠️ IMPORTANT**: Do not deploy stub files to robot! These are development-only tools.
 
-#### **Deployment Guidelines**
-```
-✅ Deploy to Robot:     ❌ Don't Deploy:
-- All .py files         - .stubs/ directory
-- config/ directory     - .vscode/ directory  
-- web_interface/        - pyrightconfig.json
-- params.json           - __pycache__/
-```
-
 ### **Attribute Initialization Patterns**
+After comprehensive attribute initialization fixes, established patterns for socket-related attributes:
 
-#### **Socket Management Best Practices**
-After comprehensive attribute initialization fixes (December 2024), established patterns for socket-related attributes:
-
-**Problem**: PYL-W0201 warnings for attributes defined outside `__init__` caused by socket assignments in runtime methods.
-
-**Solution Pattern**:
 ```python
 class NetworkServer:
     def __init__(self):
         # Initialize all socket attributes as None with type hints
         self.video_socket: Optional[socket.socket] = None
         self.command_socket: Optional[socket.socket] = None
-        self.video_connection: Optional[io.BufferedWriter] = None
-        self.command_connection: Optional[socket.socket] = None
         
     def start_server(self):
         # Set actual socket instances during runtime
@@ -456,27 +363,17 @@ class NetworkServer:
             self.video_connection.close()
 ```
 
-**Key Lessons**:
-- Always initialize socket attributes to None in `__init__` with proper type hints
-- Use `Optional[Type]` annotations for runtime-assigned attributes
-- Add defensive None checks before socket operations
-- Maintain existing `hasattr()` checks for backward compatibility
-- Risk assessment: Attribute initialization fixes are low-risk in controlled startup sequences
-
-#### **Type Safety Enhancements**
-- `StreamingOutput.write()` - Fixed return type to match `BufferedIOBase` interface
-- `ADC.read_battery_voltage()` - Corrected return type annotation to `tuple[float, float]`
-- Import pattern for utility functions: `from robot_kinematics import restrict_value`
+---
 
 ## 🌐 Network & Remote Access
 
-### WiFi Configuration  
+### **WiFi Configuration**  
 - **Priority System**: NetworkManager-based with phone hotspot (100) > home network (50) > wired (-999)
 - **Remote Access**: Mobile hotspot enables field operations via web interface
 - **Documentation**: Complete setup guide in `doc_wifi.md`
 - **Auto-Failover**: Seamless switching between networks based on availability
 
-### Service Management
+### **Service Management**
 - **Systemd Service**: `.services/aranea-server.service` for auto-start configuration
 - **Installation**: Copy to `/etc/systemd/system/` and enable for boot startup
 - **Monitoring**: Logs available via `journalctl -u aranea-server.service`
@@ -484,6 +381,24 @@ class NetworkServer:
 
 ---
 
+## 🚀 Development Priorities
+
+### **Phase 1: Field Autonomy** (HIGH)
+- AP fallback mode for standalone operation
+- Performance optimization (movement slowdown fix)
+
+### **Phase 2: Multi-Language Voice** (HIGH) ✅ COMPLETED
+- German, Spanish, French, Polish voice models
+- Runtime language switching with source language commands
+- Pattern: "[spider in source] [target language in source]"
+
+### **Phase 3: System Refinement** (MEDIUM)
+- Enhanced error handling
+- Mobile UI improvements  
+- Performance monitoring dashboard
+
+---
+
 *This guide represents the codebase state after comprehensive refactoring from manufacturer PyQt5 desktop application to modern web-based robot control system. Reference roadmap.md for development priorities and completed features.*
 
-*Last updated: August 2025 with mobile hotspot configuration and service management*
+*Last updated: August 2025 with multi-language voice system and LED feedback system*
