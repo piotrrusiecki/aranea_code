@@ -157,6 +157,10 @@
   - Added proper type hints with Optional[Type] for socket-related attributes  
   - Enhanced type safety with defensive None checks in socket operations
   - Fixed return type annotations (StreamingOutput.write, ADC.read_battery_voltage)
+- [x] **Static method optimization** - Fixed PYL-R0201 warning in config/parameter.py
+  - Added @staticmethod decorator to _validate_file_path method for performance optimization
+  - Eliminated unnecessary self parameter where not used, improving code clarity
+  - Resolved linter warning while maintaining all existing functionality
 - [x] **Anti-pattern resolution** - Fixed PTC-W0052 naming conflict in sensor_camera.py
   - Renamed `self.camera` attribute to `self._picamera` to avoid class name duplication
   - Improved code readability by making the underlying Picamera2 device relationship explicit

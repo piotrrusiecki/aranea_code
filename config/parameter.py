@@ -12,7 +12,8 @@ class ParameterManager:
         if not self.file_exists() or not self.validate_params():
             self.deal_with_param()
 
-    def _validate_file_path(self, file_path):
+    @staticmethod
+    def _validate_file_path(file_path):
         """Validate file path to prevent path traversal attacks."""
         if not file_path or not isinstance(file_path, str):
             raise ValueError("File path must be a non-empty string")
