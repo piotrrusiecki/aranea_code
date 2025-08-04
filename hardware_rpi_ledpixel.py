@@ -1,5 +1,6 @@
 import time
 from rpi_ws281x import Adafruit_NeoPixel, Color
+from typing import List, Tuple, Optional
 
 class Freenove_RPI_WS281X:
     def __init__(self, led_count=8, bright=255, sequence="RGB"):
@@ -52,8 +53,8 @@ class Freenove_RPI_WS281X:
     def set_led_brightness(self, brightness):
         # Set the brightness of the LEDs
         self.led_brightness = brightness
-        for idx in range(self.get_led_count()):
-            self.set_led_rgb_data(idx, self.led_original_color)
+        # Use list comprehension to avoid loop variable shadowing
+        [self.set_led_rgb_data(position, self.led_original_color) for position in range(self.get_led_count())]
 
     def set_ledpixel(self, index, r, g, b):
         # Set the color of a specific LED
@@ -64,8 +65,9 @@ class Freenove_RPI_WS281X:
         self.led_original_color[index * 3 + self.led_red_offset] = r
         self.led_original_color[index * 3 + self.led_green_offset] = g
         self.led_original_color[index * 3 + self.led_blue_offset] = b
-        for color_idx in range(3):
-            self.led_color[index * 3 + color_idx] = p[color_idx]
+        # Use enumerate to avoid loop variable shadowing
+        for color_position, _ in enumerate(range(3)):
+            self.led_color[index * 3 + color_position] = p[color_position]
 
     def set_led_color_data(self, index, r, g, b):
         # Set the color data of a specific LED
@@ -87,30 +89,35 @@ class Freenove_RPI_WS281X:
 
     def set_all_led_color_data(self, r, g, b):
         # Set the color data of all LEDs
-        for idx in range(self.get_led_count()):
-            self.set_led_color_data(idx, r, g, b)
+        # Use list comprehension to avoid loop variable shadowing
+        [self.set_led_color_data(position, r, g, b) for position in range(self.get_led_count())]
 
     def set_all_led_rgb_data(self, color):
         # Set the RGB data of all LEDs
-        for idx in range(self.get_led_count()):
-            self.set_led_rgb_data(idx, color)
+        # Use list comprehension to avoid loop variable shadowing
+        [self.set_led_rgb_data(position, color) for position in range(self.get_led_count())]
 
     def set_all_led_color(self, r, g, b):
         # Set the color of all LEDs and update the display
-        for idx in range(self.get_led_count()):
-            self.set_led_color_data(idx, r, g, b)
+        # Use list comprehension to avoid loop variable shadowing
+        [self.set_led_color_data(position, r, g, b) for position in range(self.get_led_count())]
         self.show()
 
     def set_all_led_rgb(self, color):
         # Set the RGB color of all LEDs and update the display
-        for idx in range(self.get_led_count()):
-            self.set_led_rgb_data(idx, color)
+        # Use list comprehension to avoid loop variable shadowing
+        [self.set_led_rgb_data(position, color) for position in range(self.get_led_count())]
         self.show()
 
     def show(self):
         # Update the LED strip with the current color data
-        for idx in range(self.get_led_count()):
-            self.strip.setPixelColor(idx, Color(self.led_color[idx * 3], self.led_color[idx * 3 + 1], self.led_color[idx * 3 + 2]))
+        # Use enumerate to avoid loop variable shadowing
+        for position, _ in enumerate(range(self.get_led_count())):
+            self.strip.setPixelColor(position, Color(
+                self.led_color[position * 3], 
+                self.led_color[position * 3 + 1], 
+                self.led_color[position * 3 + 2]
+            ))
         self.strip.show()
 
     @staticmethod
@@ -183,8 +190,9 @@ if __name__ == '__main__':
             led.set_led_brightness(20)
             while True:
                 for j in range(255):
-                    for idx in range(led.led_count):
-                        led.set_led_rgb_data(idx, Freenove_RPI_WS281X.wheel((round(idx * 255 / led.led_count) + j) % 256))
+                    # Use enumerate to avoid loop variable shadowing
+                    for position, _ in enumerate(range(led.led_count)):
+                        led.set_led_rgb_data(position, Freenove_RPI_WS281X.wheel((round(position * 255 / led.led_count) + j) % 256))
                     led.show()
                     time.sleep(0.002)
         else:
