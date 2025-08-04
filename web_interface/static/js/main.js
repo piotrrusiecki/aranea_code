@@ -240,7 +240,9 @@ function toggleVoice(action) {
   .then(r => r.json())
   .then(data => {
     if (data.status) {
-      document.getElementById("voiceStatus").innerText = data.status.toUpperCase();
+      // Map server status to display status
+      const displayStatus = data.status === 'started' ? 'ON' : 'OFF';
+      document.getElementById("voiceStatus").innerText = displayStatus;
     }
   })
   .catch(err => console.error("Voice control toggle failed:", err));
