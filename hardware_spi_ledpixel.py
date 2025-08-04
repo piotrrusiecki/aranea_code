@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger("led")
 
 # Define the Freenove_SPI_LedPixel class
-class Freenove_SPI_LedPixel(object):
+class Freenove_SPI_LedPixel:
     def __init__(self, count=8, bright=255, sequence='GRB', bus=0, device=0):
         # Initialize LED type
         self.set_led_type(sequence)
