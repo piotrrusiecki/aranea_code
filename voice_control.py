@@ -12,13 +12,14 @@ from voice_language_commands import language_command_maps
 logger = logging.getLogger("voice")
 
 class VoiceControl:
-    def __init__(self, command_sender, ultrasonic_sensor, robot_state):
+    def __init__(self, command_sender, ultrasonic_sensor, robot_state, language_switcher=None):
         self.command_sender = command_sender
         self.ultrasonic_sensor = ultrasonic_sensor
         self.robot_state = robot_state
+        self.language_switcher = language_switcher
         self.queue = queue.Queue()
         self.running = False
-        self.command_handler = VoiceCommandHandler(command_sender, ultrasonic_sensor, robot_state)
+        self.command_handler = VoiceCommandHandler(command_sender, ultrasonic_sensor, robot_state, language_switcher)
         self._overflow_count = 0  # Counter for audio overflow message throttling
 
         # Load model from VOICE_MODELS based on VOICE_LANG

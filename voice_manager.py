@@ -23,7 +23,8 @@ class VoiceManager:
                 self.command_sender = process_command
                 self.ultrasonic_sensor = ultrasonic_sensor
                 self.robot_state = robot_state
-                self.voice = VoiceControl(process_command, ultrasonic_sensor, robot_state)
+                # Pass self.switch_language as the language switcher callback
+                self.voice = VoiceControl(process_command, ultrasonic_sensor, robot_state, self.switch_language)
                 self.voice_thread = threading.Thread(target=self.voice.start, daemon=True)
                 self.voice_thread.start()
                 self.voice_active = True
@@ -50,8 +51,8 @@ class VoiceManager:
                 self.voice.stop()
                 self.voice_active = False
                 
-                # Create new voice control with new language
-                self.voice = VoiceControl(self.command_sender, self.ultrasonic_sensor, self.robot_state)
+                # Create new voice control with new language and language switcher callback
+                self.voice = VoiceControl(self.command_sender, self.ultrasonic_sensor, self.robot_state, self.switch_language)
                 self.voice.set_language(lang_code)
                 
                 # Start new voice control

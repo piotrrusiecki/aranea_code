@@ -6,10 +6,11 @@ from constants_commands import COMMAND as cmd
 logger = logging.getLogger("voice")
 
 class VoiceCommandHandler:
-    def __init__(self, command_sender, ultrasonic_sensor, robot_state):
+    def __init__(self, command_sender, ultrasonic_sensor, robot_state, language_switcher=None):
         self.command_sender = command_sender
         self.ultrasonic_sensor = ultrasonic_sensor
         self.robot_state = robot_state
+        self.language_switcher = language_switcher
         self.sonic_thread = None
         self.motion_thread = None
 
@@ -18,8 +19,10 @@ class VoiceCommandHandler:
         # Handle language switching
         if isinstance(command, str) and command.startswith("language_"):
             lang_code = command.split("_")[1].lower()  # Convert to lowercase
-            from voice_manager import _voice_manager
-            _voice_manager.switch_language(lang_code)
+            if self.language_switcher:
+                self.language_switcher(lang_code)
+            else:
+                logger.warning("Language switcher not available, cannot switch to: %s", lang_code)
             return
 
         # Multi-command routines
