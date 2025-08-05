@@ -119,7 +119,7 @@ class Server:
         if len(parts) == 3:
             channel = int(parts[1])
             angle = int(parts[2])
-            logger.info(f"DEBUG: handle_head called with channel={channel}, angle={angle}")
+            logger.info("DEBUG: handle_head called with channel=%s, angle=%s", channel, angle)
             self.servo_controller.set_servo_angle(channel, angle)
 
     def handle_camera(self, parts):
