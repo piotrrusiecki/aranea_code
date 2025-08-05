@@ -9,7 +9,6 @@ import logging
 from command_dispatcher_core import symbolic_commands, routine_commands
 from command_dispatcher_logic import CommandDispatcher
 from command_dispatcher_utils import send_str
-from actuator_servo import Servo
 
 logger = logging.getLogger("dispatcher.symbolic")
 
@@ -52,14 +51,4 @@ def execute_symbolic(symbolic_name, source="internal"):
         logger.warning("[symbolic][%s] Symbolic command not found: %s", source, symbolic_name)
 
 
-def handle_diag_set_servo(args, source="unknown"):
-    if len(args) != 2:
-        raise ValueError("diag_set_servo requires 2 arguments: channel and angle")
 
-    channel = int(args[0])
-    angle = int(args[1])
-
-    servo = Servo()
-    servo.set_servo_angle(channel, angle)
-
-    logger.info("[%s] Diagnostic servo set: channel %d → angle %d", source, channel, angle)

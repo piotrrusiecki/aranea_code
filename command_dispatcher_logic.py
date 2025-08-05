@@ -244,6 +244,27 @@ def _handle_routine_commands(source, command):
     return False
 
 
+def _handle_diag_set_servo(args, source="unknown"):
+    """Handle diag_set_servo command - set servo to specific angle."""
+    if len(args) != 2:
+        logger.error("[%s] diag_set_servo requires 2 arguments: channel and angle", source)
+        return False
+
+    try:
+        channel = int(args[0])
+        angle = int(args[1])
+        
+        from actuator_servo import Servo
+        servo = Servo()
+        servo.set_servo_angle(channel, angle)
+        
+        logger.info("[%s] Diagnostic servo set: channel %d → angle %d", source, channel, angle)
+        return True
+    except Exception as e:
+        logger.error("[%s] Error in diag_set_servo: %s", source, e)
+        return False
+
+
 def _handle_diagnostic_commands(source, command):
     """Handle diagnostic commands (diag_ prefixed)."""
     if not command.startswith("diag_"):
@@ -251,11 +272,8 @@ def _handle_diagnostic_commands(source, command):
         
     parts = command.split("#")
     try:
-        from command_dispatcher_symbolic import handle_diag_set_servo
-
         if parts[0] == "diag_set_servo":
-            handle_diag_set_servo(parts[1:], source)
-            return True
+            return _handle_diag_set_servo(parts[1:], source)
         else:
             logger.warning("[%s] Unknown diag_ command: %s", source, command)
             return True  # Still handled, just unknown

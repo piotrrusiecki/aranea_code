@@ -45,9 +45,10 @@
   - Routes commands to symbolic or routine handlers
   - Safe server instance access with `_get_server()` helper
   - Type-safe with proper None checking
+  - **FIXED**: Resolved cyclic import by moving `_handle_diag_set_servo` function
 - `command_dispatcher_core.py` - Registry for symbolic commands
 - `command_dispatcher_registry.py` - Command registration and routine imports
-- `command_dispatcher_symbolic.py` - Simple command execution
+- `command_dispatcher_symbolic.py` - Simple command execution (no longer imports from logic)
 - `command_dispatcher_utils.py` - Utility functions
 
 #### **Hardware Interface Layer**

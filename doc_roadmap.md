@@ -40,6 +40,7 @@
 ### Architecture Improvements
 - [x] Centralize LED handling in actuator_led_commands.py
 - [x] Eliminate global statement anti-patterns (PYL-W0603) - replaced with singleton patterns
+- [x] Resolve cyclic import between command_dispatcher_logic and command_dispatcher_symbolic
 - [ ] Centralize status_flag management in robot_state.py
 - [ ] Centralize all configuration in config/ (parameter.py moved, robot_config.py exists, but config still scattered throughout codebase)
 - [ ] Enhanced error handling and recovery strategies
