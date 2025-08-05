@@ -156,16 +156,34 @@ def language_ready_flash(led_commands: LEDCommands):
     logger.info("Language switching complete - blue LED flash")
 
 
-# Global LED commands instance (will be initialized by main.py)
-_led_commands: Optional[LEDCommands] = None
+class LEDCommandsManager:
+    """Singleton class to manage LED commands instance."""
+    _instance: Optional['LEDCommandsManager'] = None
+    _led_commands: Optional[LEDCommands] = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    
+    @classmethod
+    def get_led_commands(cls) -> Optional[LEDCommands]:
+        """Get the LED commands instance."""
+        return cls._led_commands
+    
+    @classmethod
+    def set_led_commands(cls, led_commands: LEDCommands) -> None:
+        """Set the LED commands instance."""
+        cls._led_commands = led_commands
+
 
 def init_led_commands(command_sender: Callable):
-    """Initialize the global LED commands instance."""
-    global _led_commands
-    _led_commands = LEDCommands(command_sender)
+    """Initialize the LED commands instance."""
+    led_commands = LEDCommands(command_sender)
+    LEDCommandsManager.set_led_commands(led_commands)
     logger.info("LED commands initialized")
 
 
 def get_led_commands() -> Optional[LEDCommands]:
-    """Get the global LED commands instance."""
-    return _led_commands 
+    """Get the LED commands instance."""
+    return LEDCommandsManager.get_led_commands() 

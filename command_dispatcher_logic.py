@@ -1,10 +1,10 @@
 import threading
 import time
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from constants_commands import COMMAND as cmd
 from config.robot_config import DRY_RUN
-from command_dispatcher_core import routine_commands, symbolic_commands, server_instance
+from command_dispatcher_core import routine_commands, symbolic_commands
 from command_dispatcher_utils import send_str
 from robot_routines import sonic_monitor_loop
 
@@ -24,9 +24,33 @@ known_simple_commands = [
 ]
 
 
+class CommandDispatcher:
+    """Singleton class to manage command dispatcher state."""
+    _instance: Optional['CommandDispatcher'] = None
+    _server_instance: Optional['Server'] = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    
+    @classmethod
+    def get_server(cls) -> 'Server':
+        """Get the server instance with proper None checking."""
+        if cls._server_instance is None:
+            logger.error("Server instance not initialized! Call init_command_dispatcher() first.")
+            raise RuntimeError("Command dispatcher not initialized")
+        return cls._server_instance
+    
+    @classmethod
+    def set_server(cls, server: 'Server') -> None:
+        """Set the server instance."""
+        cls._server_instance = server
+
+
 def init_command_dispatcher(server):
-    global server_instance
-    server_instance = server
+    """Initialize the command dispatcher with server instance."""
+    CommandDispatcher.set_server(server)
     logger.info("Dispatcher initialized with server instance: %s", bool(server))
 
 
@@ -43,10 +67,7 @@ def _create_send_function(source, server):
 
 def _get_server():
     """Get the server instance with proper None checking."""
-    if server_instance is None:
-        logger.error("Server instance not initialized! Call init_command_dispatcher() first.")
-        raise RuntimeError("Command dispatcher not initialized")
-    return server_instance
+    return CommandDispatcher.get_server()
 
 
 def _handle_command_list(source, command):

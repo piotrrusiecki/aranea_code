@@ -304,6 +304,7 @@ hardware_server.led_controller.process_light_command(parts)
 - **Issue**: `'NoneType' object has no attribute 'process_command'`
 - **Root Cause**: Symbolic commands trying to access `server_instance` directly
 - **Solution**: Use `lambda send: send([...])` pattern in command registration
+- **Status**: ✅ **FIXED** - Replaced global `server_instance` with `CommandDispatcher` singleton pattern
 
 ### **3. Audio Input Overflow**
 - **Issue**: Voice control logs frequent "input overflow" messages

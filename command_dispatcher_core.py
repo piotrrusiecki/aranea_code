@@ -3,8 +3,7 @@
 """
 Core dispatcher registry module.
 
-Contains symbolic and routine command mappings, and the shared server_instance
-used across dispatcher, symbolic execution, and routines.
+Contains symbolic and routine command mappings.
 """
 
 import logging
@@ -13,8 +12,6 @@ logger = logging.getLogger("dispatcher.core")
 
 symbolic_commands = {}
 routine_commands = {}
-
-server_instance = None  # This should be assigned externally, typically in main.py
 
 
 def register_symbolic(name, func):
@@ -36,4 +33,3 @@ def register_routine(name, func):
 def dump_registry():
     logger.debug("Registered symbolic commands: %s", list(symbolic_commands.keys()))
     logger.debug("Registered routine commands: %s", list(routine_commands.keys()))
-    logger.debug("Server instance set: %s", server_instance is not None)

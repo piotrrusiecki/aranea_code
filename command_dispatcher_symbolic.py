@@ -6,7 +6,8 @@ without requiring direct access to dispatcher logic or risking circular imports.
 """
 
 import logging
-from command_dispatcher_core import symbolic_commands, routine_commands, server_instance
+from command_dispatcher_core import symbolic_commands, routine_commands
+from command_dispatcher_logic import CommandDispatcher
 from command_dispatcher_utils import send_str
 from actuator_servo import Servo
 
@@ -18,12 +19,11 @@ def execute_symbolic(symbolic_name, source="internal"):
     Executes a symbolic command (task_*, routine_*, sys_*) using dispatcher mappings.
     Used internally by routines and voice to avoid circular dispatcher calls.
     """
-    if server_instance is None:
+    try:
+        server = CommandDispatcher.get_server()
+    except RuntimeError:
         logger.error("[symbolic][%s] Server instance not initialized, cannot execute '%s'", source, symbolic_name)
         return
-    
-    # Store reference for type checker
-    server = server_instance
     
     if symbolic_name in symbolic_commands:
         logger.info("[symbolic][%s] Executing symbolic command: %s", source, symbolic_name)
