@@ -26,19 +26,23 @@ class Servo:
         if channel < 16:
             duty_cycle = map_value(angle, 0, 180, 500, 2500)
             duty_cycle = map_value(duty_cycle, 0, 20000, 0, 4095)
+            print(f"DEBUG: Setting servo {channel} (pwm_41) to angle {angle}, duty_cycle {int(duty_cycle)}")
             self.pwm_41.set_pwm(channel, 0, int(duty_cycle))
         elif 16 <= channel < 32:
             channel -= 16
             duty_cycle = map_value(angle, 0, 180, 500, 2500)
             duty_cycle = map_value(duty_cycle, 0, 20000, 0, 4095)
+            print(f"DEBUG: Setting servo {channel + 16} (pwm_40) to angle {angle}, duty_cycle {int(duty_cycle)}")
             self.pwm_40.set_pwm(channel, 0, int(duty_cycle))
 
     def relax(self):
         """Relax all servos by setting their PWM values to 4096."""
-        for servo_idx in range(8):
-            self.pwm_41.set_pwm(servo_idx + 8, 4096, 4096)
-            self.pwm_40.set_pwm(servo_idx, 4096, 4096)
-            self.pwm_40.set_pwm(servo_idx + 8, 4096, 4096)
+        # Relax all channels on both PCA9685 boards
+        for channel in range(32):
+            if channel < 16:
+                self.pwm_41.set_pwm(channel, 4096, 4096)
+            else:
+                self.pwm_40.set_pwm(channel - 16, 4096, 4096)
 
 
 # Main program logic follows:

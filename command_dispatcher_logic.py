@@ -265,7 +265,17 @@ def _handle_cmd_style_commands(source, command):
             else:
                 # Generic fallback for other CMD commands
                 logger.info("[%s] Sending generic CMD command: %s", source, command)
-                send_str(command, _get_server().process_command)
+                try:
+                    server = _get_server()
+                    logger.info("[%s] Server instance type: %s", source, type(server))
+                    logger.info("[%s] Server process_command: %s", source, server.process_command)
+                    logger.info("[%s] Process_command callable: %s", source, callable(server.process_command))
+                    send_str(command, server.process_command)
+                    logger.info("[%s] send_str call completed successfully", source)
+                except Exception as e:
+                    logger.error("[%s] CRITICAL ERROR in generic CMD handling: %s", source, e)
+                    import traceback
+                    logger.error("[%s] Full traceback: %s", source, traceback.format_exc())
                 return True
     
     return False

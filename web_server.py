@@ -183,16 +183,19 @@ def create_calibration_mode_handler(robot_state):
     return calibration_mode
 
 
-def set_speed():
-    """Handle speed setting requests."""
-    try:
-        speed = int(request.json.get("speed", 0))
-        current_app.robot_state.set_flag("move_speed", speed)
-        logger.debug("Updated move_speed: %s", speed)
-        return jsonify({"status": "ok"})
-    except Exception as e:
-        logger.error("Speed update failed: %s", e)
-        return jsonify({"status": "error", "reason": "Invalid speed value"}), 400
+def create_set_speed_handler(robot_state):
+    """Create speed setting handler with closure over robot state."""
+    def set_speed():
+        """Handle speed setting requests."""
+        try:
+            speed = int(request.json.get("speed", 0))
+            robot_state.set_flag("move_speed", speed)
+            logger.debug("Updated move_speed: %s", speed)
+            return jsonify({"status": "ok"})
+        except Exception as e:
+            logger.error("Speed update failed: %s", e)
+            return jsonify({"status": "error", "reason": "Invalid speed value"}), 400
+    return set_speed
 
 
 def load_point_txt():
@@ -252,7 +255,7 @@ def create_app(server_instance, robot_state):
     app.add_url_rule("/routine", "trigger_routine", trigger_routine, methods=["POST"])
     app.add_url_rule("/calibration", "get_calibration", create_calibration_handler(server_instance), methods=["GET"])
     app.add_url_rule("/calibration_mode", "calibration_mode", create_calibration_mode_handler(robot_state), methods=["GET", "POST"])
-    app.add_url_rule("/set_speed", "set_speed", set_speed, methods=["POST"])
+    app.add_url_rule("/set_speed", "set_speed", create_set_speed_handler(robot_state), methods=["POST"])
     app.add_url_rule("/load_point_txt", "load_point_txt", load_point_txt)
     
     app.errorhandler(500)(internal_error)

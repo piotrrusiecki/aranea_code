@@ -8,7 +8,7 @@ def map_value(value, from_low, from_high, to_low, to_high):
 
 # Only used servo channels
 USED_CHANNELS = [
-    0, 1,
+    0, 1,  # Head servos (pan and tilt)
     8, 9, 10, 11, 12, 13, 14, 15,
     16, 17, 18, 19, 20, 21,
     22, 23, 27, 31
@@ -48,7 +48,10 @@ class ServoTestController:
         printed = set()
         while self.running:
             for i in USED_CHANNELS:
-                if i in [10, 13, 31]:
+                # Head servos (channels 0 and 1) - look forward position
+                if i in [0, 1]:
+                    angle = 90  # Look forward (pan=90, tilt=90)
+                elif i in [10, 13, 31]:
                     angle = 10
                 elif i in [18, 21, 27]:
                     angle = 170

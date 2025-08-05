@@ -38,7 +38,8 @@ class Server:
         self.is_servo_relaxed = False
         self.led_controller = Led()
         self.adc_sensor = ADC()
-        self.servo_controller = Servo()
+        # Use the control system's servo instance instead of creating our own
+        self.servo_controller = self.control_system.servo
         self.buzzer_controller = Buzzer()
         self.servo_controller.set_servo_angle(0, 90)  # Pan
         self.servo_controller.set_servo_angle(1, 90)  # Til
@@ -116,7 +117,10 @@ class Server:
 
     def handle_head(self, parts):
         if len(parts) == 3:
-            self.servo_controller.set_servo_angle(int(parts[1]), int(parts[2]))
+            channel = int(parts[1])
+            angle = int(parts[2])
+            logger.info(f"DEBUG: handle_head called with channel={channel}, angle={angle}")
+            self.servo_controller.set_servo_angle(channel, angle)
 
     def handle_camera(self, parts):
         if len(parts) == 3:
@@ -203,12 +207,15 @@ class Server:
             return
 
         command = parts[0].strip()
+        logger.info("[hardware_server] process_command called with command: %s, parts: %s", command, parts)
+        
         handler = self.command_handlers.get(command)
-
+        
         if handler:
+            logger.info("[hardware_server] Found handler for command: %s", command)
             handler(parts)
         else:
-            logger.warning("Unknown command received: %s | full: %s", command, parts)
+            logger.warning("[hardware_server] No handler found for command: %s", command)
             self.control_system.command_queue = parts
             self.control_system.timeout = time.time()
 
