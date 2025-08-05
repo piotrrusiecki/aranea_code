@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask, request, jsonify, render_template, current_app
+from flask import Flask, request, jsonify, render_template
 from voice_manager import start_voice, stop_voice
 from command_dispatcher_logic import dispatch_command, init_command_dispatcher
 

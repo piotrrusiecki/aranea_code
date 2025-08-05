@@ -230,7 +230,6 @@ def _handle_diagnostic_commands(source, command):
         
     parts = command.split("#")
     try:
-        from command_dispatcher_registry import DIAG_COMMANDS
         from command_dispatcher_symbolic import handle_diag_set_servo
 
         if parts[0] == "diag_set_servo":

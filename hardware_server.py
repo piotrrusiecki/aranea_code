@@ -8,7 +8,7 @@ from threading import Condition
 import logging
 from typing import Optional
 from actuator_led import Led
-from actuator_servo import Servo
+
 from actuator_buzzer import Buzzer
 from robot_control import Control
 from sensor_adc import ADC
