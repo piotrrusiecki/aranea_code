@@ -122,7 +122,7 @@ class Led:
 
     def process_light_command(self, data):
         """Process light commands to control LED behavior."""
-        old_mode = self.led_mode
+        _ = self.led_mode  # old_mode unused
         if len(data) < 4:
             self.led_mode = data[1]
         else:

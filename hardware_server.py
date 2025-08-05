@@ -234,7 +234,7 @@ class Server:
             try:
                 logger.info("Waiting for video connection...")
                 if self.video_socket is not None:
-                    self.video_raw_socket, addr = self.video_socket.accept()
+                    self.video_raw_socket, _ = self.video_socket.accept()
                 if self.video_raw_socket is not None:
                     self.video_raw_socket.settimeout(1.0)
                     self.video_connection = self.video_raw_socket.makefile('wb')

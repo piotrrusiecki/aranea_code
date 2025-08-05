@@ -313,8 +313,8 @@ class Control:
         self.set_leg_angles()
 
     def imu6050(self):
-        old_roll = 0
-        old_pitch = 0
+        _ = 0  # old_roll unused
+        _ = 0  # old_pitch unused
         points = calculate_posture_balance(0, 0, 0, self.body_height)
         transform_coordinates(points, self.leg_positions)
         self.set_leg_angles()
@@ -325,7 +325,7 @@ class Control:
             if self.command_queue[0] != "":
                 break
             time.sleep(0.02)
-            roll, pitch, yaw = self.imu.update_imu_state()
+            roll, pitch, _ = self.imu.update_imu_state()  # yaw unused
             roll = self.pid_controller.pid_calculate(roll)
             pitch = self.pid_controller.pid_calculate(pitch)
             points = calculate_posture_balance(roll, pitch, 0, self.body_height)

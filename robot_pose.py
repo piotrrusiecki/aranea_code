@@ -23,12 +23,6 @@ def calculate_posture_balance(roll, pitch, yaw, body_height):
                           [math.sin(yaw_angle), math.cos(yaw_angle), 0],
                           [0, 0, 1]])
     rotation_matrix = rotation_x @ rotation_y @ rotation_z
-    body_structure = np.array([[55, 76, 0],
-                              [85, 0, 0],
-                              [55, -76, 0],
-                              [-55, -76, 0],
-                              [-85, 0, 0],
-                              [-55, 76, 0]]).T
     footpoint_structure = np.array([[137.1, 189.4, 0],
                                    [225, 0, 0],
                                    [137.1, -189.4, 0],

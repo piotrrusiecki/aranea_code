@@ -98,7 +98,7 @@ class Freenove_SPI_LedPixel:
         # Set the brightness of all LEDs
         self.led_brightness = brightness
         for led_idx in range(self.get_led_count()):
-            self.set_led_rgb_data(i, self.led_original_color)
+            self.set_led_rgb_data(led_idx, self.led_original_color)
             
     def set_ledpixel(self, index, r, g, b):
         # Set the color of a specific LED
