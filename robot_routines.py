@@ -151,7 +151,7 @@ def sys_prep_calibration(_send, control_system, robot_state):
     logger.info("Robot set to saved calibration pose. Calibration mode ON.")
 
 
-def sys_exit_calibration(send, control_system, robot_state):
+def sys_exit_calibration(_send, control_system, robot_state):
     logger.info("Exiting calibration mode...")
     robot_state.set_flag("calibration_mode", False)
     

@@ -132,11 +132,11 @@ class Freenove_RPI_WS281X:
     def show(self):
         # Update the LED strip with the current color data
         # Use enumerate to avoid loop variable shadowing
-        for position, _ in enumerate(range(self.get_led_count())):
-            self.strip.setPixelColor(position, Color(
-                self.led_color[position * 3], 
-                self.led_color[position * 3 + 1], 
-                self.led_color[position * 3 + 2]
+        for led_index, _ in enumerate(range(self.get_led_count())):
+            self.strip.setPixelColor(led_index, Color(
+                self.led_color[led_index * 3], 
+                self.led_color[led_index * 3 + 1], 
+                self.led_color[led_index * 3 + 2]
             ))
         self.strip.show()
 

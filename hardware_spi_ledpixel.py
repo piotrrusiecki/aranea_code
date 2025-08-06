@@ -202,26 +202,26 @@ class Freenove_SPI_LedPixel:
         h = h % 360
         rgb_max = round(v * 2.55)
         rgb_min = round(rgb_max * (100 - s) / 100)
-        i = round(h / 60)
+        hue_sector = round(h / 60)
         diff = round(h % 60)
         rgb_adj = round((rgb_max - rgb_min) * diff / 60)
-        if i == 0:
+        if hue_sector == 0:
             r = rgb_max
             g = rgb_min + rgb_adj
             b = rgb_min
-        elif i == 1:
+        elif hue_sector == 1:
             r = rgb_max - rgb_adj
             g = rgb_max
             b = rgb_min
-        elif i == 2:
+        elif hue_sector == 2:
             r = rgb_min
             g = rgb_max
             b = rgb_min + rgb_adj
-        elif i == 3:
+        elif hue_sector == 3:
             r = rgb_min
             g = rgb_max - rgb_adj
             b = rgb_max
-        elif i == 4:
+        elif hue_sector == 4:
             r = rgb_min + rgb_adj
             g = rgb_min
             b = rgb_max

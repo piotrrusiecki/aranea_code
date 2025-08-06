@@ -141,17 +141,17 @@ class ParameterManager:
             print("Please enter the hardware versions.")
             while True:
                 try:
-                    pcb_version = int(input("Enter PCB Version (1 or 2): "))
-                    if pcb_version in [1, 2]:
+                    user_pcb_version = int(input("Enter PCB Version (1 or 2): "))
+                    if user_pcb_version in [1, 2]:
                         break
                     else:
                         print("Invalid PCB Version. Please enter 1 or 2.")
                 except ValueError:
                     print("Invalid input. Please enter a number.")
-            pi_version = ParameterManager.get_raspberry_pi_version()
+            user_pi_version = ParameterManager.get_raspberry_pi_version()
             self.create_param_file()
-            self.set_param('Pcb_Version', pcb_version)
-            self.set_param('Pi_Version', pi_version)
+            self.set_param('Pcb_Version', user_pcb_version)
+            self.set_param('Pi_Version', user_pi_version)
         else:
             print("Do not modify the hardware version. Skipping...")
 
