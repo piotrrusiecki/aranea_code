@@ -100,6 +100,70 @@ def _handle_symbolic_commands(source, command):
     return True
 
 
+def _handle_led_commands(source, command):
+    """Handle LED commands with parameters."""
+    # Check if it's a parameterized LED command
+    if command.startswith("led_set_"):
+        # Extract parameters from command string (format: "led_set_static:r:g:b" or "led_set_static:r:g:b:led1,led2,led3")
+        parts = command.split(":")
+        if len(parts) >= 4:
+            cmd_type = parts[0]  # e.g., "led_set_static"
+            try:
+                r = int(parts[1])
+                g = int(parts[2])
+                b = int(parts[3])
+                
+                # Parse LED indices if provided (format: "1,2,3" or "all")
+                led_indices = None
+                if len(parts) >= 5:
+                    led_str = parts[4]
+                    if led_str.lower() != "all":
+                        led_indices = [int(idx.strip()) for idx in led_str.split(",") if idx.strip().isdigit()]
+                
+                logger.info("[%s] Executing LED command: %s with RGB(%d,%d,%d) on LEDs %s", 
+                          source, cmd_type, r, g, b, led_indices if led_indices else "all")
+                
+                # Call the appropriate LED function
+                if cmd_type == "led_set_static":
+                    from command_dispatcher_registry import _led_static_all
+                    _led_static_all(r, g, b, led_indices)
+                elif cmd_type == "led_set_glow":
+                    from command_dispatcher_registry import _led_glow_all
+                    _led_glow_all(r, g, b, led_indices)
+                elif cmd_type == "led_set_flash":
+                    from command_dispatcher_registry import _led_flash_all
+                    _led_flash_all(r, g, b, led_indices)
+                else:
+                    logger.warning("[%s] Unknown LED command type: %s", source, cmd_type)
+                    return False
+                    
+                return True
+            except (ValueError, IndexError) as e:
+                logger.error("[%s] Invalid LED command parameters: %s", source, e)
+                return False
+    elif command.startswith("led_off"):
+        # Handle LED off command (format: "led_off" or "led_off:led1,led2,led3")
+        parts = command.split(":")
+        try:
+            led_indices = None
+            if len(parts) >= 2:
+                led_str = parts[1]
+                if led_str.lower() != "all":
+                    led_indices = [int(idx.strip()) for idx in led_str.split(",") if idx.strip().isdigit()]
+            
+            logger.info("[%s] Executing LED off command on LEDs %s", 
+                      source, led_indices if led_indices else "all")
+            
+            from command_dispatcher_registry import _led_off_all
+            _led_off_all(led_indices)
+            return True
+        except (ValueError, IndexError) as e:
+            logger.error("[%s] Invalid LED off command parameters: %s", source, e)
+            return False
+    
+    return False
+
+
 def _handle_gait_routines(source, command, send):
     """Handle gait movement routines (march/run commands)."""
     gait_commands = {
@@ -398,6 +462,10 @@ def dispatch_command(source, command):
 
     # Handle symbolic commands
     if _handle_symbolic_commands(source, command):
+        return
+
+    # Handle LED commands with parameters
+    if _handle_led_commands(source, command):
         return
 
     # Handle routine commands

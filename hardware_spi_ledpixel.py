@@ -295,10 +295,3 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         # Close the SPI connection on keyboard interrupt
         led.led_close()
-        
-    
-
-
-
-
-

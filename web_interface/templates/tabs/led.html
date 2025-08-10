@@ -1,0 +1,112 @@
+<div class="tab-pane fade" id="led" role="tabpanel">
+  <h3>LED Control</h3>
+
+  <!-- LED Selection Row -->
+  <div class="row mb-4">
+    <div class="col">
+      <label class="form-label fs-5">LED Selection</label>
+      <div class="d-flex flex-wrap gap-2">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="ledAll" onchange="toggleAllLEDs()">
+          <label class="form-check-label" for="ledAll">All</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="led1" onchange="updateLEDSelection()">
+          <label class="form-check-label" for="led1">LED 1</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="led2" onchange="updateLEDSelection()">
+          <label class="form-check-label" for="led2">LED 2</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="led3" onchange="updateLEDSelection()">
+          <label class="form-check-label" for="led3">LED 3</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="led4" onchange="updateLEDSelection()">
+          <label class="form-check-label" for="led4">LED 4</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="led5" onchange="updateLEDSelection()">
+          <label class="form-check-label" for="led5">LED 5</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="led6" onchange="updateLEDSelection()">
+          <label class="form-check-label" for="led6">LED 6</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="led7" onchange="updateLEDSelection()">
+          <label class="form-check-label" for="led7">LED 7</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Color Control Row -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <label class="form-label fs-5">Color Control</label>
+      <div class="row g-2">
+        <div class="col-4">
+          <label for="redValue" class="form-label">Red</label>
+          <input type="number" class="form-control" id="redValue" min="0" max="255" value="255" onchange="updateColorPicker()">
+        </div>
+        <div class="col-4">
+          <label for="greenValue" class="form-label">Green</label>
+          <input type="number" class="form-control" id="greenValue" min="0" max="255" value="255" onchange="updateColorPicker()">
+        </div>
+        <div class="col-4">
+          <label for="blueValue" class="form-label">Blue</label>
+          <input type="number" class="form-control" id="blueValue" min="0" max="255" value="255" onchange="updateColorPicker()">
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label fs-5">Color Picker</label>
+      <div class="d-flex align-items-center gap-3">
+        <input type="color" class="form-control form-control-color" id="colorPicker" value="#ffffff" onchange="updateRGBValues()" style="width: 100px; height: 60px;">
+        <div id="colorPreview" class="border rounded" style="width: 100px; height: 60px; background-color: #ffffff;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode Selection Row -->
+  <div class="row mb-4">
+    <div class="col">
+      <label class="form-label fs-5">Mode</label>
+      <div class="d-flex gap-4">
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="ledMode" id="modeStatic" value="static" checked>
+          <label class="form-check-label" for="modeStatic">Static On</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="ledMode" id="modeGlow" value="glow">
+          <label class="form-check-label" for="modeGlow">Glow</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="ledMode" id="modeFlash" value="flash">
+          <label class="form-check-label" for="modeFlash">Flash</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons Row -->
+  <div class="row mb-4">
+    <div class="col-6">
+      <button class="btn btn-primary btn-xlarge w-100" onclick="applyLEDConfig()">Apply</button>
+    </div>
+    <div class="col-6">
+      <button class="btn btn-danger btn-xlarge w-100" onclick="turnLEDsOff()">Off</button>
+    </div>
+  </div>
+
+  <!-- Status Display -->
+  <div class="row">
+    <div class="col">
+      <div id="ledStatus" class="alert alert-info" style="display: none;">
+        <span id="ledStatusText">LED status will appear here</span>
+      </div>
+    </div>
+  </div>
+</div> 

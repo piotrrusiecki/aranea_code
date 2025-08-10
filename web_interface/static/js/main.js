@@ -515,4 +515,159 @@ function loadPointTxt() {
     })
     .catch(err => console.error("Failed to load point.txt:", err));
 }
+
+// LED Control Functions
+function toggleAllLEDs() {
+  const allCheckbox = document.getElementById('ledAll');
+  const ledCheckboxes = ['led1', 'led2', 'led3', 'led4', 'led5', 'led6', 'led7'];
+  
+  ledCheckboxes.forEach(ledId => {
+    const checkbox = document.getElementById(ledId);
+    checkbox.checked = allCheckbox.checked;
+  });
+}
+
+function updateLEDSelection() {
+  const ledCheckboxes = ['led1', 'led2', 'led3', 'led4', 'led5', 'led6', 'led7'];
+  const allCheckbox = document.getElementById('ledAll');
+  
+  const allChecked = ledCheckboxes.every(ledId => {
+    return document.getElementById(ledId).checked;
+  });
+  
+  allCheckbox.checked = allChecked;
+}
+
+function updateColorPicker() {
+  const red = document.getElementById('redValue').value;
+  const green = document.getElementById('greenValue').value;
+  const blue = document.getElementById('blueValue').value;
+  
+  const hexColor = rgbToHex(parseInt(red), parseInt(green), parseInt(blue));
+  document.getElementById('colorPicker').value = hexColor;
+  document.getElementById('colorPreview').style.backgroundColor = hexColor;
+}
+
+function updateRGBValues() {
+  const colorPicker = document.getElementById('colorPicker');
+  const hexColor = colorPicker.value;
+  const rgb = hexToRgb(hexColor);
+  
+  document.getElementById('redValue').value = rgb.r;
+  document.getElementById('greenValue').value = rgb.g;
+  document.getElementById('blueValue').value = rgb.b;
+  document.getElementById('colorPreview').style.backgroundColor = hexColor;
+}
+
+function rgbToHex(r, g, b) {
+  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : {r: 255, g: 255, b: 255};
+}
+
+function getSelectedLEDs() {
+  const ledCheckboxes = ['led1', 'led2', 'led3', 'led4', 'led5', 'led6', 'led7'];
+  const selectedLEDs = [];
+  
+  ledCheckboxes.forEach((ledId, index) => {
+    if (document.getElementById(ledId).checked) {
+      selectedLEDs.push(index + 1); // LED numbers are 1-based
+    }
+  });
+  
+  return selectedLEDs;
+}
+
+function getCurrentColor() {
+  return {
+    r: parseInt(document.getElementById('redValue').value),
+    g: parseInt(document.getElementById('greenValue').value),
+    b: parseInt(document.getElementById('blueValue').value)
+  };
+}
+
+function getCurrentMode() {
+  const modeRadios = document.getElementsByName('ledMode');
+  for (const radio of modeRadios) {
+    if (radio.checked) {
+      return radio.value;
+    }
+  }
+  return 'static';
+}
+
+function showLEDStatus(message, type = 'info') {
+  const statusDiv = document.getElementById('ledStatus');
+  const statusText = document.getElementById('ledStatusText');
+  
+  statusText.textContent = message;
+  statusDiv.className = `alert alert-${type}`;
+  statusDiv.style.display = 'block';
+  
+  // Hide status after 3 seconds
+  setTimeout(() => {
+    statusDiv.style.display = 'none';
+  }, 3000);
+}
+
+function applyLEDConfig() {
+  const selectedLEDs = getSelectedLEDs();
+  const color = getCurrentColor();
+  const mode = getCurrentMode();
+  
+  if (selectedLEDs.length === 0) {
+    showLEDStatus('Please select at least one LED', 'warning');
+    return;
+  }
+  
+  // Send configuration to backend
+  fetch('/led_config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      leds: selectedLEDs,
+      color: color,
+      mode: mode
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showLEDStatus(`Applied ${mode} mode to LEDs ${selectedLEDs.join(', ')}`, 'success');
+    } else {
+      showLEDStatus('Failed to apply LED configuration', 'danger');
+    }
+  })
+  .catch(err => {
+    console.error('LED config failed:', err);
+    showLEDStatus('Error applying LED configuration', 'danger');
+  });
+}
+
+function turnLEDsOff() {
+  fetch('/led_off', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showLEDStatus('All LEDs turned off', 'success');
+    } else {
+      showLEDStatus('Failed to turn off LEDs', 'danger');
+    }
+  })
+  .catch(err => {
+    console.error('LED off failed:', err);
+    showLEDStatus('Error turning off LEDs', 'danger');
+  });
+}
+
 updateHeadDisplay();

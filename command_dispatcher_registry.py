@@ -81,11 +81,22 @@ _symbolic_to_register = {
     "task_servo_off": lambda send: send([cmd.CMD_SERVOPOWER, "0"]),
     "task_servo_on":  lambda send: send([cmd.CMD_SERVOPOWER, "1"]),
     
-    # Light commands
+    # Light commands (legacy CMD_LED-based)
     "task_light_red":   lambda send: send([cmd.CMD_LED, "255", "0", "0"]),
     "task_light_green": lambda send: send([cmd.CMD_LED, "0", "255", "0"]),
     "task_light_blue":  lambda send: send([cmd.CMD_LED, "0", "0", "255"]),
     "task_light_off":   lambda send: send([cmd.CMD_LED, "0", "0", "0"]),
+    
+    # LED commands (direct hardware access)
+    "led_static":       lambda send: _led_static_all(255, 255, 255),
+    "led_glow":         lambda send: _led_glow_all(255, 0, 0),
+    "led_flash":        lambda send: _led_flash_all(255, 255, 255),
+    "led_off":          lambda send: _led_off_all(),
+    
+    # LED commands with parameters (for web interface)
+    "led_set_static":   lambda send, r=255, g=255, b=255: _led_static_all(r, g, b),
+    "led_set_glow":     lambda send, r=255, g=0, b=0: _led_glow_all(r, g, b),
+    "led_set_flash":    lambda send, r=255, g=255, b=255: _led_flash_all(r, g, b),
 
     # System commands
     "sys_shutdown": lambda send: send([cmd.CMD_POWER, "0"]),
@@ -101,6 +112,44 @@ for name, func in _symbolic_to_register.items():
 
 
 # === Routine Definitions ===
+
+# LED control routines using direct hardware access
+def _led_static_all(r=255, g=255, b=255, led_indices=None):
+    """Set LEDs to static color."""
+    from actuator_led_commands import get_led_commands
+    led_commands = get_led_commands()
+    if led_commands:
+        if led_indices is None:
+            led_indices = [1, 2, 3, 4, 5, 6, 7]  # All LEDs
+        led_commands.set_led_color(led_indices, r, g, b)
+
+def _led_glow_all(r=255, g=0, b=0, led_indices=None):
+    """Start glow pattern on LEDs."""
+    from actuator_led_commands import get_led_commands
+    led_commands = get_led_commands()
+    if led_commands:
+        if led_indices is None:
+            led_indices = [1, 2, 3, 4, 5, 6, 7]  # All LEDs
+        led_commands.glow_color(led_indices, r, g, b)
+
+def _led_flash_all(r=255, g=255, b=255, led_indices=None):
+    """Start flash pattern on LEDs."""
+    from actuator_led_commands import get_led_commands
+    led_commands = get_led_commands()
+    if led_commands:
+        if led_indices is None:
+            led_indices = [1, 2, 3, 4, 5, 6, 7]  # All LEDs
+        led_commands.flash_color(led_indices, r, g, b, duration=1.0, times=0)
+
+def _led_off_all(led_indices=None):
+    """Turn off LEDs."""
+    from actuator_led_commands import get_led_commands
+    led_commands = get_led_commands()
+    if led_commands:
+        if led_indices is None:
+            led_commands.turn_off()  # All LEDs
+        else:
+            led_commands.turn_off(led_indices)  # Specific LEDs
 
 _routines_to_register = {
     "routine_march_forward": routine_march_forward,

@@ -11,7 +11,7 @@ from web_server import create_app
 from werkzeug.serving import make_server
 from robot_state import RobotState
 from config import robot_config
-from actuator_led_commands import init_led_commands, get_led_commands, server_ready_flash
+from actuator_led_commands import init_led_commands, get_led_commands
 
 # --- Logging setup with color by logger name ---
 class LoggerColorFormatter(logging.Formatter):
@@ -68,7 +68,10 @@ if __name__ == '__main__':
         server.is_tcp_active = True
 
         # Initialize LED commands
-        init_led_commands(server.process_command)
+        try:
+            init_led_commands(server.led_controller)
+        except Exception as e:
+            logger.warning("LED commands initialization failed: %s", e)
 
         threading.Thread(target=server.transmit_video, args=(shutdown_event,), daemon=True).start()
         threading.Thread(target=server.receive_commands, args=(shutdown_event,), daemon=True).start()
@@ -83,7 +86,7 @@ if __name__ == '__main__':
         # Server ready flash
         led_commands = get_led_commands()
         if led_commands:
-            server_ready_flash(led_commands)
+            led_commands.flash_color([1, 2, 3, 4, 5, 6, 7], 0, 255, 0, duration=0.3, times=2)
 
         logger.info("Server started. Press Ctrl+C to stop.")
         shutdown_event.wait()

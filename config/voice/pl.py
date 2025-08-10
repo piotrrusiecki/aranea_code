@@ -51,7 +51,7 @@ command_map = {
 
     "pająk po polsku": "language_PL",
     "pająk po angielsku": "language_EN",
-    "pająk esperanto": "language_EO",
+    "pająk w esperanto": "language_EO",
     "pająk po niemiecku": "language_DE",
     "pająk po hindusku": "language_HI",
     "pająk po hiszpańsku": "language_ES",

@@ -217,6 +217,78 @@ def load_point_txt():
         return jsonify({"error": str(e)}), 500
 
 
+def led_config():
+    """Handle LED configuration requests from web interface."""
+    try:
+        data = request.json
+        leds = data.get("leds", [])
+        color = data.get("color", {})
+        mode = data.get("mode", "static")
+        
+        r = color.get("r", 255)
+        g = color.get("g", 255)
+        b = color.get("b", 255)
+        
+        logger.info(f"LED config request: LEDs {leds}, color RGB({r},{g},{b}), mode {mode}")
+        
+        # Use parameterized LED commands with color and LED selection information
+        led_indices_str = ",".join(map(str, leds)) if leds else "all"
+        
+        if mode == "static":
+            # Use command dispatcher for static mode with color parameters and LED selection
+            from command_dispatcher_logic import dispatch_command
+            success = dispatch_command("web", f"led_set_static:{r}:{g}:{b}:{led_indices_str}")
+        elif mode == "glow":
+            # Use command dispatcher for glow mode with color parameters and LED selection
+            from command_dispatcher_logic import dispatch_command
+            success = dispatch_command("web", f"led_set_glow:{r}:{g}:{b}:{led_indices_str}")
+        elif mode == "flash":
+            # Use command dispatcher for flash mode with color parameters and LED selection
+            from command_dispatcher_logic import dispatch_command
+            success = dispatch_command("web", f"led_set_flash:{r}:{g}:{b}:{led_indices_str}")
+        else:
+            logger.warning(f"Unknown LED mode: {mode}")
+            return jsonify({"success": False, "error": f"Unknown mode: {mode}"}), 400
+        
+        if success:
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "error": "LED operation failed"}), 500
+            
+    except Exception as e:
+        logger.error(f"LED config error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+def led_off():
+    """Handle LED turn off requests from web interface."""
+    try:
+        logger.info("LED turn off request received")
+        
+        # Check if specific LEDs should be turned off
+        data = request.json
+        leds = data.get("leds", []) if data else []
+        
+        # Use command dispatcher for LED off
+        from command_dispatcher_logic import dispatch_command
+        if leds:
+            # Turn off specific LEDs
+            led_indices_str = ",".join(map(str, leds))
+            success = dispatch_command("web", f"led_off:{led_indices_str}")
+        else:
+            # Turn off all LEDs
+            success = dispatch_command("web", "led_off")
+        
+        if success:
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "error": "Failed to turn off LEDs"}), 500
+            
+    except Exception as e:
+        logger.error(f"LED off error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 def internal_error(e):
     """Handle internal server errors."""
     logger.error("Unhandled 500 error: %s", e)
@@ -257,6 +329,8 @@ def create_app(server_instance, robot_state):
     app.add_url_rule("/calibration_mode", "calibration_mode", create_calibration_mode_handler(robot_state), methods=["GET", "POST"])
     app.add_url_rule("/set_speed", "set_speed", create_set_speed_handler(robot_state), methods=["POST"])
     app.add_url_rule("/load_point_txt", "load_point_txt", load_point_txt)
+    app.add_url_rule("/led_config", "led_config", led_config, methods=["POST"])
+    app.add_url_rule("/led_off", "led_off", led_off, methods=["POST"])
     
     app.errorhandler(500)(internal_error)
 
