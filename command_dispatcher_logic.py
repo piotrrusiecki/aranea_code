@@ -462,23 +462,23 @@ def dispatch_command(source, command):
 
     # Handle symbolic commands
     if _handle_symbolic_commands(source, command):
-        return
+        return True
 
     # Handle LED commands with parameters
     if _handle_led_commands(source, command):
-        return
+        return True
 
     # Handle routine commands
     if _handle_routine_commands(source, command):
-        return
+        return True
 
     # Handle diagnostic commands
     if _handle_diagnostic_commands(source, command):
-        return
+        return True
 
     # Handle CMD-style commands
     if _handle_cmd_style_commands(source, command):
-        return
+        return True
 
 
 
