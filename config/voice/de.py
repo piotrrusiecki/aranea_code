@@ -35,15 +35,16 @@ command_map = {
     "schau hoch": "task_look_up",
     "schau runter": "task_look_down",
 
-    "entspann dich": "task_servo_off",
+    "relax": "task_servo_off",
     "aufwachen": "task_servo_on",
 
-    "licht rot": "task_light_red",
-    "licht grün": "task_light_green",
-    "licht blau": "task_light_blue",
-    "licht aus": "task_light_off",
+    "licht rot": "led_set_static:255:0:0",
+    "licht grün": "led_set_static:0:255:0",
+    "licht blau": "led_set_static:0:0:255",
+    "licht aus": "led_off",
+    "blinken": "led_blink",
 
-    "vermeide": "sys_start_sonic",
+    "vermeiden": "sys_start_sonic",
     "blind": "sys_stop_sonic",
 
     "stopp": "sys_stop_motion",

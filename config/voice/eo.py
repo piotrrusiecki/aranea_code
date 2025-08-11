@@ -35,16 +35,17 @@ command_map = {
     "rigardu supren": "task_look_up",
     "rigardu malsupren": "task_look_down",
 
-    "ripozu": "task_servo_off",
-    "veku": "task_servo_on",
+    "relakso": "task_servo_off",
+    "vekiĝu": "task_servo_on",
 
-    "lumigu ruĝe": "task_light_red",
-    "lumigu verde": "task_light_green",
-    "lumigu blue": "task_light_blue",
-    "malŝaltu lumo": "task_light_off",
+    "lumigu ruĝe": "led_set_static:255:0:0",
+    "lumigu verde": "led_set_static:0:255:0",
+    "lumigu blue": "led_set_static:0:0:255",
+    "malŝaltu lumo": "led_off",
+    "ekbrilu": "led_blink",
 
     "evitu": "sys_start_sonic",
-    "blinda": "sys_stop_sonic",
+    "blindu": "sys_stop_sonic",
 
     "haltu": "sys_stop_motion",
     "patrolu": "routine_patrol",

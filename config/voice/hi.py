@@ -35,15 +35,16 @@ command_map = {
     "upar dekho": "task_look_up",
     "neeche dekho": "task_look_down",
 
-    "aaraam karo": "task_servo_off",
-    "jago": "task_servo_on",
+    "आराम": "task_servo_off",
+    "जागो": "task_servo_on",
 
-    "laal roshni": "task_light_red",
-    "hara roshni": "task_light_green",
-    "neela roshni": "task_light_blue",
-    "band roshni": "task_light_off",
+    "laal roshni": "led_set_static:255:0:0",
+    "hara roshni": "led_set_static:0:255:0",
+    "neela roshni": "led_set_static:0:0:255",
+    "band roshni": "led_off",
+    "jhalak": "led_blink",
 
-    "bachao": "sys_start_sonic",
+    "bacho": "sys_start_sonic",
     "andha": "sys_stop_sonic",
 
     "ruk jao": "sys_stop_motion",
