@@ -559,6 +559,16 @@ function updateRGBValues() {
   document.getElementById('colorPreview').style.backgroundColor = hexColor;
 }
 
+function clampColorValue(value) {
+  return Math.max(0, Math.min(255, parseInt(value) || 0));
+}
+
+function validateColorInput(input) {
+  const value = clampColorValue(input.value);
+  input.value = value;
+  updateColorPicker();
+}
+
 function rgbToHex(r, g, b) {
   return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
