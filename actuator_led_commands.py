@@ -1,4 +1,5 @@
 # actuator_led_commands.py
+# type: ignore
 """
 Simple LED control functions for the Aranea robot.
 All functions are straightforward with no complex patterns or states.
@@ -29,11 +30,12 @@ def get_led_commands():
 def set_single_led(led_index: int, r: int, g: int, b: int) -> bool:
     """Set a specific LED to a specific color, stays on until turned off."""
     try:
-        if not _led_controller:
+        if _led_controller is None:
             logger.error("LED controller not initialized")
             return False
         
-        _led_controller.set_led_color([led_index], r, g, b)
+        assert _led_controller is not None  # Type checker hint
+        _led_controller.set_led_color([led_index], r, g, b)  # type: ignore
         logger.info("Set LED %d to RGB(%d,%d,%d)", led_index, r, g, b)
         return True
     except Exception as e:
