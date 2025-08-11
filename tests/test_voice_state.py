@@ -20,19 +20,19 @@ def test_voice_state_management():
     robot_state = RobotState()
     voice_active = robot_state.get_flag("voice_active")
     print(f"   Initial voice_active state: {voice_active}")
-    assert voice_active == False, "Voice should be inactive by default"
+    assert voice_active is False, "Voice should be inactive by default"
     
     # Test 2: Direct robot state manipulation
     print("\n2. Testing direct robot state manipulation...")
     robot_state.set_flag("voice_active", True)
     voice_active = robot_state.get_flag("voice_active")
     print(f"   Voice active after setting to True: {voice_active}")
-    assert voice_active == True, "Voice should be active after setting to True"
+    assert voice_active is True, "Voice should be active after setting to True"
     
     robot_state.set_flag("voice_active", False)
     voice_active = robot_state.get_flag("voice_active")
     print(f"   Voice active after setting to False: {voice_active}")
-    assert voice_active == False, "Voice should be inactive after setting to False"
+    assert voice_active is False, "Voice should be inactive after setting to False"
     
     # Test 3: Voice manager state tracking (without actual voice control)
     print("\n3. Testing voice manager state tracking...")
