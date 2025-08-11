@@ -91,12 +91,14 @@ _symbolic_to_register = {
     "led_static":       lambda send: _led_static_all(255, 255, 255),
     "led_glow":         lambda send: _led_glow_all(255, 0, 0),
     "led_flash":        lambda send: _led_flash_all(255, 255, 255),
+    "led_blink":        lambda send: _led_blink_all(255, 255, 255),
     "led_off":          lambda send: _led_off_all(),
     
     # LED commands with parameters (for web interface)
     "led_set_static":   lambda send, r=255, g=255, b=255: _led_static_all(r, g, b),
     "led_set_glow":     lambda send, r=255, g=0, b=0: _led_glow_all(r, g, b),
     "led_set_flash":    lambda send, r=255, g=255, b=255: _led_flash_all(r, g, b),
+    "led_set_blink":    lambda send, r=255, g=255, b=255: _led_blink_all(r, g, b),
 
     # System commands
     "sys_shutdown": lambda send: send([cmd.CMD_POWER, "0"]),
@@ -140,6 +142,20 @@ def _led_flash_all(r=255, g=255, b=255, led_indices=None):
         if led_indices is None:
             led_indices = [1, 2, 3, 4, 5, 6, 7]  # All LEDs
         led_commands.flash_color(led_indices, r, g, b, duration=1.0, times=0)
+
+def _led_blink_all(r=255, g=255, b=255, led_indices=None, duration=2.0):
+    """Blink LEDs: on for duration, then off."""
+    from actuator_led_commands import get_led_commands
+    import time
+    led_commands = get_led_commands()
+    if led_commands:
+        if led_indices is None:
+            led_indices = [1, 2, 3, 4, 5, 6, 7]  # All LEDs
+        # Turn on
+        led_commands.set_led_color(led_indices, r, g, b)
+        time.sleep(duration)
+        # Turn off
+        led_commands.set_led_color(led_indices, 0, 0, 0)
 
 def _led_off_all(led_indices=None):
     """Turn off LEDs."""

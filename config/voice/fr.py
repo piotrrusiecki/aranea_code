@@ -42,6 +42,7 @@ command_map = {
     "lumière verte": "led_set_static:0:255:0",
     "lumière bleue": "led_set_static:0:0:255",
     "éteins la lumière": "led_off",
+    "clignote": "led_blink",
 
     "évite": "sys_start_sonic",
     "aveugle": "sys_stop_sonic",

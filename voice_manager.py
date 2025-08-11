@@ -67,10 +67,12 @@ class VoiceManager:
                 self.voice_thread.start()
                 self.voice_active = True
                 
-                # Blue flash to indicate language switching is complete
+                # Stop red glow and do blue blink to indicate completion
                 if led_commands:
                     led_commands.stop_pattern()  # Stop the red glow
-                    led_commands.flash_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 255, duration=0.4, times=1)
+                    # Use command dispatcher for blue blink
+                    from command_dispatcher_logic import dispatch_command
+                    dispatch_command("voice", "led_set_blink:0:0:255")
                 
                 logger.info("Voice control restarted with language: %s", lang_code)
             except Exception as e:
