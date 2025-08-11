@@ -83,9 +83,9 @@ if __name__ == '__main__':
         web_thread = FlaskServerThread(flask_app)
         web_thread.start()
 
-        # Server ready feedback
-        from actuator_led_commands import server_ready_feedback
-        server_ready_feedback()
+        # Server ready feedback - green blink
+        from actuator_led_commands import blink_all_led
+        blink_all_led(0, 255, 0)  # Green blink
 
         logger.info("Server started. Press Ctrl+C to stop.")
         shutdown_event.wait()
