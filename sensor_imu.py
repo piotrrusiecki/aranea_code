@@ -160,7 +160,7 @@ class IMU:
     @staticmethod
     def handle_exception(exception):
         print(exception)
-        os.system("i2cdetect -y 1")
+        os.system("/usr/sbin/i2cdetect -y 1")
         raise exception
 
 if __name__ == '__main__':

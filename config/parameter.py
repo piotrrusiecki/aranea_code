@@ -114,7 +114,7 @@ class ParameterManager:
     def get_raspberry_pi_version():
         # Get the version of the Raspberry Pi
         try:
-            result = subprocess.run(['cat', '/sys/firmware/devicetree/base/model'], capture_output=True, text=True, check=False)
+            result = subprocess.run(['/usr/bin/cat', '/sys/firmware/devicetree/base/model'], capture_output=True, text=True, check=False)
             if result.returncode == 0:
                 model = result.stdout.strip()
                 if "Raspberry Pi 5" in model:

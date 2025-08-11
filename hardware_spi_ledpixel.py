@@ -238,7 +238,7 @@ if __name__ == '__main__':
     logger.info("spidev version is %s", spidev.__version__)
     # Log the available SPI devices
     logger.info("spidev device as show:")
-    os.system("ls /dev/spi*")
+    os.system("/usr/bin/ls /dev/spi*")
     
     # Create an instance of Freenove_SPI_LedPixel with 8 LEDs and maximum brightness
     led = Freenove_SPI_LedPixel(8, 255)              # Use MOSI for /dev/spidev0 to drive the lights
