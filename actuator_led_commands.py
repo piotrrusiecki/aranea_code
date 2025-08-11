@@ -184,7 +184,9 @@ class LEDCommands:
         """Stop the currently running LED pattern."""
         if self._pattern_thread and self._pattern_thread.is_alive():
             self._stop_pattern = True
-            self._pattern_thread.join(timeout=1.0)
+            # Don't try to join the current thread
+            if self._pattern_thread != threading.current_thread():
+                self._pattern_thread.join(timeout=1.0)
             pattern_name = self._current_pattern
             self._current_pattern = None
             logger.debug("Stopped LED pattern: %s", pattern_name)
