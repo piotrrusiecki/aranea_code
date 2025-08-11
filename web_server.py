@@ -236,15 +236,12 @@ def led_config():
         
         if mode == "static":
             # Use command dispatcher for static mode with color parameters and LED selection
-            from command_dispatcher_logic import dispatch_command
             success = dispatch_command("web", f"led_set_static:{r}:{g}:{b}:{led_indices_str}")
         elif mode == "glow":
             # Use command dispatcher for glow mode with color parameters and LED selection
-            from command_dispatcher_logic import dispatch_command
             success = dispatch_command("web", f"led_set_glow:{r}:{g}:{b}:{led_indices_str}")
         elif mode == "flash":
             # Use command dispatcher for flash mode with color parameters and LED selection
-            from command_dispatcher_logic import dispatch_command
             success = dispatch_command("web", f"led_set_flash:{r}:{g}:{b}:{led_indices_str}")
         else:
             logger.warning(f"Unknown LED mode: {mode}")
@@ -276,7 +273,6 @@ def led_off():
             pass
         
         # Use command dispatcher for LED off
-        from command_dispatcher_logic import dispatch_command
         if leds:
             # Turn off specific LEDs
             led_indices_str = ",".join(map(str, leds))

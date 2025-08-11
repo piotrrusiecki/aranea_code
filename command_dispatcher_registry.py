@@ -146,8 +146,8 @@ def _led_flash_all(r=255, g=255, b=255, led_indices=None):
     else:
         flash_led_all(r, g, b)
 
-def _led_blink_all(r=255, g=255, b=255, led_indices=None, duration=2.0):
-    """Blink LEDs: on for duration, then off."""
+def _led_blink_all(r=255, g=255, b=255, led_indices=None):
+    """Blink LEDs: on for 1 second, then off."""
     from actuator_led_commands import blink_all_led, blink_single_led
     if led_indices and len(led_indices) == 1:
         blink_single_led(led_indices[0], r, g, b)
