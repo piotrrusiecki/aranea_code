@@ -229,7 +229,7 @@ def led_config():
         g = color.get("g", 255)
         b = color.get("b", 255)
         
-        logger.info(f"LED config request: LEDs {leds}, color RGB({r},{g},{b}), mode {mode}")
+        logger.info("LED config request: LEDs %s, color RGB(%d,%d,%d), mode %s", leds, r, g, b, mode)
         
         # Use parameterized LED commands with color and LED selection information
         led_indices_str = ",".join(map(str, leds)) if leds else "all"
@@ -244,7 +244,7 @@ def led_config():
             # Use command dispatcher for flash mode with color parameters and LED selection
             success = dispatch_command("web", f"led_set_flash:{r}:{g}:{b}:{led_indices_str}")
         else:
-            logger.warning(f"Unknown LED mode: {mode}")
+            logger.warning("Unknown LED mode: %s", mode)
             return jsonify({"success": False, "error": f"Unknown mode: {mode}"}), 400
         
         if success:
@@ -253,7 +253,7 @@ def led_config():
             return jsonify({"success": False, "error": "LED operation failed"}), 500
             
     except Exception as e:
-        logger.error(f"LED config error: {e}")
+        logger.error("LED config error: %s", e)
         return jsonify({"success": False, "error": str(e)}), 500
 
 
