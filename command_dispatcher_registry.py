@@ -118,28 +118,52 @@ for name, func in _symbolic_to_register.items():
 # LED control routines using direct hardware access
 def _led_static_all(r=255, g=255, b=255, led_indices=None):
     """Set LEDs to static color."""
-    from actuator_led_commands import set_all_led
-    set_all_led(r, g, b)
+    from actuator_led_commands import set_all_led, set_multiple_leds
+    if led_indices and len(led_indices) > 0:
+        set_multiple_leds(led_indices, r, g, b)
+    else:
+        set_all_led(r, g, b)
 
 def _led_glow_all(r=255, g=0, b=0, led_indices=None):
     """Start glow pattern on LEDs."""
-    from actuator_led_commands import glow_all_leds
-    glow_all_leds(r, g, b)
+    from actuator_led_commands import glow_all_leds, glow_single_led
+    if led_indices and len(led_indices) == 1:
+        glow_single_led(led_indices[0], r, g, b)
+    elif led_indices and len(led_indices) > 1:
+        # For multiple LEDs, use all LEDs for now (could be enhanced later)
+        glow_all_leds(r, g, b)
+    else:
+        glow_all_leds(r, g, b)
 
 def _led_flash_all(r=255, g=255, b=255, led_indices=None):
     """Start flash pattern on LEDs."""
-    from actuator_led_commands import flash_led_all
-    flash_led_all(r, g, b)
+    from actuator_led_commands import flash_led_all, flash_led_single
+    if led_indices and len(led_indices) == 1:
+        flash_led_single(led_indices[0], r, g, b)
+    elif led_indices and len(led_indices) > 1:
+        # For multiple LEDs, use all LEDs for now (could be enhanced later)
+        flash_led_all(r, g, b)
+    else:
+        flash_led_all(r, g, b)
 
 def _led_blink_all(r=255, g=255, b=255, led_indices=None, duration=2.0):
     """Blink LEDs: on for duration, then off."""
-    from actuator_led_commands import blink_all_led
-    blink_all_led(r, g, b)
+    from actuator_led_commands import blink_all_led, blink_single_led
+    if led_indices and len(led_indices) == 1:
+        blink_single_led(led_indices[0], r, g, b)
+    elif led_indices and len(led_indices) > 1:
+        # For multiple LEDs, use all LEDs for now (could be enhanced later)
+        blink_all_led(r, g, b)
+    else:
+        blink_all_led(r, g, b)
 
 def _led_off_all(led_indices=None):
     """Turn off LEDs."""
-    from actuator_led_commands import turn_off_all_leds
-    turn_off_all_leds()
+    from actuator_led_commands import turn_off_all_leds, set_multiple_leds
+    if led_indices and len(led_indices) > 0:
+        set_multiple_leds(led_indices, 0, 0, 0)  # Turn off specific LEDs
+    else:
+        turn_off_all_leds()
 
 _routines_to_register = {
     "routine_march_forward": routine_march_forward,
