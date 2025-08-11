@@ -553,6 +553,42 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
   
+  // Setup camera tab event handler
+  const cameraTabEl = document.querySelector('a[href="#camera"]');
+  if (cameraTabEl) {
+    cameraTabEl.addEventListener('shown.bs.tab', function () {
+      // Check camera status when tab is shown
+      checkCameraStatus();
+      
+      // Setup camera button event listeners
+      const startBtn = document.getElementById('startCamera');
+      const stopBtn = document.getElementById('stopCamera');
+      
+      if (startBtn) {
+        startBtn.removeEventListener('click', startCamera);
+        startBtn.addEventListener('click', startCamera);
+      }
+      
+      if (stopBtn) {
+        stopBtn.removeEventListener('click', stopCamera);
+        stopBtn.addEventListener('click', stopCamera);
+      }
+    });
+    
+    // Setup camera tab hide event to stop streaming when leaving tab
+    cameraTabEl.addEventListener('hidden.bs.tab', function () {
+      if (cameraStreaming) {
+        stopCamera();
+      }
+      
+      // Stop status polling
+      if (cameraStatusInterval) {
+        clearInterval(cameraStatusInterval);
+        cameraStatusInterval = null;
+      }
+    });
+  }
+  
   // Default select first leg
   selectCalibrationLeg(0);
 });
@@ -848,3 +884,96 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("Voice autostart toggle not found during initialization");
   }
 });
+
+// Camera Control Functions
+let cameraStreaming = false;
+let cameraStatusInterval = null;
+
+function startCamera() {
+  const cameraFeed = document.getElementById('cameraFeed');
+  const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+  const startBtn = document.getElementById('startCamera');
+  const stopBtn = document.getElementById('stopCamera');
+  const statusBadge = document.getElementById('cameraStatus');
+  
+  // Show camera feed
+  cameraFeed.style.display = 'block';
+  cameraPlaceholder.style.display = 'none';
+  cameraFeed.src = '/video_feed';
+  
+  // Update button states
+  startBtn.disabled = true;
+  stopBtn.disabled = false;
+  
+  // Update status
+  statusBadge.textContent = 'Streaming';
+  statusBadge.className = 'badge bg-success';
+  
+  cameraStreaming = true;
+  
+  // Start status polling
+  if (!cameraStatusInterval) {
+    cameraStatusInterval = setInterval(checkCameraStatus, 2000);
+  }
+  
+  console.log('Camera started');
+}
+
+function stopCamera() {
+  const cameraFeed = document.getElementById('cameraFeed');
+  const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+  const startBtn = document.getElementById('startCamera');
+  const stopBtn = document.getElementById('stopCamera');
+  const statusBadge = document.getElementById('cameraStatus');
+  
+  // Hide camera feed and show placeholder
+  cameraFeed.style.display = 'none';
+  cameraPlaceholder.style.display = 'flex';
+  cameraFeed.src = '';
+  
+  // Update button states
+  startBtn.disabled = false;
+  stopBtn.disabled = true;
+  
+  // Update status
+  statusBadge.textContent = 'Stopped';
+  statusBadge.className = 'badge bg-secondary';
+  
+  cameraStreaming = false;
+  
+  // Stop status polling
+  if (cameraStatusInterval) {
+    clearInterval(cameraStatusInterval);
+    cameraStatusInterval = null;
+  }
+  
+  console.log('Camera stopped');
+}
+
+function checkCameraStatus() {
+  fetch('/camera_status')
+    .then(response => response.json())
+    .then(data => {
+      const statusBadge = document.getElementById('cameraStatus');
+      const currentStatus = data.streaming ? 'Streaming' : 'Not Streaming';
+      const currentClass = data.streaming ? 'badge bg-success' : 'badge bg-warning';
+      
+      // Only log if status has changed
+      if (statusBadge.textContent !== currentStatus) {
+        logger.debug("Camera status changed: %s → %s", statusBadge.textContent, currentStatus);
+        statusBadge.textContent = currentStatus;
+        statusBadge.className = currentClass;
+      }
+    })
+    .catch(err => {
+      console.error('Camera status check failed:', err);
+      const statusBadge = document.getElementById('cameraStatus');
+      if (statusBadge.textContent !== 'Error') {
+        logger.debug("Camera status changed to: Error");
+        statusBadge.textContent = 'Error';
+        statusBadge.className = 'badge bg-danger';
+      }
+    });
+}
+
+

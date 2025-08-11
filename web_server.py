@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, Response  # type: ignore
 from voice_manager import start_voice, stop_voice
 from command_dispatcher_logic import dispatch_command, init_command_dispatcher
 
@@ -422,6 +422,64 @@ def led_off():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+def create_camera_handler(server_instance):
+    """Create camera video feed handler with closure over server instance."""
+    def video_feed():
+        """Generate MJPEG video stream from camera."""
+        def generate_frames():
+            # Use the existing camera instance and ensure it's streaming
+            camera = server_instance.camera_device
+            
+            try:
+                # Start streaming if not already streaming
+                if not camera.streaming:
+                    logger.info("Starting camera stream for web interface")
+                    camera.start_stream()
+                else:
+                    logger.info("Camera already streaming, using existing stream")
+                
+                frame_count = 0
+                while True:
+                    try:
+                        frame = camera.get_frame()
+                        if frame:
+                            frame_count += 1
+                            # Log every 30 frames (about once per second) instead of every frame
+                            if frame_count % 30 == 0:
+                                logger.debug("Received frame %d, size: %d bytes", frame_count, len(frame))
+                            yield (b'--frame\r\n'
+                                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                        else:
+                            logger.warning("No frame received from camera")
+                            break
+                    except Exception as e:
+                        logger.error("Camera frame generation error: %s", e)
+                        break
+                        
+            except Exception as e:
+                logger.error("Failed to start camera stream: %s", e)
+            finally:
+                # Note: We don't stop the camera here as it might be used by legacy client
+                # The camera will be managed by the main server instance
+                logger.info("Web camera stream ended")
+        
+        return Response(generate_frames(),
+                       mimetype='multipart/x-mixed-replace; boundary=frame')
+    
+    def camera_status():
+        """Get camera streaming status."""
+        try:
+            # Check if the main camera is streaming
+            main_streaming = server_instance.camera_device.streaming
+            logger.debug("Camera status check - main camera streaming: %s", main_streaming)
+            return jsonify({"streaming": main_streaming})
+        except Exception as e:
+            logger.error("Camera status error: %s", e)
+            return jsonify({"error": "Camera status failed"}), 500
+    
+    return video_feed, camera_status
+
+
 def internal_error(e):
     """Handle internal server errors."""
     logger.error("Unhandled 500 error: %s", e)
@@ -468,6 +526,11 @@ def create_app(server_instance, robot_state):
     app.add_url_rule("/load_point_txt", "load_point_txt", load_point_txt)
     app.add_url_rule("/led_config", "led_config", led_config, methods=["POST"])
     app.add_url_rule("/led_off", "led_off", led_off, methods=["POST"])
+    
+    # Camera routes
+    video_feed_handler, camera_status_handler = create_camera_handler(server_instance)
+    app.add_url_rule("/video_feed", "video_feed", video_feed_handler)
+    app.add_url_rule("/camera_status", "camera_status", camera_status_handler, methods=["GET"])
     
     app.errorhandler(500)(internal_error)
 

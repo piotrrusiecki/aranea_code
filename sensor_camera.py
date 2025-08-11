@@ -62,22 +62,47 @@ class Camera:
     def start_stream(self, filename: Optional[str] = None) -> None:
         """Start the video stream or recording."""
         if not self.streaming:
-            if self._picamera.started:
-                self._picamera.stop()                         # Stop the camera if it is currently running
-            
-            self._picamera.configure(self.stream_config)      # Configure the camera with the video stream settings
-            if filename:
-                encoder = H264Encoder()                    # Use H264 encoder for video recording
-                output = FileOutput(filename)              # Set the output file for the recorded video
-            else:
-                encoder = JpegEncoder()                    # Use Jpeg encoder for streaming
-                output = FileOutput(self.streaming_output) # Set the streaming output object
-            self._picamera.start_recording(encoder, output)   # Start recording or streaming
-            self.streaming = True                          # Set the streaming flag to True
-            if filename:
-                logger.info("Started recording video to %s", filename)
-            else:
-                logger.info("Started video streaming")
+            try:
+                logger.info("Starting camera stream...")
+                
+                # Stop camera if it's already running
+                if self._picamera.started:
+                    logger.info("Stopping existing camera session")
+                    self._picamera.stop()
+                
+                # Configure camera for streaming
+                logger.info("Configuring camera for streaming with size %s", self.stream_size)
+                self._picamera.configure(self.stream_config)
+                
+                # Start the camera
+                logger.info("Starting camera...")
+                self._picamera.start()
+                
+                # Small delay to ensure camera is fully started
+                time.sleep(0.5)
+                
+                # Set up encoder and output
+                if filename:
+                    encoder = H264Encoder()
+                    output = FileOutput(filename)
+                else:
+                    encoder = JpegEncoder()
+                    output = FileOutput(self.streaming_output)
+                
+                # Start recording/streaming
+                logger.info("Starting camera recording/streaming")
+                self._picamera.start_recording(encoder, output)
+                self.streaming = True
+                
+                if filename:
+                    logger.info("Started recording video to %s", filename)
+                else:
+                    logger.info("Started video streaming")
+                    
+            except Exception as e:
+                logger.error("Failed to start camera stream: %s", e)
+                self.streaming = False
+                raise
 
     def stop_stream(self) -> None:
         """Stop the video stream or recording."""
@@ -91,9 +116,17 @@ class Camera:
 
     def get_frame(self) -> Optional[bytes]:
         """Get the current frame from the streaming output."""
-        with self.streaming_output.condition:
-            self.streaming_output.condition.wait()         # Wait for a new frame to be available
-            return self.streaming_output.frame             # Return the current frame
+        try:
+            with self.streaming_output.condition:
+                # Wait for a new frame with timeout (1 second)
+                if self.streaming_output.condition.wait(timeout=1.0):
+                    return self.streaming_output.frame
+                else:
+                    logger.warning("Timeout waiting for camera frame")
+                    return None
+        except Exception as e:
+            logger.error("Error getting camera frame: %s", e)
+            return None
 
     def save_video(self, filename: str, duration: int = 10) -> None:
         """Save a video for the specified duration."""
