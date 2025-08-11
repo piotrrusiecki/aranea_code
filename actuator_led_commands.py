@@ -48,7 +48,7 @@ class LEDCommands:
         except Exception as e:
             logger.warning("Failed to set all LEDs to color [%d,%d,%d]: %s (hardware may not be available)", r, g, b, e)
     
-    def set_led_color(self, led_indices: List[int], r: int, g: int, b: int):
+    def set_led_color(self, led_indices: List[int], r: int, g: int, b: int, stop_patterns: bool = True):
         """
         Set specific LEDs to a color.
         
@@ -57,8 +57,10 @@ class LEDCommands:
             r: Red value (0-255)
             g: Green value (0-255) 
             b: Blue value (0-255)
+            stop_patterns: Whether to stop existing patterns (default: True)
         """
-        self._stop_current_pattern()
+        if stop_patterns:
+            self._stop_current_pattern()
         
         if not led_indices:
             logger.warning("No LED indices provided")
@@ -110,15 +112,25 @@ class LEDCommands:
         def flash_pattern():
             flash_count = 0
             while not self._stop_pattern and (times == 0 or flash_count < times):
-                # Turn on
-                self.set_led_color(led_indices, r, g, b)
+                # Turn on - use low-level method to avoid stopping the pattern
+                if len(led_indices) == 7:
+                    self._set_all_leds_color(r, g, b)
+                else:
+                    zero_based_indices = [idx - 1 for idx in led_indices if 1 <= idx <= 7]
+                    for led_idx in zero_based_indices:
+                        self._set_led_color(led_idx, r, g, b)
                 time.sleep(duration)
                 
                 if self._stop_pattern:
                     break
                     
-                # Turn off
-                self.set_led_color(led_indices, 0, 0, 0)
+                # Turn off - use low-level method to avoid stopping the pattern
+                if len(led_indices) == 7:
+                    self._set_all_leds_color(0, 0, 0)
+                else:
+                    zero_based_indices = [idx - 1 for idx in led_indices if 1 <= idx <= 7]
+                    for led_idx in zero_based_indices:
+                        self._set_led_color(led_idx, 0, 0, 0)
                 if times == 0 or flash_count < times - 1:  # Don't sleep after last flash
                     time.sleep(duration)
                 
@@ -143,12 +155,23 @@ class LEDCommands:
                 for intensity in range(0, 256, 5):
                     if self._stop_pattern:
                         break
-                    self.set_led_color(
-                        led_indices,
-                        int(r * intensity / 255),
-                        int(g * intensity / 255),
-                        int(b * intensity / 255)
-                    )
+                    # Use low-level method to avoid stopping the pattern
+                    if len(led_indices) == 7:
+                        self._set_all_leds_color(
+                            int(r * intensity / 255),
+                            int(g * intensity / 255),
+                            int(b * intensity / 255)
+                        )
+                    else:
+                        # Set individual LEDs
+                        zero_based_indices = [idx - 1 for idx in led_indices if 1 <= idx <= 7]
+                        for led_idx in zero_based_indices:
+                            self._set_led_color(
+                                led_idx,
+                                int(r * intensity / 255),
+                                int(g * intensity / 255),
+                                int(b * intensity / 255)
+                            )
                     time.sleep(fade_duration / 50)  # 50 steps per cycle
                 
                 if self._stop_pattern:
@@ -158,12 +181,23 @@ class LEDCommands:
                 for intensity in range(255, -1, -5):
                     if self._stop_pattern:
                         break
-                    self.set_led_color(
-                        led_indices,
-                        int(r * intensity / 255),
-                        int(g * intensity / 255),
-                        int(b * intensity / 255)
-                    )
+                    # Use low-level method to avoid stopping the pattern
+                    if len(led_indices) == 7:
+                        self._set_all_leds_color(
+                            int(r * intensity / 255),
+                            int(g * intensity / 255),
+                            int(b * intensity / 255)
+                        )
+                    else:
+                        # Set individual LEDs
+                        zero_based_indices = [idx - 1 for idx in led_indices if 1 <= idx <= 7]
+                        for led_idx in zero_based_indices:
+                            self._set_led_color(
+                                led_idx,
+                                int(r * intensity / 255),
+                                int(g * intensity / 255),
+                                int(b * intensity / 255)
+                            )
                     time.sleep(fade_duration / 50)  # 50 steps per cycle
         
         self._run_pattern(glow_pattern, f"glow_color({led_indices},{r},{g},{b})")
@@ -350,8 +384,8 @@ def language_switch_feedback() -> bool:
             logger.error("LED commands not initialized")
             return False
         
-        # Start red glow to indicate language switching
-        led_commands.glow_color([1, 2, 3, 4, 5, 6, 7], 255, 0, 0, fade_duration=0.8)
+        # Start red glow to indicate language switching - use direct control instead of pattern
+        led_commands.set_led_color([1, 2, 3, 4, 5, 6, 7], 255, 0, 0)
         logger.debug("Started red glow for language switching")
         return True
     except Exception as e:
@@ -372,9 +406,19 @@ def language_switch_complete() -> bool:
             logger.error("LED commands not initialized")
             return False
         
-        # Stop red glow and do blue blink
-        led_commands.stop_pattern()  # Stop the red glow
-        led_commands.flash_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 255, duration=0.4, times=1)
+        # Stop red glow and do blue blink - use direct control instead of patterns
+        led_commands.stop_pattern()  # Stop any existing patterns
+        import time
+        
+        # Blue blink: on-off-on-off
+        led_commands.set_led_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 255)
+        time.sleep(0.4)
+        led_commands.set_led_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 0)
+        time.sleep(0.4)
+        led_commands.set_led_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 255)
+        time.sleep(0.4)
+        led_commands.set_led_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 0)
+        
         logger.debug("Completed language switch feedback with blue blink")
         return True
     except Exception as e:
