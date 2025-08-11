@@ -15,6 +15,10 @@ logger = logging.getLogger("led.commands")
 # Global LED controller instance
 _led_controller = None
 
+# Pattern control
+_current_pattern_thread = None
+_stop_pattern = False
+
 def init_led_commands(led_controller):
     """Initialize the LED commands with a controller."""
     global _led_controller
@@ -40,6 +44,27 @@ def set_single_led(led_index: int, r: int, g: int, b: int) -> bool:
         return True
     except Exception as e:
         logger.error("Failed to set single LED: %s", e)
+        return False
+
+def set_multiple_leds(led_indices: List[int], r: int, g: int, b: int) -> bool:
+    """Set multiple specific LEDs to a specific color, stays on until turned off."""
+    try:
+        if _led_controller is None:
+            logger.error("LED controller not initialized")
+            return False
+        
+        assert _led_controller is not None  # Type checker hint
+        # Calculate bit mask for selected LEDs
+        led_mask = 0
+        for led_index in led_indices:
+            if 1 <= led_index <= 7:
+                led_mask |= (1 << (led_index - 1))
+        
+        _led_controller.led_index(led_mask, r, g, b)  # type: ignore
+        logger.info("Set LEDs %s to RGB(%d,%d,%d)", led_indices, r, g, b)
+        return True
+    except Exception as e:
+        logger.error("Failed to set multiple LEDs: %s", e)
         return False
 
 def set_single_led_time(led_index: int, r: int, g: int, b: int, time_seconds: int = 3) -> bool:
@@ -195,22 +220,36 @@ def flash_led_all_time(r: int, g: int, b: int, time_seconds: int = 3) -> bool:
 def glow_single_led(led_index: int, r: int, g: int, b: int) -> bool:
     """Glow a specific LED: fades in and out continuously until stopped."""
     try:
-        if not _led_controller:
+        if _led_controller is None:
             logger.error("LED controller not initialized")
             return False
         
+        # Stop any existing pattern
+        _stop_current_pattern()
+        
         def glow_pattern():
-            while True:
+            global _current_pattern_thread, _stop_pattern
+            _current_pattern_thread = threading.current_thread()
+            _stop_pattern = False
+            
+            while not _stop_pattern:
                 # Fade in
                 for intensity in range(0, 256, 5):
+                    if _stop_pattern:
+                        break
                     _led_controller.led_index(1 << (led_index - 1), 
                         int(r * intensity / 255),
                         int(g * intensity / 255),
                         int(b * intensity / 255))
                     time.sleep(0.02)  # 50 steps per second
                 
+                if _stop_pattern:
+                    break
+                    
                 # Fade out
                 for intensity in range(255, -1, -5):
+                    if _stop_pattern:
+                        break
                     _led_controller.led_index(1 << (led_index - 1), 
                         int(r * intensity / 255),
                         int(g * intensity / 255),
@@ -266,22 +305,36 @@ def glow_single_led_time(led_index: int, r: int, g: int, b: int, time_seconds: i
 def glow_all_leds(r: int, g: int, b: int) -> bool:
     """Glow all LEDs: fades in and out continuously until stopped."""
     try:
-        if not _led_controller:
+        if _led_controller is None:
             logger.error("LED controller not initialized")
             return False
         
+        # Stop any existing pattern
+        _stop_current_pattern()
+        
         def glow_pattern():
-            while True:
+            global _current_pattern_thread, _stop_pattern
+            _current_pattern_thread = threading.current_thread()
+            _stop_pattern = False
+            
+            while not _stop_pattern:
                 # Fade in
                 for intensity in range(0, 256, 5):
+                    if _stop_pattern:
+                        break
                     _led_controller.led_index(0x7F, 
                         int(r * intensity / 255),
                         int(g * intensity / 255),
                         int(b * intensity / 255))
                     time.sleep(0.02)  # 50 steps per second
                 
+                if _stop_pattern:
+                    break
+                    
                 # Fade out
                 for intensity in range(255, -1, -5):
+                    if _stop_pattern:
+                        break
                     _led_controller.led_index(0x7F, 
                         int(r * intensity / 255),
                         int(g * intensity / 255),
@@ -376,12 +429,26 @@ def blink_all_led(r: int, g: int, b: int) -> bool:
 
 # === UTILITY FUNCTIONS ===
 
+def _stop_current_pattern():
+    """Stop any currently running LED pattern."""
+    global _stop_pattern, _current_pattern_thread
+    if _current_pattern_thread and _current_pattern_thread.is_alive():
+        _stop_pattern = True
+        # Don't try to join the current thread
+        if _current_pattern_thread != threading.current_thread():
+            _current_pattern_thread.join(timeout=1.0)
+        _current_pattern_thread = None
+        logger.debug("Stopped current LED pattern")
+
 def turn_off_all_leds() -> bool:
     """Turn off all LEDs."""
     try:
-        if not _led_controller:
+        if _led_controller is None:
             logger.error("LED controller not initialized")
             return False
+        
+        # Stop any running patterns first
+        _stop_current_pattern()
         
         _led_controller.led_index(0x7F, 0, 0, 0)  # 0x7F = 0b1111111 = all 7 LEDs
         logger.info("Turned off all LEDs")
