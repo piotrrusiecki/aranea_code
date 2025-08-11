@@ -118,30 +118,24 @@ for name, func in _symbolic_to_register.items():
 # LED control routines using direct hardware access
 def _led_static_all(r=255, g=255, b=255, led_indices=None):
     """Set LEDs to static color."""
-    from actuator_led_commands import get_led_commands
-    led_commands = get_led_commands()
-    if led_commands:
-        if led_indices is None:
-            led_indices = [1, 2, 3, 4, 5, 6, 7]  # All LEDs
-        led_commands.set_led_color(led_indices, r, g, b)
+    from actuator_led_commands import set_led_static
+    if led_indices is None:
+        led_indices = [1, 2, 3, 4, 5, 6, 7]  # All LEDs
+    set_led_static(led_indices, r, g, b)
 
 def _led_glow_all(r=255, g=0, b=0, led_indices=None):
     """Start glow pattern on LEDs."""
-    from actuator_led_commands import get_led_commands
-    led_commands = get_led_commands()
-    if led_commands:
-        if led_indices is None:
-            led_indices = [1, 2, 3, 4, 5, 6, 7]  # All LEDs
-        led_commands.glow_color(led_indices, r, g, b)
+    from actuator_led_commands import set_led_glow
+    if led_indices is None:
+        led_indices = [1, 2, 3, 4, 5, 6, 7]  # All LEDs
+    set_led_glow(led_indices, r, g, b)
 
 def _led_flash_all(r=255, g=255, b=255, led_indices=None):
     """Start flash pattern on LEDs."""
-    from actuator_led_commands import get_led_commands
-    led_commands = get_led_commands()
-    if led_commands:
-        if led_indices is None:
-            led_indices = [1, 2, 3, 4, 5, 6, 7]  # All LEDs
-        led_commands.flash_color(led_indices, r, g, b, duration=1.0, times=0)
+    from actuator_led_commands import set_led_flash
+    if led_indices is None:
+        led_indices = [1, 2, 3, 4, 5, 6, 7]  # All LEDs
+    set_led_flash(led_indices, r, g, b)
 
 def _led_blink_all(r=255, g=255, b=255, led_indices=None, duration=2.0):
     """Blink LEDs: on for duration, then off."""
@@ -159,12 +153,14 @@ def _led_blink_all(r=255, g=255, b=255, led_indices=None, duration=2.0):
 
 def _led_off_all(led_indices=None):
     """Turn off LEDs."""
-    from actuator_led_commands import get_led_commands
-    led_commands = get_led_commands()
-    if led_commands:
-        if led_indices is None:
-            led_commands.turn_off()  # All LEDs
-        else:
+    from actuator_led_commands import turn_off_all_leds
+    if led_indices is None:
+        turn_off_all_leds()  # All LEDs
+    else:
+        # For specific LEDs, we need to use the LED commands directly
+        from actuator_led_commands import get_led_commands
+        led_commands = get_led_commands()
+        if led_commands:
             led_commands.turn_off(led_indices)  # Specific LEDs
 
 _routines_to_register = {

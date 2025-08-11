@@ -50,9 +50,8 @@ class VoiceManager:
                 logger.info("Switching voice language to: %s", lang_code)
                 
                 # Start red glow to indicate language switching
-                led_commands = get_led_commands()
-                if led_commands:
-                    led_commands.glow_color([1, 2, 3, 4, 5, 6, 7], 255, 0, 0, fade_duration=0.8)
+                from actuator_led_commands import language_switch_feedback
+                language_switch_feedback()
                 
                 # Stop current voice control
                 self.voice.stop()
@@ -67,17 +66,15 @@ class VoiceManager:
                 self.voice_thread.start()
                 self.voice_active = True
                 
-                # Stop red glow and do blue blink to indicate completion
-                if led_commands:
-                    led_commands.stop_pattern()  # Stop the red glow
-                    # Use command dispatcher for blue blink
-                    from command_dispatcher_logic import dispatch_command
-                    dispatch_command("voice", "led_set_blink:0:0:255")
+                # Complete language switching feedback
+                from actuator_led_commands import language_switch_complete
+                language_switch_complete()
                 
                 logger.info("Voice control restarted with language: %s", lang_code)
             except Exception as e:
                 logger.error("Failed to switch language to '%s': %s", lang_code, e)
                 # Stop any LED pattern on error
+                from actuator_led_commands import get_led_commands
                 led_commands = get_led_commands()
                 if led_commands:
                     led_commands.stop_pattern()

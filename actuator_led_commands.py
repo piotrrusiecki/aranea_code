@@ -330,8 +330,75 @@ def turn_off_all_leds() -> bool:
             return False
         
         led_commands.turn_off()
-        logger.info("Turned off all LEDs")
+        logger.info("All LEDs turned off")
         return True
     except Exception as e:
-        logger.error(f"Failed to turn off LEDs: {e}")
+        logger.error("Failed to turn off all LEDs: %s", e)
+        return False
+
+
+def language_switch_feedback() -> bool:
+    """
+    Provide LED feedback for language switching: red glow then blue blink.
+    
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        led_commands = get_led_commands()
+        if led_commands is None:
+            logger.error("LED commands not initialized")
+            return False
+        
+        # Start red glow to indicate language switching
+        led_commands.glow_color([1, 2, 3, 4, 5, 6, 7], 255, 0, 0, fade_duration=0.8)
+        logger.debug("Started red glow for language switching")
+        return True
+    except Exception as e:
+        logger.error("Failed to start language switch feedback: %s", e)
+        return False
+
+
+def language_switch_complete() -> bool:
+    """
+    Complete language switching feedback: stop red glow and do blue blink.
+    
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        led_commands = get_led_commands()
+        if led_commands is None:
+            logger.error("LED commands not initialized")
+            return False
+        
+        # Stop red glow and do blue blink
+        led_commands.stop_pattern()  # Stop the red glow
+        led_commands.flash_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 255, duration=0.4, times=1)
+        logger.debug("Completed language switch feedback with blue blink")
+        return True
+    except Exception as e:
+        logger.error("Failed to complete language switch feedback: %s", e)
+        return False
+
+
+def server_ready_feedback() -> bool:
+    """
+    Provide LED feedback for server ready: green blink.
+    
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        led_commands = get_led_commands()
+        if led_commands is None:
+            logger.error("LED commands not initialized")
+            return False
+        
+        # Green blink to indicate server is ready
+        led_commands.flash_color([1, 2, 3, 4, 5, 6, 7], 0, 255, 0, duration=0.3, times=2)
+        logger.debug("Server ready feedback: green blink")
+        return True
+    except Exception as e:
+        logger.error("Failed to provide server ready feedback: %s", e)
         return False
