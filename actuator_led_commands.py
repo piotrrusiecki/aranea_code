@@ -35,7 +35,7 @@ def set_single_led(led_index: int, r: int, g: int, b: int) -> bool:
             return False
         
         assert _led_controller is not None  # Type checker hint
-        _led_controller.set_led_color([led_index], r, g, b)  # type: ignore
+        _led_controller.led_index(1 << (led_index - 1), r, g, b)  # type: ignore
         logger.info("Set LED %d to RGB(%d,%d,%d)", led_index, r, g, b)
         return True
     except Exception as e:
@@ -49,13 +49,13 @@ def set_single_led_time(led_index: int, r: int, g: int, b: int, time_seconds: in
             logger.error("LED controller not initialized")
             return False
         
-        _led_controller.set_led_color([led_index], r, g, b)
+        _led_controller.led_index(1 << (led_index - 1), r, g, b)
         logger.info("Set LED %d to RGB(%d,%d,%d) for %d seconds", led_index, r, g, b, time_seconds)
         
         # Turn off after specified time
         def turn_off_after_time():
             time.sleep(time_seconds)
-            _led_controller.set_led_color([led_index], 0, 0, 0)
+            _led_controller.led_index(1 << (led_index - 1), 0, 0, 0)
             logger.info("Turned off LED %d after %d seconds", led_index, time_seconds)
         
         threading.Thread(target=turn_off_after_time, daemon=True).start()
@@ -71,7 +71,7 @@ def set_all_led(r: int, g: int, b: int) -> bool:
             logger.error("LED controller not initialized")
             return False
         
-        _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], r, g, b)
+        _led_controller.led_index(0x7F, r, g, b)  # 0x7F = 0b1111111 = all 7 LEDs
         logger.info("Set all LEDs to RGB(%d,%d,%d)", r, g, b)
         return True
     except Exception as e:
@@ -85,13 +85,13 @@ def set_all_led_time(r: int, g: int, b: int, time_seconds: int = 3) -> bool:
             logger.error("LED controller not initialized")
             return False
         
-        _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], r, g, b)
+        _led_controller.led_index(0x7F, r, g, b)  # 0x7F = 0b1111111 = all 7 LEDs
         logger.info("Set all LEDs to RGB(%d,%d,%d) for %d seconds", r, g, b, time_seconds)
         
         # Turn off after specified time
         def turn_off_after_time():
             time.sleep(time_seconds)
-            _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 0)
+            _led_controller.led_index(0x7F, 0, 0, 0)  # 0x7F = 0b1111111 = all 7 LEDs
             logger.info("Turned off all LEDs after %d seconds", time_seconds)
         
         threading.Thread(target=turn_off_after_time, daemon=True).start()
@@ -111,9 +111,9 @@ def flash_led_single(led_index: int, r: int, g: int, b: int) -> bool:
         
         def flash_pattern():
             while True:
-                _led_controller.set_led_color([led_index], r, g, b)
+                _led_controller.led_index(1 << (led_index - 1), r, g, b)
                 time.sleep(1)
-                _led_controller.set_led_color([led_index], 0, 0, 0)
+                _led_controller.led_index(1 << (led_index - 1), 0, 0, 0)
                 time.sleep(1)
         
         threading.Thread(target=flash_pattern, daemon=True).start()
@@ -133,11 +133,11 @@ def flash_led_single_time(led_index: int, r: int, g: int, b: int, time_seconds: 
         def flash_pattern():
             end_time = time.time() + time_seconds
             while time.time() < end_time:
-                _led_controller.set_led_color([led_index], r, g, b)
+                _led_controller.led_index(1 << (led_index - 1), r, g, b)
                 time.sleep(1)
-                _led_controller.set_led_color([led_index], 0, 0, 0)
+                _led_controller.led_index(1 << (led_index - 1), 0, 0, 0)
                 time.sleep(1)
-            _led_controller.set_led_color([led_index], 0, 0, 0)
+            _led_controller.led_index(1 << (led_index - 1), 0, 0, 0)
         
         threading.Thread(target=flash_pattern, daemon=True).start()
         logger.info("Started flashing LED %d with RGB(%d,%d,%d) for %d seconds", led_index, r, g, b, time_seconds)
@@ -155,9 +155,9 @@ def flash_led_all(r: int, g: int, b: int) -> bool:
         
         def flash_pattern():
             while True:
-                _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], r, g, b)
+                _led_controller.led_index(0x7F, r, g, b)  # 0x7F = 0b1111111 = all 7 LEDs
                 time.sleep(1)
-                _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 0)
+                _led_controller.led_index(0x7F, 0, 0, 0)  # 0x7F = 0b1111111 = all 7 LEDs
                 time.sleep(1)
         
         threading.Thread(target=flash_pattern, daemon=True).start()
@@ -177,11 +177,11 @@ def flash_led_all_time(r: int, g: int, b: int, time_seconds: int = 3) -> bool:
         def flash_pattern():
             end_time = time.time() + time_seconds
             while time.time() < end_time:
-                _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], r, g, b)
+                _led_controller.led_index(0x7F, r, g, b)  # 0x7F = 0b1111111 = all 7 LEDs
                 time.sleep(1)
-                _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 0)
+                _led_controller.led_index(0x7F, 0, 0, 0)  # 0x7F = 0b1111111 = all 7 LEDs
                 time.sleep(1)
-            _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 0)
+            _led_controller.led_index(0x7F, 0, 0, 0)  # 0x7F = 0b1111111 = all 7 LEDs
         
         threading.Thread(target=flash_pattern, daemon=True).start()
         logger.info("Started flashing all LEDs with RGB(%d,%d,%d) for %d seconds", r, g, b, time_seconds)
@@ -203,7 +203,7 @@ def glow_single_led(led_index: int, r: int, g: int, b: int) -> bool:
             while True:
                 # Fade in
                 for intensity in range(0, 256, 5):
-                    _led_controller.set_led_color([led_index], 
+                    _led_controller.led_index(1 << (led_index - 1), 
                         int(r * intensity / 255),
                         int(g * intensity / 255),
                         int(b * intensity / 255))
@@ -211,7 +211,7 @@ def glow_single_led(led_index: int, r: int, g: int, b: int) -> bool:
                 
                 # Fade out
                 for intensity in range(255, -1, -5):
-                    _led_controller.set_led_color([led_index], 
+                    _led_controller.led_index(1 << (led_index - 1), 
                         int(r * intensity / 255),
                         int(g * intensity / 255),
                         int(b * intensity / 255))
@@ -238,7 +238,7 @@ def glow_single_led_time(led_index: int, r: int, g: int, b: int, time_seconds: i
                 for intensity in range(0, 256, 5):
                     if time.time() >= end_time:
                         break
-                    _led_controller.set_led_color([led_index], 
+                    _led_controller.led_index(1 << (led_index - 1), 
                         int(r * intensity / 255),
                         int(g * intensity / 255),
                         int(b * intensity / 255))
@@ -248,13 +248,13 @@ def glow_single_led_time(led_index: int, r: int, g: int, b: int, time_seconds: i
                 for intensity in range(255, -1, -5):
                     if time.time() >= end_time:
                         break
-                    _led_controller.set_led_color([led_index], 
+                    _led_controller.led_index(1 << (led_index - 1), 
                         int(r * intensity / 255),
                         int(g * intensity / 255),
                         int(b * intensity / 255))
                     time.sleep(0.02)
             
-            _led_controller.set_led_color([led_index], 0, 0, 0)
+            _led_controller.led_index(1 << (led_index - 1), 0, 0, 0)
         
         threading.Thread(target=glow_pattern, daemon=True).start()
         logger.info("Started glowing LED %d with RGB(%d,%d,%d) for %d seconds", led_index, r, g, b, time_seconds)
@@ -274,7 +274,7 @@ def glow_all_leds(r: int, g: int, b: int) -> bool:
             while True:
                 # Fade in
                 for intensity in range(0, 256, 5):
-                    _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], 
+                    _led_controller.led_index(0x7F, 
                         int(r * intensity / 255),
                         int(g * intensity / 255),
                         int(b * intensity / 255))
@@ -282,7 +282,7 @@ def glow_all_leds(r: int, g: int, b: int) -> bool:
                 
                 # Fade out
                 for intensity in range(255, -1, -5):
-                    _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], 
+                    _led_controller.led_index(0x7F, 
                         int(r * intensity / 255),
                         int(g * intensity / 255),
                         int(b * intensity / 255))
@@ -309,7 +309,7 @@ def glow_all_leds_time(r: int, g: int, b: int, time_seconds: int = 3) -> bool:
                 for intensity in range(0, 256, 5):
                     if time.time() >= end_time:
                         break
-                    _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], 
+                    _led_controller.led_index(0x7F, 
                         int(r * intensity / 255),
                         int(g * intensity / 255),
                         int(b * intensity / 255))
@@ -319,13 +319,13 @@ def glow_all_leds_time(r: int, g: int, b: int, time_seconds: int = 3) -> bool:
                 for intensity in range(255, -1, -5):
                     if time.time() >= end_time:
                         break
-                    _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], 
+                    _led_controller.led_index(0x7F, 
                         int(r * intensity / 255),
                         int(g * intensity / 255),
                         int(b * intensity / 255))
                     time.sleep(0.02)
             
-            _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 0)
+            _led_controller.led_index(0x7F, 0, 0, 0)  # 0x7F = 0b1111111 = all 7 LEDs
         
         threading.Thread(target=glow_pattern, daemon=True).start()
         logger.info("Started glowing all LEDs with RGB(%d,%d,%d) for %d seconds", r, g, b, time_seconds)
@@ -344,9 +344,9 @@ def blink_single_led(led_index: int, r: int, g: int, b: int) -> bool:
             return False
         
         def blink_pattern():
-            _led_controller.set_led_color([led_index], r, g, b)
+            _led_controller.led_index(1 << (led_index - 1), r, g, b)
             time.sleep(1)
-            _led_controller.set_led_color([led_index], 0, 0, 0)
+            _led_controller.led_index(1 << (led_index - 1), 0, 0, 0)
         
         threading.Thread(target=blink_pattern, daemon=True).start()
         logger.info("Started blinking LED %d with RGB(%d,%d,%d)", led_index, r, g, b)
@@ -363,9 +363,9 @@ def blink_all_led(r: int, g: int, b: int) -> bool:
             return False
         
         def blink_pattern():
-            _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], r, g, b)
+            _led_controller.led_index(0x7F, r, g, b)  # 0x7F = 0b1111111 = all 7 LEDs
             time.sleep(1)
-            _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 0)
+            _led_controller.led_index(0x7F, 0, 0, 0)  # 0x7F = 0b1111111 = all 7 LEDs
         
         threading.Thread(target=blink_pattern, daemon=True).start()
         logger.info("Started blinking all LEDs with RGB(%d,%d,%d)", r, g, b)
@@ -383,7 +383,7 @@ def turn_off_all_leds() -> bool:
             logger.error("LED controller not initialized")
             return False
         
-        _led_controller.set_led_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 0)
+        _led_controller.led_index(0x7F, 0, 0, 0)  # 0x7F = 0b1111111 = all 7 LEDs
         logger.info("Turned off all LEDs")
         return True
     except Exception as e:
