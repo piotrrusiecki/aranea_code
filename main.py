@@ -83,10 +83,12 @@ if __name__ == '__main__':
         web_thread = FlaskServerThread(flask_app)
         web_thread.start()
 
-        # Server ready flash
+        # Server ready blink
         led_commands = get_led_commands()
         if led_commands:
-            led_commands.flash_color([1, 2, 3, 4, 5, 6, 7], 0, 255, 0, duration=0.3, times=2)
+            # Use command dispatcher for reliable blink
+            from command_dispatcher_logic import dispatch_command
+            dispatch_command("main", "led_set_blink:0:255:0")
 
         logger.info("Server started. Press Ctrl+C to stop.")
         shutdown_event.wait()
