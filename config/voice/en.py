@@ -38,10 +38,10 @@ command_map = {
     "relax": "task_servo_off",
     "wake up": "task_servo_on",
 
-    "light red": "task_light_red",
-    "light green": "task_light_green",
-    "light blue": "task_light_blue",
-    "light off": "task_light_off",
+    "light red": "led_set_static:255:0:0",
+    "light green": "led_set_static:0:255:0",
+    "light blue": "led_set_static:0:0:255",
+    "light off": "led_off",
 
     "avoid": "sys_start_sonic",
     "blind": "sys_stop_sonic",

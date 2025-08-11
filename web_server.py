@@ -265,9 +265,15 @@ def led_off():
     try:
         logger.info("LED turn off request received")
         
-        # Check if specific LEDs should be turned off
-        data = request.json
-        leds = data.get("leds", []) if data else []
+        # Handle JSON data (what the JavaScript sends)
+        leds = []
+        try:
+            data = request.get_json()
+            if data:
+                leds = data.get("leds", [])
+        except Exception:
+            # No JSON data provided, turn off all LEDs
+            pass
         
         # Use command dispatcher for LED off
         from command_dispatcher_logic import dispatch_command
@@ -285,7 +291,7 @@ def led_off():
             return jsonify({"success": False, "error": "Failed to turn off LEDs"}), 500
             
     except Exception as e:
-        logger.error(f"LED off error: {e}")
+        logger.error("LED off error: %s", e)
         return jsonify({"success": False, "error": str(e)}), 500
 
 
