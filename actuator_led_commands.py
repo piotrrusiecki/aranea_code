@@ -395,8 +395,15 @@ def server_ready_feedback() -> bool:
             logger.error("LED commands not initialized")
             return False
         
-        # Green blink to indicate server is ready
-        led_commands.flash_color([1, 2, 3, 4, 5, 6, 7], 0, 255, 0, duration=0.3, times=2)
+        # Green blink to indicate server is ready - use direct blink instead of flash pattern
+        led_commands.set_led_color([1, 2, 3, 4, 5, 6, 7], 0, 255, 0)
+        import time
+        time.sleep(0.3)
+        led_commands.set_led_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 0)
+        time.sleep(0.3)
+        led_commands.set_led_color([1, 2, 3, 4, 5, 6, 7], 0, 255, 0)
+        time.sleep(0.3)
+        led_commands.set_led_color([1, 2, 3, 4, 5, 6, 7], 0, 0, 0)
         logger.debug("Server ready feedback: green blink")
         return True
     except Exception as e:
