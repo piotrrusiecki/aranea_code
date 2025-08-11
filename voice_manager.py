@@ -1,7 +1,6 @@
 import threading
 import logging
 from voice_control import VoiceControl
-from actuator_led_commands import get_led_commands
 
 logger = logging.getLogger("voice")
 

@@ -11,7 +11,7 @@ from web_server import create_app
 from werkzeug.serving import make_server
 from robot_state import RobotState
 from config import robot_config
-from actuator_led_commands import init_led_commands, get_led_commands
+from actuator_led_commands import init_led_commands
 
 # --- Logging setup with color by logger name ---
 class LoggerColorFormatter(logging.Formatter):
