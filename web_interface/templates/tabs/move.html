@@ -30,6 +30,13 @@
       oninput="updateSpeed(this.value); updateSpeedState(this.value);">
   </div>
 
+  <!-- Z Position -->
+  <div class="row" style="height: 10%">
+    <label class="form-label col-4"><strong>Z Position</strong> (-20–20): <span id="zPositionDisplay">0</span></label>
+    <input type="range" class="form-range col-8" min="-20" max="20" step="1" id="zPositionSlider" value="0"
+      oninput="updateZPosition(this.value);">
+  </div>
+
   <!-- Movement -->
   <div class="text-center row mb-3 mt-3" style="height: 35%">
     <div class="col">

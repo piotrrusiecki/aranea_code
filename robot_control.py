@@ -163,9 +163,21 @@ class Control:
             x = restrict_value(int(self.command_queue[1]), -40, 40)
             y = restrict_value(int(self.command_queue[2]), -40, 40)
             z = restrict_value(int(self.command_queue[3]), -20, 20)
+            
+            # Enhanced logging for legacy CMD_POSITION
+            logger.info("[control] LEGACY CMD_POSITION received: x=%d, y=%d, z=%d", x, y, z)
+            logger.info("[control] Previous body_height: %d, new body_height will be: %d", 
+                       self.body_height, -30 - z)
+            
             self.move_position(x, y, z)
             self.status_flag = 0x01
-            logger.info("[control] CMD_POSITION executed: x=%d, y=%d, z=%d", x, y, z)
+            
+            # Log the actual changes made
+            logger.info("[control] LEGACY CMD_POSITION executed: body_height=%d, robot_state.body_height_z=%d", 
+                       self.body_height, self.robot_state.get_flag("body_height_z"))
+            logger.info("[control] Body points Z values: %s", 
+                       [f"{point[2]:.1f}" for point in self.body_points])
+            
             self.command_queue = ['', '', '', '', '', '']
             return True
         return False
@@ -191,6 +203,11 @@ class Control:
             logger.debug("[control] CMD_MOVE triggered. queue = %s | motion_state = %s",
                         self.command_queue, self.robot_state.get_flag("motion_state"))
             
+            # Log current Z position state before movement
+            current_z = self.robot_state.get_flag("body_height_z")
+            logger.info("[control] CMD_MOVE using Z position: body_height=%d, robot_state.body_height_z=%d", 
+                       self.body_height, current_z)
+            
             if self.command_queue[2] == "0" and self.command_queue[3] == "0":
                 self.run_gait(self.command_queue)
                 logger.info("[control] CMD_MOVE (neutral) executed: robot stopped.")
@@ -198,12 +215,13 @@ class Control:
             else:
                 self.run_gait(self.command_queue)
                 self.status_flag = 0x03
-                logger.info("[control] CMD_MOVE executed: gait=%s, x=%s, y=%s, speed=%s, angle=%s",
+                logger.info("[control] CMD_MOVE executed: gait=%s, x=%s, y=%s, speed=%s, angle=%s, z_position=%d",
                             self.command_queue[1],
                             self.command_queue[2],
                             self.command_queue[3],
                             self.command_queue[4],
-                            self.command_queue[5])
+                            self.command_queue[5],
+                            current_z)
                 if not robot_config.CLEAR_MOVE_QUEUE_AFTER_EXEC:
                     logger.debug("[control] Retaining CMD_MOVE in queue for repeated gait.")
                 else:
@@ -309,8 +327,45 @@ class Control:
             points[i][2] = -30 - z
             self.body_height = points[i][2]
             self.body_points[i][2] = points[i][2]
+        
+        # Update robot_state to keep web interface in sync
+        self.robot_state.set_flag("body_height_z", z)
+        
         transform_coordinates(points, self.leg_positions)
         self.set_leg_angles()
+
+    def set_body_height_z(self, z):
+        """Set body height Z position from web interface."""
+        z = restrict_value(z, -20, 20)
+        
+        # Enhanced logging for web interface Z position
+        logger.info("[control] WEB INTERFACE Z position request: z=%d", z)
+        logger.info("[control] Previous body_height: %d, new body_height will be: %d", 
+                   self.body_height, -30 - z)
+        logger.info("[control] Previous robot_state.body_height_z: %d", 
+                   self.robot_state.get_flag("body_height_z"))
+        
+        # Update robot_state for web interface
+        self.robot_state.set_flag("body_height_z", z)
+        
+        # Update internal body_height (same as CMD_POSITION does)
+        self.body_height = -30 - z
+        
+        # Update body_points to reflect new height
+        for i in range(6):
+            self.body_points[i][2] = self.body_height
+            
+        # CRITICAL: Actually move the robot's legs (same as move_position)
+        transform_coordinates(self.body_points, self.leg_positions)
+        self.set_leg_angles()
+            
+        # Log the actual changes made
+        logger.info("[control] WEB INTERFACE Z position executed: body_height=%d, robot_state.body_height_z=%d", 
+                   self.body_height, self.robot_state.get_flag("body_height_z"))
+        logger.info("[control] Body points Z values: %s", 
+                   [f"{point[2]:.1f}" for point in self.body_points])
+        
+        logger.info("[control] WEB INTERFACE Z position set to %d via web interface", z)
 
     def imu6050(self):
         _ = 0  # old_roll unused

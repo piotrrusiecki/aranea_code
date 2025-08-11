@@ -11,12 +11,17 @@ class RobotState:
             "calibration_mode": False,
             "servo_off": False,  # <-- NEW FLAG
             "move_speed": 5,
+            "body_height_z": 0,  # Z position for body height (-20 to 20)
         }
         self._lock = threading.Lock()
 
     def get_flag(self, name):
         with self._lock:
-            return self._flags.get(name, False)
+            value = self._flags.get(name, False)
+            # Enhanced logging for Z position access
+            if name == "body_height_z":
+                logger.debug("[robot_state] Z position accessed: %d", value)
+            return value
 
     def set_flag(self, name, value):
         with self._lock:
@@ -25,6 +30,12 @@ class RobotState:
                 self._flags["motion_state"] = False
                 self._flags["sonic_state"] = False
                 logger.info("Enabling calibration_mode; motion_state and sonic_state set to False.")
+            
+            # Enhanced logging for Z position changes
+            if name == "body_height_z":
+                old_value = self._flags.get(name, 0)
+                logger.info("[robot_state] Z position change: %d → %d", old_value, value)
+            
             if name in self._flags:
                 logger.info("Flag '%s' set to %s.", name, value)
                 self._flags[name] = value

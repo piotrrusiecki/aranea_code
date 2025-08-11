@@ -37,6 +37,6 @@ VOICE_SAMPLERATE = 44100
 VOICE_BLOCKSIZE = 8000  # Increased from 4000 to reduce audio buffer overflows
 VOICE_INPUT_DEVICE = 1
 DRY_RUN = False
-DEBUG_LEGS = True
+DEBUG_LEGS = False
 AUTO_RELAX = False
 CLEAR_MOVE_QUEUE_AFTER_EXEC = False

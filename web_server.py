@@ -89,17 +89,21 @@ def create_status_handler(server_instance, robot_state):
     """Create status handler with closure over server instance and robot state."""
     def status():
         try:
+            body_height_z = robot_state.get_flag("body_height_z")
+            logger.debug("[web] Status request - Z position: %d", body_height_z)
+            
             status_data = {
                 "tcp_active": server_instance.is_tcp_active,
                 "servo_relaxed": server_instance.is_servo_relaxed,
                 "calibration_mode": robot_state.get_flag("calibration_mode"),
                 "motion_state": robot_state.get_flag("motion_state"),
                 "sonic_state": robot_state.get_flag("sonic_state"),
+                "body_height_z": body_height_z,
             }
             return jsonify(status_data)
         except Exception as e:
-            logger.error("Failed to retrieve robot status: %s", e)
-            return jsonify({"status": "error", "reason": "Failed to get status"}), 500
+            logger.error("Status retrieval error: %s", e)
+            return jsonify({"error": "Status retrieval failed"}), 500
     return status
 
 
@@ -186,16 +190,51 @@ def create_calibration_mode_handler(robot_state):
 def create_set_speed_handler(robot_state):
     """Create speed setting handler with closure over robot state."""
     def set_speed():
-        """Handle speed setting requests."""
         try:
-            speed = int(request.json.get("speed", 0))
-            robot_state.set_flag("move_speed", speed)
-            logger.debug("Updated move_speed: %s", speed)
-            return jsonify({"status": "ok"})
+            speed = request.json.get("speed")
+            if speed is not None:
+                speed = int(speed)
+                if 2 <= speed <= 10:
+                    robot_state.set_flag("move_speed", speed)
+                    logger.info("Speed set to %d via web interface", speed)
+                    return jsonify({"success": True, "speed": speed})
+                else:
+                    return jsonify({"success": False, "error": "Speed must be between 2 and 10"}), 400
+            else:
+                return jsonify({"success": False, "error": "No speed provided"}), 400
         except Exception as e:
-            logger.error("Speed update failed: %s", e)
-            return jsonify({"status": "error", "reason": "Invalid speed value"}), 400
+            logger.error("Speed setting error: %s", e)
+            return jsonify({"success": False, "error": str(e)}), 500
     return set_speed
+
+
+def create_set_z_position_handler(server_instance):
+    """Create Z position setting handler with closure over server instance."""
+    def set_z_position():
+        try:
+            z = request.json.get("z")
+            logger.info("[web] Z position request received: z=%s", z)
+            
+            if z is not None:
+                z = int(z)
+                if -20 <= z <= 20:
+                    # Log current state before change
+                    current_z = server_instance.robot_state.get_flag("body_height_z")
+                    logger.info("[web] Z position change: %d → %d", current_z, z)
+                    
+                    server_instance.control_system.set_body_height_z(z)
+                    logger.info("[web] Z position set to %d via web interface", z)
+                    return jsonify({"success": True, "z": z})
+                else:
+                    logger.warning("[web] Z position out of range: %d (must be -20 to 20)", z)
+                    return jsonify({"success": False, "error": "Z position must be between -20 and 20"}), 400
+            else:
+                logger.warning("[web] No Z position provided in request")
+                return jsonify({"success": False, "error": "No Z position provided"}), 400
+        except Exception as e:
+            logger.error("[web] Z position setting error: %s", e)
+            return jsonify({"success": False, "error": str(e)}), 500
+    return set_z_position
 
 
 def load_point_txt():
@@ -330,6 +369,7 @@ def create_app(server_instance, robot_state):
     app.add_url_rule("/calibration", "get_calibration", create_calibration_handler(server_instance), methods=["GET"])
     app.add_url_rule("/calibration_mode", "calibration_mode", create_calibration_mode_handler(robot_state), methods=["GET", "POST"])
     app.add_url_rule("/set_speed", "set_speed", create_set_speed_handler(robot_state), methods=["POST"])
+    app.add_url_rule("/set_z_position", "set_z_position", create_set_z_position_handler(server_instance), methods=["POST"])
     app.add_url_rule("/load_point_txt", "load_point_txt", load_point_txt)
     app.add_url_rule("/led_config", "led_config", led_config, methods=["POST"])
     app.add_url_rule("/led_off", "led_off", led_off, methods=["POST"])

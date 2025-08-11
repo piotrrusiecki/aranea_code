@@ -85,6 +85,8 @@
   - Modular command handlers (`_handle_position_command`, `_handle_move_command`)
   - Servo angle calculations and safety checks
   - Command queue processing
+  - **NEW**: `set_body_height_z()` method for web interface Z position control
+  - **BACKWARDS COMPATIBLE**: Legacy CMD_POSITION commands still work unchanged
 - `robot_pid.py` - PID controller for balance and stability
 - `robot_kinematics.py` - Forward/inverse kinematics calculations
 - `robot_gait.py` - Gait pattern generation (walking algorithms)
@@ -97,9 +99,9 @@
 
 #### **State Management**
 - `robot_state.py` - Thread-safe centralized state management
-  - Flags: motion_state, sonic_state, calibration_mode, servo_off
-  - Thread-safe access with locks
-  - State exclusivity logic (e.g., calibration disables motion)
+  - Flags: motion_state, sonic_state, calibration_mode, servo_off, move_speed, body_height_z
+  - **NEW**: body_height_z (-20 to 20) for web interface Z position control
+  - Thread-safe with proper locking for all operations
 
 #### **Web Interface**
 - `web_server.py` - Flask application factory and routes
@@ -173,6 +175,15 @@
 - **Language Ready**: Blue flash (0.4s) when switching completes
 - **Thread-safe**: All patterns run in separate daemon threads
 - **Error Handling**: Patterns stop automatically on errors
+
+### **Z Position Control System**
+- **Range**: -20 to 20 (matching legacy CMD_POSITION)
+- **Default**: 0 (neutral body height)
+- **Storage**: Thread-safe in `robot_state.body_height_z`
+- **Persistence**: Z position retained across movement commands
+- **Backwards Compatible**: Legacy `CMD_POSITION#0#0#10` still works
+- **Web Interface**: Slider control under Speed in move tab
+- **Implementation**: `set_body_height_z()` method in `robot_control.py`
 
 ### **Command Execution Patterns**
 

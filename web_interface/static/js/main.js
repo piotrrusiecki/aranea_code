@@ -1,6 +1,7 @@
 let gaitMode = 1;
 let actionMode = 0;
 let moveSpeed = 8;
+let zPosition = 0;  // Z position for body height (-20 to 20)
 let tilt = 90;
 let pan = 90;
 
@@ -223,6 +224,50 @@ function updateHeadDisplay() {
 function updateSpeed(val) {
   moveSpeed = parseInt(val);
   document.getElementById("speedDisplay").innerText = val;
+}
+
+function updateZPosition(val) {
+  const oldZ = zPosition;
+  zPosition = parseInt(val);
+  document.getElementById("zPositionDisplay").innerText = val;
+  
+  console.log(`[web] Z position slider changed: ${oldZ} → ${zPosition}`);
+  
+  // Send Z position update to robot via dedicated endpoint
+  fetch('/set_z_position', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ z: zPosition })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      console.log(`[web] Z position successfully set to: ${zPosition}`);
+    } else {
+      console.error(`[web] Failed to set Z position: ${data.error}`);
+    }
+  })
+  .catch(err => console.error(`[web] Z position update failed: ${err}`));
+}
+
+function loadZPositionFromRobot() {
+  // Load current Z position from robot state
+  console.log("[web] Loading Z position from robot state...");
+  
+  fetch('/status')
+    .then(r => r.json())
+    .then(data => {
+      if (data.body_height_z !== undefined) {
+        const oldZ = zPosition;
+        zPosition = data.body_height_z;
+        document.getElementById("zPositionSlider").value = zPosition;
+        document.getElementById("zPositionDisplay").innerText = zPosition;
+        console.log(`[web] Z position loaded from robot: ${oldZ} → ${zPosition}`);
+      } else {
+        console.warn("[web] Z position not available in robot state");
+      }
+    })
+    .catch(err => console.error(`[web] Failed to load Z position: ${err}`));
 }
 
 function sendMove(x, y) {
@@ -680,4 +725,9 @@ function turnLEDsOff() {
   });
 }
 
-updateHeadDisplay();
+// Initialize page state
+document.addEventListener('DOMContentLoaded', function() {
+  updateHeadDisplay();
+  updateSpeedState(moveSpeed);
+  loadZPositionFromRobot();  // Load current Z position from robot
+});
