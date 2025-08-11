@@ -38,16 +38,6 @@ def test_voice_state_management():
     print("\n3. Testing voice manager state tracking...")
     voice_manager = VoiceManager()
     
-    # Mock command sender and ultrasonic sensor
-    def mock_command_sender(cmd):
-        print(f"   Mock command sent: {cmd}")
-    
-    class MockUltrasonicSensor:
-        def __init__(self):
-            self.distance = 100
-    
-    ultrasonic_sensor = MockUltrasonicSensor()
-    
     # Test voice manager internal state
     print("   Voice manager initial state:")
     print(f"     voice_active: {voice_manager.voice_active}")
