@@ -285,12 +285,94 @@ function toggleVoice(action) {
   .then(r => r.json())
   .then(data => {
     if (data.status) {
-      // Map server status to display status
-      const displayStatus = data.status === 'started' ? 'ON' : 'OFF';
-      document.getElementById("voiceStatus").innerText = displayStatus;
+      // Update status display after action
+      updateVoiceStatus();
     }
   })
   .catch(err => console.error("Voice control toggle failed:", err));
+}
+
+function updateVoiceStatus() {
+  fetch('/voice_status')
+    .then(r => r.json())
+    .then(data => {
+      const displayStatus = data.voice_active ? 'ON' : 'OFF';
+      document.getElementById("voiceStatus").innerText = displayStatus;
+    })
+    .catch(err => console.error("Voice status fetch failed:", err));
+}
+
+function loadVoiceConfig() {
+  console.log("Loading voice configuration...");
+  fetch('/voice_config')
+    .then(r => r.json())
+    .then(data => {
+      console.log("Voice config loaded:", data);
+      const autostartToggle = document.getElementById("voiceAutostartToggle");
+      if (autostartToggle) {
+        autostartToggle.checked = data.voice_autostart;
+        console.log("Set autostart toggle to:", data.voice_autostart);
+      } else {
+        console.error("Voice autostart toggle element not found");
+      }
+    })
+    .catch(err => {
+      console.error("Voice config fetch failed:", err);
+    });
+}
+
+function saveVoiceConfig() {
+  const autostartToggle = document.getElementById("voiceAutostartToggle");
+  if (!autostartToggle) {
+    console.error("Voice autostart toggle not found");
+    return;
+  }
+  
+  const voiceAutostart = autostartToggle.checked;
+  console.log("Saving voice autostart configuration:", voiceAutostart);
+  
+  fetch('/voice_config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ voice_autostart: voiceAutostart })
+  })
+  .then(r => r.json())
+  .then(data => {
+    console.log("Voice config save response:", data);
+    if (data.success) {
+      console.log("Voice autostart configuration saved:", voiceAutostart);
+      // Show a brief success message
+      showVoiceConfigMessage(`Autostart ${voiceAutostart ? 'enabled' : 'disabled'}`, true);
+    } else {
+      console.error("Voice config save failed:", data.error);
+      showVoiceConfigMessage("Failed to save configuration", false);
+    }
+  })
+  .catch(err => {
+    console.error("Voice config save failed:", err);
+    showVoiceConfigMessage("Error saving configuration", false);
+  });
+}
+
+function showVoiceConfigMessage(message, success) {
+  // Create a temporary message element
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `alert alert-${success ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+  messageDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 250px;';
+  
+  messageDiv.innerHTML = `
+    <strong>${success ? '✓' : '✗'}</strong> ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  
+  document.body.appendChild(messageDiv);
+  
+  // Auto-remove after 3 seconds
+  setTimeout(() => {
+    if (messageDiv.parentNode) {
+      messageDiv.remove();
+    }
+  }, 3000);
 }
 
 function switchLanguage(langCode) {
@@ -449,6 +531,28 @@ document.addEventListener("DOMContentLoaded", () => {
       updateCalibrationModeStatus();
     });
   }
+  
+  // Setup voice tab event handler
+  const voiceTabEl = document.querySelector('a[href="#voice"]');
+  if (voiceTabEl) {
+    voiceTabEl.addEventListener('shown.bs.tab', function () {
+      updateVoiceStatus();
+      loadVoiceConfig(); // Load voice config on tab show
+      
+      // Setup voice autostart toggle event listener when tab is shown
+      const autostartToggle = document.getElementById("voiceAutostartToggle");
+      if (autostartToggle) {
+        console.log("Setting up voice autostart toggle event listener (tab shown)");
+        // Remove existing listener to avoid duplicates
+        autostartToggle.removeEventListener('change', saveVoiceConfig);
+        autostartToggle.addEventListener('change', function() {
+          console.log("Voice autostart toggle changed to:", this.checked);
+          saveVoiceConfig();
+        });
+      }
+    });
+  }
+  
   // Default select first leg
   selectCalibrationLeg(0);
 });
@@ -730,4 +834,17 @@ document.addEventListener('DOMContentLoaded', function() {
   updateHeadDisplay();
   updateSpeedState(moveSpeed);
   loadZPositionFromRobot();  // Load current Z position from robot
+  updateVoiceStatus();  // Load current voice control state
+  
+  // Setup voice autostart toggle event listener
+  const autostartToggle = document.getElementById("voiceAutostartToggle");
+  if (autostartToggle) {
+    console.log("Setting up voice autostart toggle event listener");
+    autostartToggle.addEventListener('change', function() {
+      console.log("Voice autostart toggle changed to:", this.checked);
+      saveVoiceConfig();
+    });
+  } else {
+    console.log("Voice autostart toggle not found during initialization");
+  }
 });

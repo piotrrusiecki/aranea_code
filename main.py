@@ -77,7 +77,13 @@ if __name__ == '__main__':
         threading.Thread(target=server.receive_commands, args=(shutdown_event,), daemon=True).start()
 
         init_command_dispatcher(server)
-        start_voice(lambda cmd: dispatch_command("voice", cmd), server.ultrasonic_sensor, robot_state)
+        
+        # Start voice control based on autostart configuration
+        if robot_config.VOICE_AUTOSTART:
+            start_voice(lambda cmd: dispatch_command("voice", cmd), server.ultrasonic_sensor, robot_state)
+            logger.info("Voice control started automatically (VOICE_AUTOSTART=True)")
+        else:
+            logger.info("Voice control not started automatically (VOICE_AUTOSTART=False)")
 
         flask_app = create_app(server, robot_state)
         web_thread = FlaskServerThread(flask_app)

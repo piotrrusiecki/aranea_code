@@ -67,6 +67,97 @@ def create_voice_handler(server_instance, robot_state):
     return toggle_voice
 
 
+def create_voice_status_handler(robot_state):
+    """Create voice status handler with closure over robot state."""
+    def voice_status():
+        try:
+            voice_active = robot_state.get_flag("voice_active")
+            return jsonify({"voice_active": voice_active})
+        except Exception as e:
+            logger.error("Voice status retrieval error: %s", e)
+            return jsonify({"error": "Voice status retrieval failed"}), 500
+    return voice_status
+
+
+def create_voice_config_handler():
+    """Create voice configuration handler."""
+    def get_voice_config():
+        try:
+            from config import robot_config
+            return jsonify({
+                "voice_autostart": robot_config.VOICE_AUTOSTART,
+                "voice_lang": robot_config.VOICE_LANG
+            })
+        except Exception as e:
+            logger.error("Voice config retrieval error: %s", e)
+            return jsonify({"error": "Voice config retrieval failed"}), 500
+    
+    def set_voice_config():
+        try:
+            data = request.get_json()
+            voice_autostart = data.get("voice_autostart")
+            
+            if voice_autostart is None:
+                return jsonify({"error": "voice_autostart parameter required"}), 400
+            
+            if not isinstance(voice_autostart, bool):
+                return jsonify({"error": "voice_autostart must be boolean"}), 400
+            
+            logger.info("Updating voice autostart configuration to: %s", voice_autostart)
+            
+            # Update the configuration file
+            import config.robot_config as robot_config
+            
+            # Read the current config file
+            config_path = "config/robot_config.py"
+            with open(config_path, 'r') as f:
+                content = f.read()
+            
+            # Update the VOICE_AUTOSTART line
+            lines = content.split('\n')
+            updated = False
+            
+            for i, line in enumerate(lines):
+                if line.strip().startswith('VOICE_AUTOSTART'):
+                    old_value = line.strip()
+                    lines[i] = f"VOICE_AUTOSTART = {str(voice_autostart)}  # Whether to start voice control automatically on startup"
+                    logger.info("Updated line %d: '%s' -> '%s'", i+1, old_value, lines[i])
+                    updated = True
+                    break
+            
+            if not updated:
+                logger.error("VOICE_AUTOSTART line not found in config file")
+                return jsonify({"error": "VOICE_AUTOSTART configuration not found"}), 500
+            
+            # Write back to file
+            new_content = '\n'.join(lines)
+            with open(config_path, 'w') as f:
+                f.write(new_content)
+            
+            logger.info("Configuration file updated successfully")
+            
+            # Reload the config module
+            import importlib
+            importlib.reload(robot_config)
+            
+            # Verify the change took effect
+            from config import robot_config as reloaded_config
+            logger.info("Reloaded config - VOICE_AUTOSTART: %s", reloaded_config.VOICE_AUTOSTART)
+            
+            if reloaded_config.VOICE_AUTOSTART != voice_autostart:
+                logger.error("Configuration reload failed - expected %s, got %s", voice_autostart, reloaded_config.VOICE_AUTOSTART)
+                return jsonify({"error": "Configuration reload failed"}), 500
+            
+            logger.info("Voice autostart configuration successfully updated to: %s", voice_autostart)
+            return jsonify({"success": True, "voice_autostart": voice_autostart})
+            
+        except Exception as e:
+            logger.error("Voice config update error: %s", e)
+            return jsonify({"error": f"Voice config update failed: {str(e)}"}), 500
+    
+    return get_voice_config, set_voice_config
+
+
 def create_language_handler(language_switcher):
     """Create language switching handler with callback pattern."""
     def switch_language_web():
@@ -99,6 +190,7 @@ def create_status_handler(server_instance, robot_state):
                 "motion_state": robot_state.get_flag("motion_state"),
                 "sonic_state": robot_state.get_flag("sonic_state"),
                 "body_height_z": body_height_z,
+                "voice_state": robot_state.get_flag("voice_state"),
             }
             return jsonify(status_data)
         except Exception as e:
@@ -362,6 +454,9 @@ def create_app(server_instance, robot_state):
     app.add_url_rule("/", "index", create_index_handler(default_angles, used_channels))
     app.add_url_rule("/command", "send_command", send_command, methods=["POST"])
     app.add_url_rule("/voice", "toggle_voice", create_voice_handler(server_instance, robot_state), methods=["POST"])
+    app.add_url_rule("/voice_status", "voice_status", create_voice_status_handler(robot_state), methods=["GET"])
+    app.add_url_rule("/voice_config", "get_voice_config", create_voice_config_handler()[0], methods=["GET"])
+    app.add_url_rule("/voice_config", "set_voice_config", create_voice_config_handler()[1], methods=["POST"])
     app.add_url_rule("/language", "switch_language", create_language_handler(language_switcher), methods=["POST"])
     app.add_url_rule("/status", "status", create_status_handler(server_instance, robot_state))
     app.add_url_rule("/imu", "imu_status", create_imu_handler(server_instance))

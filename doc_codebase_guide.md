@@ -99,7 +99,8 @@
 
 #### **State Management**
 - `robot_state.py` - Thread-safe centralized state management
-  - Flags: motion_state, sonic_state, calibration_mode, servo_off, move_speed, body_height_z
+  - Flags: motion_state, sonic_state, calibration_mode, servo_off, voice_active, move_speed, body_height_z
+  - **NEW**: voice_active flag for voice control state tracking
   - **NEW**: body_height_z (-20 to 20) for web interface Z position control
   - Thread-safe with proper locking for all operations
 
@@ -107,15 +108,17 @@
 - `web_server.py` - Flask application factory and routes
   - Modular route handlers with dependency injection
   - `/language` POST endpoint for web-based language switching
+  - `/voice_config` GET/POST endpoints for autostart configuration
 - `web_interface/templates/` - Jinja2 HTML templates
 - `web_interface/static/` - CSS, JS, Bootstrap assets
-- Routes: `/` (main), `/command` (API), `/voice` (control), `/status`, `/language`
+- Routes: `/` (main), `/command` (API), `/voice` (control), `/voice_status`, `/voice_config`, `/language`
 
 #### **Multi-Language Voice Control System** 🌍
 - `voice_manager.py` - Voice system lifecycle management
   - Class-based `VoiceManager` with instance state management
   - Language switching capability with `switch_language()` method
   - LED feedback integration for language switching
+  - **NEW**: Robot state integration for voice_active flag
 - `voice_control.py` - Core voice recognition and command processing
   - Multi-language support with runtime language switching
   - Uses Vosk speech recognition with language-specific models
@@ -132,6 +135,15 @@
   - Each language has complete command set with native translations
   - Language switching commands use "spider" + language name pattern
 
+**Voice Control State Management:**
+- **Configuration**: `VOICE_AUTOSTART` in `config/robot_config.py` (True/False)
+- **State Tracking**: `voice_active` flag in `robot_state.py`
+- **Web Interface**: Real-time status display with start/stop buttons
+- **Autostart Toggle**: Web interface toggle to configure autostart behavior for next server restart
+- **Autostart**: Voice control starts automatically on robot startup if `VOICE_AUTOSTART=True`
+- **Default Language**: Uses `VOICE_LANG` setting (default: "en")
+- **API Endpoints**: `/voice` (POST for start/stop), `/voice_status` (GET for current state), `/voice_config` (GET/POST for autostart configuration)
+
 **Voice Language Switching Pattern:**
 - Use the word for "spider" in the current language + target language name
 - Examples: "spider german", "araignée français", "pająk po angielsku"
@@ -140,7 +152,7 @@
 
 #### **Configuration & Constants**
 - `config/robot_config.py` - Centralized configuration
-  - Voice settings, logging colors, debug flags
+  - Voice settings (VOICE_LANG, VOICE_AUTOSTART), logging colors, debug flags
   - Hardware-specific settings
 - `config/parameter.py` - Parameter management utility
   - Hardware detection and validation
@@ -420,4 +432,4 @@ class NetworkServer:
 
 *This guide represents the codebase state after comprehensive refactoring from manufacturer PyQt5 desktop application to modern web-based robot control system. Reference roadmap.md for development priorities and completed features.*
 
-*Last updated: December 2024 with multi-language voice system, LED feedback system, and code quality improvements*
+*Last updated: August 2025 with multi-language voice system, LED feedback system, and code quality improvements*

@@ -28,6 +28,9 @@ class VoiceManager:
                 self.voice_thread = threading.Thread(target=self.voice.start, daemon=True)
                 self.voice_thread.start()
                 self.voice_active = True
+                # Update robot state to reflect voice control is active
+                if robot_state:
+                    robot_state.set_flag("voice_active", True)
                 logger.info("Voice control started.")
             except Exception as e:
                 logger.error("Failed to start voice control: %s", e)
@@ -38,6 +41,9 @@ class VoiceManager:
             try:
                 self.voice.stop()
                 self.voice_active = False
+                # Update robot state to reflect voice control is inactive
+                if self.robot_state:
+                    self.robot_state.set_flag("voice_active", False)
                 logger.info("Voice control stopped.")
             except Exception as e:
                 logger.error("Failed to stop voice control: %s", e)

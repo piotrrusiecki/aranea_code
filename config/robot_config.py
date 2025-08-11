@@ -1,5 +1,6 @@
 # config/robot_config.py
 VOICE_LANG = "en"  # default language code, e.g. "eo", "en", etc.
+VOICE_AUTOSTART = True  # Whether to start voice control automatically on startup
 VOICE_MODELS = {
     "eo": "voice_models/vosk-model-small-eo-0.22",
     "en": "voice_models/vosk-model-small-en-us-0.15",

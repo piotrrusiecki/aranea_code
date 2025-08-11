@@ -10,6 +10,7 @@ class RobotState:
             "sonic_state": False,
             "calibration_mode": False,
             "servo_off": False,  # <-- NEW FLAG
+            "voice_active": False,  # Voice control active state
             "move_speed": 5,
             "body_height_z": 0,  # Z position for body height (-20 to 20)
         }

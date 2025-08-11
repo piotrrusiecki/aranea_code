@@ -10,7 +10,7 @@
 - [x] Indicate WiFi connection with LED / startup sequence / readiness
 - [ ] Camera feed
 - [ ] Optimise web-UI (toggles for gait and action mode instead of buttons, improve responsiveness, speed slider size swapped)
-- [ ] Add position height in move, likely slider
+- [x] Add position height in move, likely slider
 
 ### Performance Optimization
 - [ ] Investigate movement slowdown (check SendMove(0,0) in move.js) 
@@ -35,6 +35,10 @@
 - [x] Language-specific command maps with native translations
 - [x] Complete command coverage (45 commands per language)
 - [x] Cyclic import resolution with callback pattern
+- [x] Voice control state management with robot state integration
+- [x] VOICE_AUTOSTART configuration for startup control
+- [x] Web interface voice status display and control
+- [x] Web interface autostart toggle for configuration management
 
 ## Phase 3: Core System Refinement (Priority: MEDIUM)
 ### Architecture Improvements
