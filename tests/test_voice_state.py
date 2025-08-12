@@ -26,19 +26,19 @@ def test_voice_state_management():
         logger.debug("   Initial voice_active state: %s", voice_active)
         
         # Should start as False
-        assert voice_active == False, "voice_active should start as False"
+        assert voice_active is False, "voice_active should start as False"
         
         # Test 2: Direct robot state manipulation
         logger.info("2. Testing direct robot state manipulation")
         robot_state.set_flag("voice_active", True)
         voice_active = robot_state.get_flag("voice_active")
         logger.debug("   Voice active after setting to True: %s", voice_active)
-        assert voice_active == True, "voice_active should be True after setting"
+        assert voice_active is True, "voice_active should be True after setting"
         
         robot_state.set_flag("voice_active", False)
         voice_active = robot_state.get_flag("voice_active")
         logger.debug("   Voice active after setting to False: %s", voice_active)
-        assert voice_active == False, "voice_active should be False after setting"
+        assert voice_active is False, "voice_active should be False after setting"
         
         # Test 3: Voice manager state tracking
         logger.info("3. Testing voice manager state tracking")
@@ -50,7 +50,7 @@ def test_voice_state_management():
         logger.debug("     voice_thread: %s", voice_manager.voice_thread)
         
         # Should start as inactive
-        assert voice_manager.voice_active == False, "Voice manager should start inactive"
+        assert voice_manager.voice_active is False, "Voice manager should start inactive"
         assert voice_manager.voice is None, "Voice control should start as None"
         assert voice_manager.voice_thread is None, "Voice thread should start as None"
         

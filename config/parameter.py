@@ -1,7 +1,5 @@
 import os
 import logging
-import subprocess
-import re
 
 logger = logging.getLogger("config.parameter")
 

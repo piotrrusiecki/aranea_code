@@ -1,7 +1,5 @@
 #coding:utf-8
-import time
 import math
-import os
 import logging
 from mpu6050 import mpu6050
 
