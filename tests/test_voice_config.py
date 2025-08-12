@@ -89,4 +89,4 @@ if __name__ == "__main__":
     
     success = test_voice_configuration()
     if not success:
-        exit(1)
+        sys.exit(1)

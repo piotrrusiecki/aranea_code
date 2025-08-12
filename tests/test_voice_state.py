@@ -85,4 +85,4 @@ if __name__ == "__main__":
     
     success = test_voice_state_management()
     if not success:
-        exit(1)
+        sys.exit(1)
