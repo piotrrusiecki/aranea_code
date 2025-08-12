@@ -10,7 +10,7 @@ class ParameterManager:
         self.pi_version = None
         self.load_parameters()
 
-    def _validate_file_path(self, file_path):
+    def _validate_file_path(self, file_path):  # skipcq: PYL-R0201
         """Validate file path to prevent path traversal attacks."""
         try:
             if not file_path or not isinstance(file_path, str):

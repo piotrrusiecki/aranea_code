@@ -168,7 +168,7 @@ class IMU:
             logger.error("Failed to get IMU angles: %s", e)
             return 0.0, 0.0, 0.0
 
-    def close(self):
+    def close(self):  # skipcq: PYL-R0201
         """Close the IMU sensor."""
         try:
             # MPU6050 doesn't have a close method, but we can log the cleanup
