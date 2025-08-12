@@ -4,6 +4,7 @@ Test script for voice configuration endpoints
 """
 
 import os
+import sys
 import logging
 from config import robot_config
 
