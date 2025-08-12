@@ -17,8 +17,8 @@ LOGGER_COLORS = {
     # Main/System - Blue shades
     'main':           '\033[94m',    # Bright blue
     
-    # Web Interface - Blue shades
-    'web':            '\033[36m',    # Cyan
+    # Web Interface - Distinct color
+    'web':            '\033[97m',    # White (distinct from all other colors)
     
     # Voice Control - Purple/Magenta shades
     'voice':          '\033[35m',    # Magenta
