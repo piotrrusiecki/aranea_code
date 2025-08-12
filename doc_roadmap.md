@@ -57,12 +57,12 @@
 ### Advanced Camera Features
 - [ ] Camera recording functionality
 
-
 ### Enhanced Web Interface
 - [ ] Real-time sensor data visualization
 - [ ] Advanced movement controls
 - [ ] Configuration management interface
 - [ ] System monitoring dashboard
+- [ ] Logging storage and display
 
 ### Robot Intelligence
 - [ ] Obstacle avoidance algorithms
