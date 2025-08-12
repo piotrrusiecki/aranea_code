@@ -137,7 +137,7 @@ class IMU:
             
             # Calculate angles
             self.roll_angle = math.atan2(filtered_accel_y, filtered_accel_z) * 180 / math.pi
-            self.pitch_angle = math.atan2(-filtered_accel_x, math.sqrt(filtered_accel_y**2 + filtered_accel_z**2)) * 180 / math.pi
+            self.pitch_angle = math.atan2(-filtered_accel_x, math.hypot(filtered_accel_y, filtered_accel_z)) * 180 / math.pi
             
             # Integrate gyro for yaw (simplified)
             self.yaw_angle += filtered_gyro_z * self.half_time_step
