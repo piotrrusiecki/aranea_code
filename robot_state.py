@@ -24,6 +24,9 @@ class RobotState:
             # Enhanced logging for Z position access
             if name == "body_height_z":
                 logger.debug("Z position accessed: %d", value)
+            elif name == "servo_off":
+                # Don't log servo_off flag access as it's checked very frequently
+                pass
             elif logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Flag '%s' accessed: %s", name, value)
             return value
