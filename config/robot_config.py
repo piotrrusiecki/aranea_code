@@ -28,10 +28,31 @@ LOGGER_COLORS = {
     'robot.control':  '\033[92m',    # Bright green
     'robot.server':   '\033[32m',    # Regular green
     'robot.routines': '\033[32;1m',  # Bold green
-    'picamera2.picamera2':         '\033[96m',    # Bright cyan (aqua) for camera subsystem
+    'robot.kinematics': '\033[92m',  # Bright green
+    'robot.pose':     '\033[92m',    # Bright green
+    'robot.calibration': '\033[92m', # Bright green
+    'robot.state':    '\033[92m',    # Bright green
+    'robot.pid':      '\033[92m',    # Bright green
+    'robot.patrol':   '\033[92m',    # Bright green
+    'robot.gait':     '\033[92m',    # Bright green
+    # Hardware and actuator loggers
+    'hardware':       '\033[93m',    # Bright yellow
+    'hardware.pca9685': '\033[93m',  # Bright yellow
+    'actuator':       '\033[91m',    # Bright red
+    'actuator.servo': '\033[91m',    # Bright red
+    'actuator.led':   '\033[91m',    # Bright red
+    'led':            '\033[91m',    # Bright red for LED subsystem (legacy)
+    'led.commands':   '\033[91m',    # Bright red
+    'led.hw.rpi':     '\033[91m',    # Bright red
+    'led.hw.spi':     '\033[91m',    # Bright red
+    # Sensor loggers
     'sensor':         '\033[95m',    # Bright magenta for sensor subsystem
     'sensor.camera':  '\033[96m',    # Bright cyan (aqua) for camera sensor
-    'led':            '\033[91m',    # Bright red for LED subsystem
+    'sensor.adc':     '\033[95m',    # Bright magenta
+    'sensor.imu':     '\033[95m',    # Bright magenta
+    'sensor.ultrasonic': '\033[95m', # Bright magenta
+    # Camera subsystem
+    'picamera2.picamera2':         '\033[96m',    # Bright cyan (aqua) for camera subsystem
     'RESET':          '\033[0m'
 }
 VOICE_SAMPLERATE = 44100

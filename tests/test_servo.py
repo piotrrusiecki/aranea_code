@@ -1,94 +1,67 @@
 # test_servo.py
-from hardware_pca9685 import PCA9685
-import threading
 import time
+import logging
+from actuator_servo import Servo
 
-def map_value(value, from_low, from_high, to_low, to_high):
-    return (to_high - to_low) * (value - from_low) / (from_high - from_low) + to_low
+logger = logging.getLogger("test.servo")
 
-# Only used servo channels
-USED_CHANNELS = [
-    0, 1,  # Head servos (pan and tilt)
-    8, 9, 10, 11, 12, 13, 14, 15,
-    16, 17, 18, 19, 20, 21,
-    22, 23, 27, 31
-]
-
-class Servo:
-    def __init__(self):
-        self.pwm_40 = PCA9685(0x40, debug=True)
-        self.pwm_41 = PCA9685(0x41, debug=True)
-        self.pwm_40.set_pwm_freq(50)
-        self.pwm_41.set_pwm_freq(50)
-
-    def set_servo_angle(self, channel, angle):
-        duty_cycle = map_value(angle, 0, 180, 500, 2500)
-        duty_cycle = map_value(duty_cycle, 0, 20000, 0, 4095)
-
-        if channel < 16:
-            self.pwm_41.set_pwm(channel, 0, int(duty_cycle))
-        elif channel < 32:
-            self.pwm_40.set_pwm(channel - 16, 0, int(duty_cycle))
-
-    def relax(self):
-        for i in USED_CHANNELS:
-            if i < 16:
-                self.pwm_41.set_pwm(i, 4096, 4096)
-            else:
-                self.pwm_40.set_pwm(i - 16, 4096, 4096)
-
-# --- Test Mode Thread Control ---
-class ServoTestController:
-    def __init__(self):
-        self.running = False
-        self.thread = None
-        self.servo = Servo()
+def test_servo_movement():
+    """Test servo movement for all channels."""
+    logger.info("Starting servo movement test")
     
-    def _run_test_loop(self):
-        printed = set()
-        while self.running:
-            for i in USED_CHANNELS:
-                # Head servos (channels 0 and 1) - look forward position
-                if i in [0, 1]:
-                    angle = 90  # Look forward (pan=90, tilt=90)
-                elif i in [10, 13, 31]:
-                    angle = 10
-                elif i in [18, 21, 27]:
-                    angle = 170
-                else:
-                    angle = 90
-
-                if i not in printed:
-                    print(f"Servo {i:2d} | angle: {angle:3d}")
-                    printed.add(i)
-
-                self.servo.set_servo_angle(i, angle)
-            time.sleep(3)
-    
-    def start_test(self):
-        if not self.running:
-            self.running = True
-            self.thread = threading.Thread(target=self._run_test_loop, daemon=True)
-            self.thread.start()
-    
-    def stop_test(self):
-        self.running = False
-        self.servo.relax()
-
-# Create singleton instance
-servo_test_controller = ServoTestController()
-
-def start_servo_test():
-    servo_test_controller.start_test()
-
-def stop_servo_test():
-    servo_test_controller.stop_test()
-
-# Optional for CLI testing
-if __name__ == '__main__':
-    start_servo_test()
     try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        stop_servo_test()
+        servo = Servo()
+        logger.info("Servo controller initialized successfully")
+        
+        # Test each servo channel
+        for i in range(32):
+            angle = 90  # Center position
+            logger.debug("Testing servo %2d | angle: %3d", i, angle)
+            servo.set_servo_angle(i, angle)
+            time.sleep(0.1)  # Small delay between servos
+        
+        logger.info("All servos moved to center position")
+        time.sleep(2)  # Hold position for 2 seconds
+        
+        # Move to different positions
+        for i in range(32):
+            if i % 2 == 0:
+                angle = 45  # Left position
+            else:
+                angle = 135  # Right position
+            logger.debug("Testing servo %2d | angle: %3d", i, angle)
+            servo.set_servo_angle(i, angle)
+            time.sleep(0.1)
+        
+        logger.info("Servos moved to alternate positions")
+        time.sleep(2)
+        
+        # Return to center
+        for i in range(32):
+            angle = 90
+            logger.debug("Testing servo %2d | angle: %3d", i, angle)
+            servo.set_servo_angle(i, angle)
+            time.sleep(0.1)
+        
+        logger.info("All servos returned to center position")
+        time.sleep(1)
+        
+        # Relax all servos
+        servo.relax()
+        logger.info("All servos relaxed")
+        
+        servo.close()
+        logger.info("Servo test completed successfully")
+        
+    except Exception as e:
+        logger.error("Error during servo test: %s", e)
+        raise
+
+if __name__ == "__main__":
+    # Configure logging for test
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s %(levelname)s [%(name)s] %(message)s'
+    )
+    
+    test_servo_movement()

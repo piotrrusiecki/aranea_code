@@ -1,174 +1,171 @@
 import os
-import json
+import logging
 import subprocess
+import re
+
+logger = logging.getLogger("config.parameter")
 
 class ParameterManager:
-    # Define the default parameter file name
-    PARAM_FILE = 'params.json'
-
     def __init__(self):
-        # Initialize the file path to the default parameter file
-        self.file_path = self.PARAM_FILE
-        if not self.file_exists() or not self.validate_params():
-            self.deal_with_param()
+        self.PARAM_FILE = "params.json"
+        self.pcb_version = None
+        self.pi_version = None
+        self.load_parameters()
 
-    @staticmethod
-    def _validate_file_path(file_path):
+    def _validate_file_path(self, file_path):
         """Validate file path to prevent path traversal attacks."""
-        if not file_path or not isinstance(file_path, str):
-            raise ValueError("File path must be a non-empty string")
-        
-        # Normalize the path and check for dangerous patterns
-        normalized_path = os.path.normpath(file_path)
-        
-        # Check for path traversal attempts
-        if '..' in normalized_path:
-            raise ValueError("File path cannot contain '..'")
-        
-        # Ensure the path is within the current directory
-        current_dir = os.getcwd()
-        absolute_path = os.path.abspath(normalized_path)
-        if not absolute_path.startswith(current_dir):
-            raise ValueError("File path must be within the current directory")
-        
-        return normalized_path
+        try:
+            if not file_path or not isinstance(file_path, str):
+                raise ValueError("File path must be a non-empty string")
+            
+            # Remove any path separators and normalize
+            basename = os.path.basename(file_path)
+            if basename != file_path:
+                raise ValueError("File path cannot contain path separators")
+            
+            # Check for dangerous characters
+            dangerous_chars = ['..', '/', '\\', ':', '*', '?', '"', '<', '>', '|']
+            for char in dangerous_chars:
+                if char in file_path:
+                    raise ValueError(f"File path contains invalid character: {char}")
+            
+            logger.debug("File path validation passed: %s", file_path)
+            return basename
+        except Exception as e:
+            logger.error("File path validation failed for '%s': %s", file_path, e)
+            raise
 
-    def file_exists(self, file_path=None):
-        # Check if the specified file exists
-        file_path = file_path or self.file_path
+    def delete_file(self, file_path):
+        """Delete a file with path validation."""
+        try:
+            validated_path = self._validate_file_path(file_path)
+            if os.path.exists(validated_path):
+                os.remove(validated_path)
+                logger.info("Deleted %s", validated_path)
+            else:
+                logger.warning("File %s does not exist", validated_path)
+        except Exception as e:
+            logger.error("Invalid file path: %s", e)
+
+    def file_exists(self, file_path):
+        """Check if a file exists with path validation."""
         try:
             validated_path = self._validate_file_path(file_path)
             return os.path.exists(validated_path)
-        except ValueError:
+        except Exception as e:
+            logger.error("Invalid file path: %s", e)
             return False
-
-    def validate_params(self, file_path=None):
-        # Validate that the parameter file exists and contains valid parameters
-        file_path = file_path or self.file_path
-        try:
-            validated_path = self._validate_file_path(file_path)
-            if not os.path.exists(validated_path):
-                return False
-            with open(validated_path, 'r') as file:
-                params = json.load(file)
-                return isinstance(params, dict) and 'Pcb_Version' in params and 'Pi_Version' in params
-        except ValueError:
-            return False
-
-    def get_param(self, param_name, file_path=None):
-        # Get the value of a specified parameter from the parameter file
-        file_path = file_path or self.file_path
-        try:
-            validated_path = self._validate_file_path(file_path)
-            if self.validate_params(validated_path):
-                with open(validated_path, 'r') as file:
-                    params = json.load(file)
-                    return params.get(param_name)
-        except ValueError:
-            pass
-        return None
-
-    def set_param(self, param_name, value, file_path=None):
-        # Set the value of a specified parameter in the parameter file
-        file_path = file_path or self.file_path
-        try:
-            validated_path = self._validate_file_path(file_path)
-            params = {}
-            if self.file_exists(validated_path):
-                with open(validated_path, 'r') as file:
-                    params = json.load(file)
-            params[param_name] = value
-            with open(validated_path, 'w') as file:
-                json.dump(params, file, indent=4)
-        except ValueError as e:
-            print(f"Invalid file path: {e}")
-
-    def delete_param_file(self, file_path=None):
-        # Delete the specified parameter file
-        file_path = file_path or self.file_path
-        try:
-            validated_path = self._validate_file_path(file_path)
-            if self.file_exists(validated_path):
-                os.remove(validated_path)
-                print(f"Deleted {validated_path}")
-            else:
-                print(f"File {validated_path} does not exist")
-        except ValueError as e:
-            print(f"Invalid file path: {e}")
-
-    def create_param_file(self, file_path=None):
-        # Create a parameter file and set default parameters
-        file_path = file_path or self.file_path
-        try:
-            validated_path = self._validate_file_path(file_path)
-            default_params = {
-                'Pcb_Version': 2,
-                'Pi_Version': ParameterManager.get_raspberry_pi_version()
-            }
-            with open(validated_path, 'w') as file:
-                json.dump(default_params, file, indent=4)
-        except ValueError as e:
-            print(f"Invalid file path: {e}")
 
     @staticmethod
     def get_raspberry_pi_version():
-        # Get the version of the Raspberry Pi
+        """Get Raspberry Pi version information."""
         try:
-            result = subprocess.run(['/usr/bin/cat', '/sys/firmware/devicetree/base/model'], capture_output=True, text=True, check=False)
-            if result.returncode == 0:
-                model = result.stdout.strip()
-                if "Raspberry Pi 5" in model:
-                    return 2
-                else:
-                    return 1
+            # Read the model information from /proc/device-tree/model
+            with open('/proc/device-tree/model', 'r') as f:
+                model_info = f.read().strip()
+            
+            # Check if it's a Raspberry Pi 5
+            if 'Raspberry Pi 5' in model_info:
+                logger.debug("Detected Raspberry Pi 5")
+                return 2
             else:
-                print("Failed to get Raspberry Pi model information.")
+                logger.debug("Detected Raspberry Pi 4 or earlier")
                 return 1
+        except FileNotFoundError:
+            logger.warning("Failed to get Raspberry Pi model information")
+            return 1
         except Exception as e:
-            print(f"Error getting Raspberry Pi version: {e}")
+            logger.error("Error getting Raspberry Pi version: %s", e)
             return 1
 
-    def deal_with_param(self):
-        # Main function to manage parameter file
-        if not self.file_exists() or not self.validate_params():
-            print(f"Parameter file {self.PARAM_FILE} does not exist or contains invalid parameters.")
-            user_input_required = True
-        else:
-            user_choice = input("Do you want to re-enter the hardware versions? (yes/no): ").strip().lower()
-            user_input_required = user_choice == 'yes'
+    def load_parameters(self):
+        """Load parameters from the JSON file."""
+        try:
+            if not os.path.exists(self.PARAM_FILE):
+                logger.warning("Parameter file %s does not exist or contains invalid parameters", self.PARAM_FILE)
+                self.create_parameter_file()
+                return
 
-        if user_input_required:
-            print("Please enter the hardware versions.")
-            while True:
-                try:
-                    user_pcb_version = int(input("Enter PCB Version (1 or 2): "))
-                    if user_pcb_version in [1, 2]:
-                        break
-                    else:
-                        print("Invalid PCB Version. Please enter 1 or 2.")
-                except ValueError:
-                    print("Invalid input. Please enter a number.")
-            user_pi_version = ParameterManager.get_raspberry_pi_version()
-            self.create_param_file()
-            self.set_param('Pcb_Version', user_pcb_version)
-            self.set_param('Pi_Version', user_pi_version)
-        else:
-            print("Do not modify the hardware version. Skipping...")
+            # Load parameters from file
+            import json
+            with open(self.PARAM_FILE, 'r') as f:
+                data = json.load(f)
+                self.pcb_version = data.get('pcb_version', 1)
+                self.pi_version = data.get('pi_version', 1)
+                
+            logger.info("Parameters loaded - PCB v%d, Pi v%d", self.pcb_version, self.pi_version)
+        except Exception as e:
+            logger.error("Failed to load parameters: %s", e)
+            self.create_parameter_file()
+
+    def create_parameter_file(self):
+        """Create a new parameter file with user input."""
+        logger.info("Please enter the hardware versions")
+        
+        while True:
+            try:
+                pcb_input = input("Enter PCB Version (1 or 2): ").strip()
+                pcb_version = int(pcb_input)
+                
+                if pcb_version not in [1, 2]:
+                    logger.error("Invalid PCB Version. Please enter 1 or 2")
+                    continue
+                    
+                break
+            except ValueError:
+                logger.error("Invalid input. Please enter a number")
+                continue
+
+        # Get Raspberry Pi version automatically
+        pi_version = self.get_raspberry_pi_version()
+        
+        # Save to file
+        import json
+        data = {
+            'pcb_version': pcb_version,
+            'pi_version': pi_version
+        }
+        
+        with open(self.PARAM_FILE, 'w') as f:
+            json.dump(data, f, indent=2)
+        
+        self.pcb_version = pcb_version
+        self.pi_version = pi_version
+        
+        logger.info("PCB Version: %d.0", pcb_version)
+        logger.info("Raspberry PI version is %s", 'less than 5' if pi_version == 1 else '5')
 
     def get_pcb_version(self):
-        # Get the PCB version from the parameter file
-        return self.get_param('Pcb_Version')
+        """Get the PCB version."""
+        return self.pcb_version
 
     def get_pi_version(self):
-        # Get the Raspberry Pi version from the parameter file
-        return self.get_param('Pi_Version')
+        """Get the Raspberry Pi version."""
+        return self.pi_version
 
-if __name__ == '__main__':
-    # Entry point of the script
-    manager = ParameterManager()
-    manager.deal_with_param()
-    if manager.file_exists("params.json") and manager.validate_params("params.json"):
-        pcb_version = manager.get_pcb_version()
-        print(f"PCB Version: {pcb_version}.0")
-        pi_version = ParameterManager.get_raspberry_pi_version()
-        print(f"Raspberry PI version is {'less than 5' if pi_version == 1 else '5'}.")
+    def update_parameters(self, pcb_version=None, pi_version=None):
+        """Update parameters and save to file."""
+        if pcb_version is not None:
+            if pcb_version not in [1, 2]:
+                logger.error("Invalid PCB version: %d", pcb_version)
+                return False
+            self.pcb_version = pcb_version
+            
+        if pi_version is not None:
+            if pi_version not in [1, 2]:
+                logger.error("Invalid Pi version: %d", pi_version)
+                return False
+            self.pi_version = pi_version
+        
+        # Save to file
+        import json
+        data = {
+            'pcb_version': self.pcb_version,
+            'pi_version': self.pi_version
+        }
+        
+        with open(self.PARAM_FILE, 'w') as f:
+            json.dump(data, f, indent=2)
+        
+        logger.info("Parameters updated - PCB v%d, Pi v%d", self.pcb_version, self.pi_version)
+        return True

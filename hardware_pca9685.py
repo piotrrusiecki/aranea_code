@@ -3,6 +3,9 @@
 import time
 import math
 import smbus
+import logging
+
+logger = logging.getLogger("hardware.pca9685")
 
 # ============================================================================
 # Raspi PCA9685 16-Channel PWM Servo Driver
@@ -29,51 +32,91 @@ class PCA9685:
     __ALLLED_OFF_H       = 0xFD  # Required for LED functionality
 
     def __init__(self, address: int = 0x40, debug: bool = False):
-        self.bus = smbus.SMBus(1)
-        self.address = address
-        self.debug = debug
-        self.write(self.__MODE1, 0x00)
+        try:
+            self.bus = smbus.SMBus(1)
+            self.address = address
+            self.debug = debug
+            self.write(self.__MODE1, 0x00)
+            logger.info("PCA9685 initialized at address 0x%02X", address)
+        except Exception as e:
+            logger.error("Failed to initialize PCA9685 at address 0x%02X: %s", address, e)
+            raise
     
     def write(self, reg: int, value: int) -> None:
         """Writes an 8-bit value to the specified register/address."""
-        self.bus.write_byte_data(self.address, reg, value)
+        try:
+            self.bus.write_byte_data(self.address, reg, value)
+            if self.debug:
+                logger.debug("PCA9685 write: reg=0x%02X, value=0x%02X", reg, value)
+        except Exception as e:
+            logger.error("Failed to write to PCA9685 register 0x%02X: %s", reg, e)
+            raise
       
     def read(self, reg: int) -> int:
         """Read an unsigned byte from the I2C device."""
-        result = self.bus.read_byte_data(self.address, reg)
-        return result
+        try:
+            result = self.bus.read_byte_data(self.address, reg)
+            if self.debug:
+                logger.debug("PCA9685 read: reg=0x%02X, value=0x%02X", reg, result)
+            return result
+        except Exception as e:
+            logger.error("Failed to read from PCA9685 register 0x%02X: %s", reg, e)
+            raise
     
     def set_pwm_freq(self, freq: float) -> None:
         """Sets the PWM frequency."""
-        prescaleval = 25000000.0    # 25MHz
-        prescaleval /= 4096.0       # 12-bit
-        prescaleval /= float(freq)
-        prescaleval -= 1.0
-        prescale = math.floor(prescaleval + 0.5)
+        try:
+            prescaleval = 25000000.0    # 25MHz
+            prescaleval /= 4096.0       # 12-bit
+            prescaleval /= float(freq)
+            prescaleval -= 1.0
+            prescale = math.floor(prescaleval + 0.5)
 
-        oldmode = self.read(self.__MODE1)
-        newmode = (oldmode & 0x7F) | 0x10        # sleep
-        self.write(self.__MODE1, newmode)        # go to sleep
-        self.write(self.__PRESCALE, int(math.floor(prescale)))
-        self.write(self.__MODE1, oldmode)
-        time.sleep(0.005)
-        self.write(self.__MODE1, oldmode | 0x80)
-
+            oldmode = self.read(self.__MODE1)
+            newmode = (oldmode & 0x7F) | 0x10        # sleep
+            self.write(self.__MODE1, newmode)        # go to sleep
+            self.write(self.__PRESCALE, int(math.floor(prescale)))
+            self.write(self.__MODE1, oldmode)
+            time.sleep(0.005)
+            self.write(self.__MODE1, oldmode | 0x80)
+            logger.info("PCA9685 PWM frequency set to %.1f Hz", freq)
+        except Exception as e:
+            logger.error("Failed to set PCA9685 PWM frequency to %.1f Hz: %s", freq, e)
+            raise
 
     def set_pwm(self, channel: int, on: int, off: int) -> None:
         """Sets a single PWM channel."""
-        self.write(self.__LED0_ON_L + 4 * channel, on & 0xFF)
-        self.write(self.__LED0_ON_H + 4 * channel, on >> 8)
-        self.write(self.__LED0_OFF_L + 4 * channel, off & 0xFF)
-        self.write(self.__LED0_OFF_H + 4 * channel, off >> 8)
+        try:
+            self.write(self.__LED0_ON_L + 4 * channel, on & 0xFF)
+            self.write(self.__LED0_ON_H + 4 * channel, on >> 8)
+            self.write(self.__LED0_OFF_L + 4 * channel, off & 0xFF)
+            self.write(self.__LED0_OFF_H + 4 * channel, off >> 8)
+            if self.debug:
+                logger.debug("PCA9685 PWM set: channel=%d, on=%d, off=%d", channel, on, off)
+        except Exception as e:
+            logger.error("Failed to set PCA9685 PWM channel %d: %s", channel, e)
+            raise
+
     def set_motor_pwm(self, channel: int, duty: int) -> None:
         """Sets the PWM duty cycle for a motor."""
-        self.set_pwm(channel, 0, duty)
+        try:
+            self.set_pwm(channel, 0, duty)
+            if self.debug:
+                logger.debug("PCA9685 motor PWM set: channel=%d, duty=%d", channel, duty)
+        except Exception as e:
+            logger.error("Failed to set PCA9685 motor PWM channel %d: %s", channel, e)
+            raise
 
     def set_servo_pulse(self, channel: int, pulse: float) -> None:
         """Sets the Servo Pulse, The PWM frequency must be 50HZ."""
-        pulse = pulse * 4096 / 20000        # PWM frequency is 50HZ, the period is 20000us
-        self.set_pwm(channel, 0, int(pulse))
+        try:
+            pulse = pulse * 4096 / 20000        # PWM frequency is 50HZ, the period is 20000us
+            self.set_pwm(channel, 0, int(pulse))
+            if self.debug:
+                logger.debug("PCA9685 servo pulse set: channel=%d, pulse=%.1f us", channel, pulse)
+        except Exception as e:
+            logger.error("Failed to set PCA9685 servo pulse channel %d: %s", channel, e)
+            raise
 
     def get_register_map(self) -> dict:
         """Return complete register map for hardware compatibility and future LED functionality.
@@ -99,7 +142,11 @@ class PCA9685:
 
     def close(self) -> None:
         """Close the I2C bus."""
-        self.bus.close()
+        try:
+            self.bus.close()
+            logger.info("PCA9685 I2C bus closed")
+        except Exception as e:
+            logger.error("Error closing PCA9685 I2C bus: %s", e)
 
 
 

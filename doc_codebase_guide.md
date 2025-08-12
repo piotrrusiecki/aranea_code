@@ -35,6 +35,15 @@ The codebase follows a systematic naming convention with functional prefixes:
 
 ## Recent Updates
 
+### Comprehensive Logging System (December 2024)
+- ✅ Implemented proper logging throughout all modules
+- ✅ Added lazy formatting for performance optimization
+- ✅ Configured appropriate log levels (DEBUG, INFO, WARNING, ERROR)
+- ✅ Color-coded logging output by module type
+- ✅ Preserved DEBUG_LEGS flag functionality for leg movement debugging
+- ✅ Added error handling with proper logging
+- ✅ Standardized logger naming convention
+
 ### Camera Web Interface (December 2024)
 - ✅ Added camera feed to web interface
 - ✅ MJPEG streaming via `/video_feed` endpoint
@@ -48,6 +57,49 @@ The codebase follows a systematic naming convention with functional prefixes:
 - ✅ Resolved PY-W2000 warnings (unused imports)
 - ✅ Improved error handling and logging
 - ✅ Enhanced type hints and documentation
+
+## Logging System
+
+### Logger Naming Convention
+The codebase uses a hierarchical logger naming system for clear identification:
+
+- **main**: Main application logger
+- **robot.***: Robot control modules (control, gait, kinematics, pose, calibration, state, pid, patrol)
+- **sensor.***: Sensor modules (camera, adc, imu, ultrasonic)
+- **actuator.***: Actuator modules (servo, led)
+- **hardware.***: Hardware drivers (pca9685)
+- **dispatcher.***: Command dispatcher modules (core, logic, registry, symbolic, utils)
+- **voice**: Voice control system
+- **web**: Web interface
+- **led.***: LED subsystem (commands, hw.rpi, hw.spi)
+
+### Log Levels
+- **DEBUG**: Detailed diagnostic information (leg movements, sensor readings, calculations)
+- **INFO**: General operational information (initialization, state changes, commands)
+- **WARNING**: Atypical behavior that doesn't prevent operation (obstacles, invalid inputs)
+- **ERROR**: Errors that affect functionality (hardware failures, exceptions)
+
+### Color Coding
+Log messages are color-coded by module type for easy identification:
+- **Blue**: Main application
+- **Green**: Robot control modules
+- **Yellow**: Hardware and dispatcher modules
+- **Red**: Actuator modules
+- **Magenta**: Sensor modules
+- **Cyan**: Web interface and camera
+
+### Configuration
+Logging is configured in `config/robot_config.py`:
+- `LOGGING_LEVEL`: Global log level (DEBUG, INFO, WARNING, ERROR)
+- `LOGGER_COLORS`: Color mapping for different logger names
+- `DEBUG_LEGS`: Special flag for detailed leg movement logging
+
+### Best Practices
+- Use lazy formatting: `logger.debug("Value: %s", value)` instead of `logger.debug(f"Value: {value}")`
+- Include context in log messages for debugging
+- Use appropriate log levels for different types of information
+- Add error handling with logging for all critical operations
+- Preserve existing DEBUG_LEGS functionality for leg movement debugging
 
 ## File Responsibilities
 
@@ -107,6 +159,13 @@ The codebase follows a systematic naming convention with functional prefixes:
 - Use proper error handling with try/except blocks
 - Add comprehensive logging for debugging
 
+### Logging Guidelines
+- Use appropriate logger names following the hierarchical convention
+- Implement lazy formatting for performance
+- Use correct log levels for different types of information
+- Include context and error details in log messages
+- Preserve DEBUG_LEGS functionality for leg movement debugging
+
 ### Camera Integration
 - Camera can only be accessed by one process at a time
 - Web interface shares camera instance with legacy client
@@ -120,6 +179,12 @@ The codebase follows a systematic naming convention with functional prefixes:
 - Provide status indicators for all operations
 
 ## Troubleshooting
+
+### Logging Issues
+- **No colored output**: Check `LOGGER_COLORS` configuration in robot_config.py
+- **Too much debug output**: Set `LOGGING_LEVEL` to INFO or WARNING
+- **Missing leg movement logs**: Enable `DEBUG_LEGS` flag in robot_config.py
+- **Performance issues**: Ensure lazy formatting is used for all log messages
 
 ### Camera Issues
 - **"Device or resource busy"**: Camera is already in use by another process
@@ -138,9 +203,12 @@ The codebase follows a systematic naming convention with functional prefixes:
 - [ ] Camera recording functionality
 - [ ] Multiple camera support
 - [ ] Advanced camera settings
+- [ ] Logging storage and web interface display
 
 ### Technical Debt
 - [ ] Improve camera resource management
 - [ ] Add camera health monitoring
 - [ ] Implement camera error recovery
 - [ ] Optimize frame rate and quality settings
+- [ ] Add log rotation and archival
+- [ ] Implement structured logging for better analysis
