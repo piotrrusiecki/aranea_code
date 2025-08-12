@@ -50,17 +50,13 @@
 ## 🚧 In Progress
 
 ### Performance Optimization
-- [ ] Camera frame rate optimization
 - [ ] Web interface performance improvements
-- [ ] Memory usage optimization
 
 ## 📋 Planned Features
 
 ### Advanced Camera Features
-- [ ] Camera quality/format controls
 - [ ] Camera recording functionality
-- [ ] Multiple camera support
-- [ ] Advanced camera settings
+
 
 ### Enhanced Web Interface
 - [ ] Real-time sensor data visualization
@@ -73,6 +69,8 @@
 - [ ] Autonomous navigation
 - [ ] Path planning
 - [ ] Environmental mapping
+- [ ] Composite dance moves
+- [ ] Rhytm and dance detection
 
 ### System Improvements
 - [ ] Enhanced error recovery
@@ -82,10 +80,9 @@
 
 ## 🎯 Current Priorities
 
-1. **Camera System Optimization** - Improve frame rate and quality
-2. **Web Interface Enhancement** - Add more sensor data and controls
-3. **Performance Monitoring** - Add system health dashboard
-4. **Documentation** - Complete user and developer guides
+1. **Web Interface Enhancement** - Add more sensor data and controls
+2. **Performance Monitoring** - Add system health dashboard
+3. **Documentation** - Complete user and developer guides
 
 ## 📊 Development Status
 
