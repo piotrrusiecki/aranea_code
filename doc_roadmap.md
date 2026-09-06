@@ -29,7 +29,7 @@
 - [x] Real-time camera status monitoring
 
 ### Voice Control System
-- [x] Multi-language voice recognition (8 languages)
+- [x] Multi-language voice recognition (9 languages: en, de, fr, es, hi, pl, pt, eo, tl)
 - [x] Runtime language switching
 - [x] Voice command mapping
 - [x] LED feedback for language switching
@@ -75,7 +75,7 @@
 - [ ] Path planning
 - [ ] Environmental mapping
 - [ ] Composite dance moves
-- [ ] Rhytm and dance detection
+- [ ] Rhythm and dance detection
 
 ### Phone Gyroscope Joystick Control
 - [ ] HTTPS support on the web server (required — mobile browsers block DeviceOrientation/DeviceMotion sensor access on plain HTTP)
@@ -88,6 +88,9 @@
 - [ ] System health monitoring
 - [ ] Remote diagnostics
 - [ ] Over-the-air updates
+
+### Field Autonomy
+- [ ] AP fallback and standalone operation (robot broadcasts its own WiFi network when no known network is in range, instead of only ever joining existing ones)
 
 ## 🎯 Current Priorities
 
@@ -104,4 +107,4 @@
 - **Code Quality**: 100% Complete
 - **Documentation**: 90% Complete
 
-*Last updated: December 2024 - Comprehensive logging system implemented with proper levels, lazy formatting, and color-coded output*
+*Last updated: September 2026 - Added Tagalog voice language, phone gyroscope joystick control roadmap, and field autonomy (AP fallback) roadmap*
