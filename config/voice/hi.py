@@ -35,8 +35,8 @@ command_map = {
     "upar dekho": "task_look_up",
     "neeche dekho": "task_look_down",
 
-    "आराम": "task_servo_off",
-    "जागो": "task_servo_on",
+    "aaram karo": "task_servo_off",
+    "jaago": "task_servo_on",
 
     "laal roshni": "led_set_static:255:0:0",
     "hara roshni": "led_set_static:0:255:0",
@@ -57,5 +57,6 @@ command_map = {
     "makhi spanish": "language_ES",
     "makhi french": "language_FR",
     "makhi polish": "language_PL",
-    "makhi portuguese": "language_PT"
+    "makhi portuguese": "language_PT",
+    "makhi tagalog": "language_TL"
 }

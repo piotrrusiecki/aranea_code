@@ -57,5 +57,6 @@ command_map = {
     "spider french": "language_FR",
     "spider hindi": "language_HI",
     "spider polish": "language_PL",
-    "spider portugese": "language_PT"
+    "spider portugese": "language_PT",
+    "spider tagalog": "language_TL"
 }

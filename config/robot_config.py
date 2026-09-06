@@ -9,7 +9,8 @@ VOICE_MODELS = {
     "es": "voice_models/vosk-model-small-es-0.42",
     "hi": "voice_models/vosk-model-small-hi-0.22",
     "pl": "voice_models/vosk-model-small-pl-0.22",
-    "pt": "voice_models/vosk-model-small-pt-0.3"
+    "pt": "voice_models/vosk-model-small-pt-0.3",
+    "tl": "voice_models/vosk-model-tl-ph-generic-0.6"
 }
 
 LOGGING_LEVEL = "DEBUG"

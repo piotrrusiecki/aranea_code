@@ -57,5 +57,6 @@ command_map = {
     "araignée hindi": "language_HI",
     "araignée espagnol": "language_ES",
     "araignée polonais": "language_PL",
-    "araignée portugais": "language_PT"
+    "araignée portugais": "language_PT",
+    "araignée tagalog": "language_TL"
 }

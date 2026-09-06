@@ -57,5 +57,6 @@ command_map = {
     "araneo hispane": "language_ES",
     "araneo france": "language_FR",
     "araneo pole": "language_PL",
-    "araneo portugale": "language_PT"
+    "araneo portugale": "language_PT",
+    "araneo tagaloge": "language_TL"
 }

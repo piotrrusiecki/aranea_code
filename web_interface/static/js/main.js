@@ -412,7 +412,8 @@ function showLanguageSwitchMessage(langCode, success) {
     'pl': 'Polski',
     'pt': 'Português',
     'hi': 'हिंदी',
-    'eo': 'Esperanto'
+    'eo': 'Esperanto',
+    'tl': 'Tagalog'
   };
   
   const langName = languageNames[langCode] || langCode.toUpperCase();

@@ -57,5 +57,6 @@ command_map = {
     "spinne französisch": "language_FR",
     "spinne hindi": "language_HI",
     "spinne polnisch": "language_PL",
-    "spinne portugiesisch": "language_PT"
+    "spinne portugiesisch": "language_PT",
+    "spinne tagalog": "language_TL"
 }

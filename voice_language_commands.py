@@ -15,7 +15,7 @@ def get_language_command_map(lang_code):
         return {}
 
 # Available language codes
-SUPPORTED_LANGUAGES = ["en", "eo", "de", "fr", "es", "hi", "pl", "pt"]
+SUPPORTED_LANGUAGES = ["en", "eo", "de", "fr", "es", "hi", "pl", "pt", "tl"]
 
 def get_language_command_maps():
     """Get all language command maps."""

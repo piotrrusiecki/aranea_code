@@ -12,7 +12,8 @@ SUPPORTED_LANGUAGES = {
     "es": "es",
     "hi": "hi",
     "pl": "pl",
-    "pt": "pt"
+    "pt": "pt",
+    "tl": "tl"
 }
 
 # Initialize command_map for the default language
@@ -36,6 +37,8 @@ if VOICE_LANG in SUPPORTED_LANGUAGES:
             from .pl import command_map
         elif VOICE_LANG == "pt":
             from .pt import command_map
+        elif VOICE_LANG == "tl":
+            from .tl import command_map
     except ImportError as e:
         logger.error("Voice config for language '%s' not found: %s", VOICE_LANG, e)
         raise ImportError(f"Voice config for language '{VOICE_LANG}' not found: {e}")
