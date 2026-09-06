@@ -71,5 +71,8 @@ manufacturer_*.py
 original_*.py
 *.zip
 
+# === Personal / scratch scripts ===
+_gen_pdf.py
+
 # === Git ===
 !.gitignore
