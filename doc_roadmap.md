@@ -77,6 +77,12 @@
 - [ ] Composite dance moves
 - [ ] Rhytm and dance detection
 
+### Phone Gyroscope Joystick Control
+- [ ] HTTPS support on the web server (required — mobile browsers block DeviceOrientation/DeviceMotion sensor access on plain HTTP)
+- [ ] Web UI: request motion-sensor permission (iOS gesture-triggered) and stream throttled tilt data to a new endpoint
+- [ ] Calibration step to zero the phone's neutral tilt before use
+- [ ] Refactor `robot_routines.py`'s `motion_loop`/gait execution from one-shot fixed-argument routines into a live-updating "joystick mode" that continuously reads current x/y/speed targets, so phone tilt can steer walking direction/speed in real time instead of only triggering fixed preset moves
+
 ### System Improvements
 - [ ] Enhanced error recovery
 - [ ] System health monitoring
